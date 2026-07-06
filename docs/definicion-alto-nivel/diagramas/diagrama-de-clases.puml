@@ -1,0 +1,180 @@
+@startuml diagrama-de-clases.puml
+skinparam classAttributeIconSize 0
+
+' =========================
+' Enumeraciones
+' =========================
+enum TurnoBedel {
+  MAÑANA
+  TARDE
+  NOCHE
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIÉRCOLES
+  JUEVES
+  VIERNES
+  SÁBADO
+}
+
+enum TipoAula {
+  GENERAL
+  MULTIMEDIOS
+  LABORATORIO
+}
+
+enum TipoPizarron {
+  TIZA
+  FIBRÓN
+}
+
+enum EstadoAula {
+  HABILITADA
+  INHABILITADA
+  MANTENIMIENTO
+}
+
+enum TipoReservaPeriodica {
+  CUATRIMESTRAL
+  ANUAL
+}
+
+enum EstadoReserva {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+}
+
+' =========================
+' Clases
+' =========================
+class Usuario {
+  +idUsuario: Serial
+  +email: String
+  +contraseña: String
+  +nombre: String
+  +apellido: String
+  +rol: String
+  +activo: Bool
+}
+
+class Administrador
+
+class Bedel {
+  +turno: TurnoBedel
+}
+
+class Docente {
+  +legajo: String
+}
+
+class AulaGeneral {
+  +idAula: Serial
+  +identificador: String
+  +tipo: TipoAula
+  +ubicacion: String
+  +estado: EstadoAula
+  +capacidad: Integer
+  +piso: Integer
+  +tipoDePizarron: TipoPizarron
+  +ventiladores: Bool
+  +aireAcondicionado: Bool
+}
+
+class AulaMultimedios {
+  +televisor: Bool
+  +cañon: Bool
+  +computadora: Bool
+}
+
+class AulaLaboratorio {
+  +cantidadDePCs: Int
+}
+
+class Reserva {
+  +idReserva: Serial
+  +nombreDocente: String
+  +apellidoDocente: String
+  +idDocente: Int
+  +emailDocente: String
+  +idCátedra: Int
+  +nombreCátedra: String
+  +fechaRegistro: DateTime
+  +estado: EstadoReserva
+  +motivoCancelacion: String
+  +verificarSolapamiento(): Bool
+}
+
+class ReservaPeriódica {
+  +tipo: TipoReservaPeriodica
+  +diasSemana: List<DiaSemana>
+}
+
+class ReservaEsporádica
+
+class DetalleReserva {
+  +fecha: Date
+  +horaInicio: Time
+  +cantModulos: Int
+  +diaReserva: String
+}
+
+class Cuatrimestre {
+  +idCuatrimestre: Serial
+  +numero: Int
+  +fechaInicio: Date
+  +fechaFin: Date
+  +estado: String
+}
+
+class AnoLectivo {
+  +idAño: Serial
+  +añoCalendario: Int
+  +estado: String
+}
+
+' =========================
+' Generalizaciones
+' =========================
+Usuario <|-- Administrador
+Usuario <|-- Bedel
+Usuario <|-- Docente
+
+AulaGeneral <|-- AulaMultimedios
+AulaGeneral <|-- AulaLaboratorio
+
+Reserva <|-- ReservaPeriódica
+Reserva <|-- ReservaEsporádica
+
+' =========================
+' Asociaciones
+' =========================
+Bedel "1" -- "0..N" Reserva : Registra
+Reserva *-- "1..N" DetalleReserva : Tiene detalle
+DetalleReserva "0..N" --> "1" AulaGeneral : Aula asignada
+ReservaPeriódica "1..2" -- "0..N" Cuatrimestre : Periodo asignado
+AnoLectivo "1" --> "2" Cuatrimestre : Contiene
+
+' =========================
+' Notas
+' =========================
+note as N0
+Todos los atributos contarán con métodos get() y set()
+end note
+
+note right of DetalleReserva
+Cada módulo dura x minutos
+end note
+
+note right of ReservaPeriódica
+El tipo de ReservaPeriódica indica si es cuatrimestral o anual,
+y la cantidad de cuatrimestres que tendrá relacionados
+end note
+
+note bottom of ReservaPeriódica
+La lista diasSemana registra qué días de la semana (L, M, X, J, V, S) se repite la reserva.
+end note
+
+@enduml

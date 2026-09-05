@@ -1,0 +1,345 @@
+# Diagramas originales
+
+Estos diagramas son fuente de verdad del proyecto junto con los RF y CU. Se preservan sin corregir; los cambios se acordarán y documentarán.
+
+## Casos de uso
+
+![Diagrama de casos de uso](../definicion-alto-nivel/diagramas/Diagrama%20caso%20de%20uso.drawio.png)
+
+El original gráfico contiene CU-01 a CU-29 y los actores Usuario, Administrador, Bedel y Docente. Las fichas textuales completas están en [requerimientos](02-requerimientos.md). Las diferencias de permisos y relaciones se identifican en el [registro de decisiones](../especificacion/04-decisiones-acordadas.md).
+
+## Clases
+
+![Clases](../definicion-alto-nivel/diagramas/diagrama-de-clases.puml.png)
+
+Fuente textual íntegra: [diagrama-de-clases.puml](../definicion-alto-nivel/diagramas/diagrama-de-clases.puml).
+
+```plantuml
+@startuml diagrama-de-clases.puml
+skinparam classAttributeIconSize 0
+
+' =========================
+' Enumeraciones
+' =========================
+enum TurnoBedel {
+  MAÑANA
+  TARDE
+  NOCHE
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIÉRCOLES
+  JUEVES
+  VIERNES
+  SÁBADO
+}
+
+enum TipoAula {
+  GENERAL
+  MULTIMEDIOS
+  LABORATORIO
+}
+
+enum TipoPizarron {
+  TIZA
+  FIBRÓN
+}
+
+enum EstadoAula {
+  HABILITADA
+  INHABILITADA
+  MANTENIMIENTO
+}
+
+enum TipoReservaPeriodica {
+  CUATRIMESTRAL
+  ANUAL
+}
+
+enum EstadoReserva {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+}
+
+' =========================
+' Clases
+' =========================
+class Usuario {
+  +idUsuario: Serial
+  +email: String
+  +contraseña: String
+  +nombre: String
+  +apellido: String
+  +rol: String
+  +activo: Bool
+}
+
+class Administrador
+
+class Bedel {
+  +turno: TurnoBedel
+}
+
+class Docente {
+  +legajo: String
+}
+
+class AulaGeneral {
+  +idAula: Serial
+  +identificador: String
+  +tipo: TipoAula
+  +ubicacion: String
+  +estado: EstadoAula
+  +capacidad: Integer
+  +piso: Integer
+  +tipoDePizarron: TipoPizarron
+  +ventiladores: Bool
+  +aireAcondicionado: Bool
+}
+
+class AulaMultimedios {
+  +televisor: Bool
+  +cañon: Bool
+  +computadora: Bool
+}
+
+class AulaLaboratorio {
+  +cantidadDePCs: Int
+}
+
+class Reserva {
+  +idReserva: Serial
+  +nombreDocente: String
+  +apellidoDocente: String
+  +idDocente: Int
+  +emailDocente: String
+  +idCátedra: Int
+  +nombreCátedra: String
+  +fechaRegistro: DateTime
+  +estado: EstadoReserva
+  +motivoCancelacion: String
+  +verificarSolapamiento(): Bool
+}
+
+class ReservaPeriódica {
+  +tipo: TipoReservaPeriodica
+  +diasSemana: List<DiaSemana>
+}
+
+class ReservaEsporádica
+
+class DetalleReserva {
+  +fecha: Date
+  +horaInicio: Time
+  +cantModulos: Int
+  +diaReserva: String
+}
+
+class Cuatrimestre {
+  +idCuatrimestre: Serial
+  +numero: Int
+  +fechaInicio: Date
+  +fechaFin: Date
+  +estado: String
+}
+
+class AnoLectivo {
+  +idAño: Serial
+  +añoCalendario: Int
+  +estado: String
+}
+
+' =========================
+' Generalizaciones
+' =========================
+Usuario <|-- Administrador
+Usuario <|-- Bedel
+Usuario <|-- Docente
+
+AulaGeneral <|-- AulaMultimedios
+AulaGeneral <|-- AulaLaboratorio
+
+Reserva <|-- ReservaPeriódica
+Reserva <|-- ReservaEsporádica
+
+' =========================
+' Asociaciones
+' =========================
+Bedel "1" -- "0..N" Reserva : Registra
+Reserva *-- "1..N" DetalleReserva : Tiene detalle
+DetalleReserva "0..N" --> "1" AulaGeneral : Aula asignada
+ReservaPeriódica "1..2" -- "0..N" Cuatrimestre : Periodo asignado
+AnoLectivo "1" --> "2" Cuatrimestre : Contiene
+
+' =========================
+' Notas
+' =========================
+note as N0
+Todos los atributos contarán con métodos get() y set()
+end note
+
+note right of DetalleReserva
+Cada módulo dura x minutos
+end note
+
+note right of ReservaPeriódica
+El tipo de ReservaPeriódica indica si es cuatrimestral o anual,
+y la cantidad de cuatrimestres que tendrá relacionados
+end note
+
+note bottom of ReservaPeriódica
+La lista diasSemana registra qué días de la semana (L, M, X, J, V, S) se repite la reserva.
+end note
+
+@enduml
+```
+
+## Entidad–relación
+
+![Entidad–relación](../definicion-alto-nivel/diagramas/DER.png)
+
+Fuente textual íntegra: [DER.puml](../definicion-alto-nivel/diagramas/DER.puml).
+
+```plantuml
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+
+' =========================
+' ENTIDADES
+' =========================
+entity "Usuario" as Usuario {
+  * id_Usuario : SERIAL
+  --
+  email : VARCHAR(100)
+  contraseña : VARCHAR(60)
+  nombre : VARCHAR(50)
+  apellido : VARCHAR(50)
+  rol : VARCHAR(20)
+  activo : BOOLEAN
+}
+
+entity "Administrador" as Administrador
+
+entity "Bedel" as Bedel {
+  turno : VARCHAR(10)
+}
+
+entity "Docente" as Docente {
+  legajo : VARCHAR(20)
+}
+
+entity "Aula_General" as Aula_General {
+  * id_Aula : SERIAL
+  --
+  identificador : VARCHAR(20)
+  tipo : VARCHAR(15)
+  ubicacion : VARCHAR(30)
+  estado : VARCHAR(15)
+  capacidad : INTEGER
+  piso : INTEGER
+  tipo_Pizarron : VARCHAR(15)
+  ventiladores : BOOLEAN
+  aire_Acondicionado : BOOLEAN
+}
+
+entity "Aula_Multimedios" as Aula_Multimedios {
+  televisor : BOOLEAN
+  canon : BOOLEAN
+  computadora : BOOLEAN
+}
+
+entity "Aula_Laboratorio" as Aula_Laboratorio {
+  cantidad_PC : INTEGER
+}
+
+entity "Reserva" as Reserva {
+  * id_Reserva : SERIAL
+  --
+  id_Docente : INT        ' externo
+  id_Catedra : INT        ' externo
+  nombre_Docente : VARCHAR(50)
+  apellido_Docente : VARCHAR(50)
+  email_Docente : VARCHAR(50)
+  fecha_Registro : DATETIME
+  estado : VARCHAR(15)
+  motivo_Cancelacion : VARCHAR(120)
+}
+
+entity "Reserva_Periodica" as Reserva_Periodica {
+  tipo : VARCHAR(15)
+  dias_Semana : JSON
+}
+
+entity "Reserva_Esporadica" as Reserva_Esporadica
+
+entity "Detalle_Reserva" as Detalle_Reserva {
+  * idDetalleReserva : SERIAL
+  --
+  horarioInicio : TIME
+  fecha : DATE
+  diaReserva : VARCHAR(10)
+  cantModulos : INTEGER
+}
+
+entity "Anio_Lectivo" as Anio_Lectivo {
+  * id_Anio : SERIAL
+  --
+  anio_Calendario : INTEGER
+  estado : VARCHAR(15)
+}
+
+entity "Cuatrimestre" as Cuatrimestre {
+  * id_Cuatrimestre : SERIAL
+  --
+  numero : INTEGER
+  fecha_Inicio_Cuatrimestre : DATE
+  fecha_Fin_Cuatrimestre : DATE
+  estado : VARCHAR(15)
+}
+
+entity "Periodo_Asignado" as Periodo_Asignado {
+  * id_Reserva : INT
+  * id_Cuatrimestre : INT
+}
+
+
+Administrador "(1,1)" -- "(1,1)" Usuario : es_subtipo_de
+Bedel         "(1,1)" -- "(1,1)" Usuario : es_subtipo_de
+Docente       "(1,1)" -- "(1,1)" Usuario : es_subtipo_de
+
+Aula_Multimedios "(1,1)" -- "(1,1)" Aula_General : es_subtipo_de
+Aula_Laboratorio "(1,1)" -- "(1,1)" Aula_General : es_subtipo_de
+
+Reserva_Periodica  "(1,1)" -- "(1,1)" Reserva : es_subtipo_de
+Reserva_Esporadica "(1,1)" -- "(1,1)" Reserva : es_subtipo_de
+
+' Asociaciones del dominio
+Bedel "(1,1)" -- "(0,N)" Reserva : Registra
+
+Reserva "(1,1)" -- "(1,N)" Detalle_Reserva : Detalle
+Aula_General "(1,1)" -- "(0,N)" Detalle_Reserva : Aula_Asignada
+
+Anio_Lectivo "(1,1)" -- "(2,2)" Cuatrimestre : Contiene
+
+
+Reserva_Periodica "(1,1)" -- "(1,2)" Periodo_Asignado : Define
+Cuatrimestre      "(1,1)" -- "(0,N)" Periodo_Asignado : Incluye
+
+' =========================
+' NOTAS
+' =========================
+note right of Reserva
+id_Docente e id_Catedra son IDs de un sistema externo.
+end note
+
+note right of Reserva_Periodica
+dias_Semana se almacena como JSON
+(arreglo<string> de días).
+end note
+
+@enduml
+```

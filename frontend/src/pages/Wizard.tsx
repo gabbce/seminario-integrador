@@ -1,3 +1,6 @@
+import { SporadicDates } from "../components/SporadicDates";
+import { validateDates } from "../booking-dates";
+import { overlaps, type Occurrence } from "../domain";
 import {
   compatible,
   resourcesFor,
@@ -49,6 +52,11 @@ export function Wizard({
 }) {
   const go = useNavigate();
   const [step, setStep] = useState(1);
+  const [mode, setMode] = useState<"periodic" | "sporadic">("periodic");
+  const [dates, setDates] = useState<Occurrence[]>([
+    { date: "2026-09-14", start: "14:00", end: "16:00", room: "" },
+    { date: "2026-09-21", start: "16:00", end: "17:30", room: "" },
+  ]);
   const [subject, setSubject] = useState("Matemática I");
   const [course, setCourse] = useState("001-A-2026");
   const [teacher, setTeacher] = useState("Laura Gómez");
@@ -64,8 +72,8 @@ export function Wizard({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<Booking | null>(null);
   const [schedule, setSchedule] = useState<Schedule>(defaultSchedule);
-  const occurrences = expand(patterns, schedule);
-  const omitted = omittedDates(patterns, schedule);
+  const occurrences = mode === "periodic" ? expand(patterns, schedule) : dates;
+  const omitted = mode === "periodic" ? omittedDates(patterns, schedule) : [];
   const endTime = (start: string, duration: number) => {
     const total = minutes(start) + duration;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
@@ -82,8 +90,7 @@ export function Wizard({
     },
     ...requirements,
     occurrences,
-    schedule,
-    patterns,
+    ...(mode === "periodic" ? { schedule, patterns } : {}),
   };
   function update(day: number, patch: Partial<Pattern>) {
     setPatterns((p) => p.map((x) => (x.day === day ? { ...x, ...patch } : x)));
@@ -92,26 +99,49 @@ export function Wizard({
     e.preventDefault();
     setError("");
     if (
-      !patterns.length ||
-      patterns.some(
-        (p) =>
-          !Number.isFinite(minutes(p.start)) ||
-          minutes(p.start) >= minutes(p.end) ||
-          minutes(p.end) > 1380,
-      )
+      mode === "periodic" &&
+      (!patterns.length ||
+        patterns.some(
+          (p) =>
+            !Number.isFinite(minutes(p.start)) ||
+            minutes(p.start) >= minutes(p.end) ||
+            minutes(p.end) > 1380,
+        ))
     ) {
       setError(
         "Seleccioná al menos un día y un horario de inicio anterior al final.",
       );
       return;
     }
-    if (patterns.some((p) => datesFor(p.day, schedule, p.start).length === 0)) {
+    if (
+      mode === "periodic" &&
+      patterns.some((p) => datesFor(p.day, schedule, p.start).length === 0)
+    ) {
       setError(
         "Cada día semanal seleccionado debe tener al menos una clase futura. Ajustá el período, los días o las exclusiones.",
       );
       return;
     }
+    const invalidDates = validateDates(occurrences);
+    if (invalidDates) {
+      setError(invalidDates);
+      return;
+    }
     if (step === 1) {
+      setDates((current) =>
+        current.map((o) => {
+          const room = rooms.find((r) => r.id === o.room);
+          return room &&
+            compatible(room, requirements) &&
+            !bookings.some((b) =>
+              b.occurrences.some(
+                (other) => !other.cancelled && overlaps(o, other),
+              ),
+            )
+            ? o
+            : { ...o, room: "" };
+        }),
+      );
       setPatterns((current) =>
         current.map((pattern) => {
           const room = rooms.find((candidate) => candidate.id === pattern.room);
@@ -164,8 +194,14 @@ export function Wizard({
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">ORGANIZAR EL CUATRIMESTRE</p>
-          <h1>Nueva reserva periódica</h1>
+          <p className="eyebrow">
+            {mode === "periodic"
+              ? "ORGANIZAR EL CUATRIMESTRE"
+              : "RESERVAR FECHAS PUNTUALES"}
+          </p>
+          <h1>
+            Nueva reserva {mode === "periodic" ? "periódica" : "esporádica"}
+          </h1>
         </div>
         <Button variant="ghost" onClick={() => go("/agenda")}>
           Salir
@@ -192,18 +228,46 @@ export function Wizard({
               {step === 1
                 ? "Datos de la reserva"
                 : step === 2
-                  ? "Un aula para cada día semanal"
+                  ? mode === "periodic"
+                    ? "Un aula para cada día semanal"
+                    : "Un aula para cada fecha"
                   : "Todo listo para revisar"}
             </h2>
             <p className="muted">
               {step === 1
-                ? "Reuní los datos de la clase y definí su frecuencia."
+                ? mode === "periodic"
+                  ? "Reuní los datos de la clase y definí su frecuencia."
+                  : "Reuní los datos de la clase y agregá las fechas necesarias."
                 : step === 2
-                  ? "El aula elegida se mantiene en todas las clases de ese día durante el cuatrimestre."
+                  ? mode === "periodic"
+                    ? "El aula elegida se mantiene en todas las clases de ese día durante el período."
+                    : "Elegí un aula disponible para cada fecha y horario."
                   : "La disponibilidad se verifica nuevamente al confirmar."}
             </p>
             {step === 1 ? (
               <>
+                <div className="weekdays" role="group" aria-label="Modalidad">
+                  <Button
+                    type="button"
+                    variant={mode === "periodic" ? "default" : "outline"}
+                    onClick={() => {
+                      setMode("periodic");
+                      setError("");
+                    }}
+                  >
+                    Periódica
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={mode === "sporadic" ? "default" : "outline"}
+                    onClick={() => {
+                      setMode("sporadic");
+                      setError("");
+                    }}
+                  >
+                    Esporádica
+                  </Button>
+                </div>
                 <div className="form-grid">
                   <CoursePicker
                     courses={courses}
@@ -253,25 +317,27 @@ export function Wizard({
                       ))}
                     </select>
                   </label>
-                  <label>
-                    Período
-                    <select
-                      aria-label="Período"
-                      value={schedule.period}
-                      onChange={(e) =>
-                        setSchedule({
-                          period: e.target.value as Period,
-                          excluded: [],
-                        })
-                      }
-                    >
-                      {Object.entries(periodLabels).map(([key, label]) => (
-                        <option key={key} value={key}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  {mode === "periodic" && (
+                    <label>
+                      Período
+                      <select
+                        aria-label="Período"
+                        value={schedule.period}
+                        onChange={(e) =>
+                          setSchedule({
+                            period: e.target.value as Period,
+                            excluded: [],
+                          })
+                        }
+                      >
+                        {Object.entries(periodLabels).map(([key, label]) => (
+                          <option key={key} value={key}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                 </div>
                 <fieldset className="equipment">
                   <legend>Características requeridas</legend>
@@ -306,121 +372,154 @@ export function Wizard({
                     ))}
                   </div>
                 </fieldset>
-                <div className="section-divider">
-                  <h2>Días y horarios</h2>
-                  <p className="muted">
-                    {schedule.period === "annual"
-                      ? "Ambos cuatrimestres, sin clases en el receso"
-                      : `${dateLabel(terms[schedule.period][0])} al ${dateLabel(terms[schedule.period][1])}`}
-                  </p>
-                  <div className="weekdays">
-                    {[1, 2, 3, 4, 5].map((day) => (
-                      <label
-                        key={day}
-                        className={
-                          patterns.some((p) => p.day === day) ? "selected" : ""
-                        }
-                      >
-                        <input
-                          type="checkbox"
-                          checked={patterns.some((p) => p.day === day)}
-                          onChange={(e) =>
-                            setPatterns((old) =>
-                              e.target.checked
-                                ? [
-                                    ...old,
-                                    {
-                                      day,
-                                      start: "14:00",
-                                      end: "16:00",
-                                      room: "",
-                                    },
-                                  ].sort((a, b) => a.day - b.day)
-                                : old.filter((p) => p.day !== day),
-                            )
-                          }
-                        />
-                        {dayNames[day]}
-                      </label>
-                    ))}
-                  </div>
-                  {patterns.map((p) => (
-                    <div className="pattern" key={p.day}>
-                      <strong>{dayNames[p.day]}</strong>
-                      <label>
-                        Desde
-                        <input
-                          type="time"
-                          min="07:00"
-                          max="22:30"
-                          step="1800"
-                          required
-                          value={p.start}
-                          onChange={(e) =>
-                            update(p.day, {
-                              start: e.target.value,
-                              end: endTime(
-                                e.target.value,
-                                minutes(p.end) - minutes(p.start),
-                              ),
-                            })
-                          }
-                        />
-                      </label>
-                      <label>
-                        Duración
-                        <select
-                          value={minutes(p.end) - minutes(p.start)}
-                          onChange={(e) =>
-                            update(p.day, {
-                              end: endTime(p.start, Number(e.target.value)),
-                            })
+                {mode === "sporadic" ? (
+                  <SporadicDates dates={dates} change={setDates} />
+                ) : (
+                  <div className="section-divider">
+                    <h2>Días y horarios</h2>
+                    <p className="muted">
+                      {schedule.period === "annual"
+                        ? "Ambos cuatrimestres, sin clases en el receso"
+                        : `${dateLabel(terms[schedule.period][0])} al ${dateLabel(terms[schedule.period][1])}`}
+                    </p>
+                    <div className="weekdays">
+                      {[1, 2, 3, 4, 5].map((day) => (
+                        <label
+                          key={day}
+                          className={
+                            patterns.some((p) => p.day === day)
+                              ? "selected"
+                              : ""
                           }
                         >
-                          {Array.from(
-                            { length: 32 },
-                            (_, i) => (i + 1) * 30,
-                          ).map((n) => (
-                            <option key={n} value={n}>
-                              {n / 60} h
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <div className="calculated-end">
-                        <small>Finaliza</small>
-                        <strong>{p.end}</strong>
-                      </div>
+                          <input
+                            type="checkbox"
+                            checked={patterns.some((p) => p.day === day)}
+                            onChange={(e) =>
+                              setPatterns((old) =>
+                                e.target.checked
+                                  ? [
+                                      ...old,
+                                      {
+                                        day,
+                                        start: "14:00",
+                                        end: "16:00",
+                                        room: "",
+                                      },
+                                    ].sort((a, b) => a.day - b.day)
+                                  : old.filter((p) => p.day !== day),
+                              )
+                            }
+                          />
+                          {dayNames[day]}
+                        </label>
+                      ))}
                     </div>
-                  ))}
-                  <ScheduleDates
-                    patterns={patterns}
-                    schedule={schedule}
-                    change={setSchedule}
-                  />
-                </div>
+                    {patterns.map((p) => (
+                      <div className="pattern" key={p.day}>
+                        <strong>{dayNames[p.day]}</strong>
+                        <label>
+                          Desde
+                          <input
+                            type="time"
+                            min="07:00"
+                            max="22:30"
+                            step="1800"
+                            required
+                            value={p.start}
+                            onChange={(e) =>
+                              update(p.day, {
+                                start: e.target.value,
+                                end: endTime(
+                                  e.target.value,
+                                  minutes(p.end) - minutes(p.start),
+                                ),
+                              })
+                            }
+                          />
+                        </label>
+                        <label>
+                          Duración
+                          <select
+                            value={minutes(p.end) - minutes(p.start)}
+                            onChange={(e) =>
+                              update(p.day, {
+                                end: endTime(p.start, Number(e.target.value)),
+                              })
+                            }
+                          >
+                            {Array.from(
+                              { length: 32 },
+                              (_, i) => (i + 1) * 30,
+                            ).map((n) => (
+                              <option key={n} value={n}>
+                                {n / 60} h
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div className="calculated-end">
+                          <small>Finaliza</small>
+                          <strong>{p.end}</strong>
+                        </div>
+                      </div>
+                    ))}
+                    <ScheduleDates
+                      patterns={patterns}
+                      schedule={schedule}
+                      change={setSchedule}
+                    />
+                  </div>
+                )}
               </>
             ) : step === 2 ? (
-              patterns.map((p) => (
-                <fieldset className="room-options" key={p.day}>
-                  <legend>
-                    {dayNames[p.day]} · {p.start}–{p.end}{" "}
-                    <small>
-                      {datesFor(p.day, schedule, p.start).length} clases
-                    </small>
-                  </legend>
-                  <RoomChoices
-                    request={expand([p], schedule)}
-                    candidates={rooms.filter((r) =>
-                      compatible(r, requirements),
-                    )}
-                    bookings={bookings}
-                    selected={p.room}
-                    onSelect={(room) => update(p.day, { room })}
-                    name={`room-${p.day}`}
-                  />
-                </fieldset>
-              ))
+              mode === "sporadic" ? (
+                dates.map((o, index) => (
+                  <fieldset className="room-options" key={o.date}>
+                    <legend>
+                      {dateLabel(o.date)} · {o.start}–{o.end}
+                    </legend>
+                    <RoomChoices
+                      mode="sporadic"
+                      request={[o]}
+                      candidates={rooms.filter((r) =>
+                        compatible(r, requirements),
+                      )}
+                      bookings={bookings}
+                      selected={o.room}
+                      onSelect={(room) =>
+                        setDates((current) =>
+                          current.map((x, i) =>
+                            i === index ? { ...x, room } : x,
+                          ),
+                        )
+                      }
+                      name={`date-${index}`}
+                    />
+                  </fieldset>
+                ))
+              ) : (
+                patterns.map((p) => (
+                  <fieldset className="room-options" key={p.day}>
+                    <legend>
+                      {dayNames[p.day]} · {p.start}–{p.end}{" "}
+                      <small>
+                        {datesFor(p.day, schedule, p.start).length} clases
+                      </small>
+                    </legend>
+                    <RoomChoices
+                      request={expand([p], schedule)}
+                      candidates={rooms.filter((r) =>
+                        compatible(r, requirements),
+                      )}
+                      bookings={bookings}
+                      selected={p.room}
+                      onSelect={(room) => update(p.day, { room })}
+                      name={`room-${p.day}`}
+                    />
+                  </fieldset>
+                ))
+              )
             ) : (
               <>
                 <div className="review-data">
@@ -430,13 +529,14 @@ export function Wizard({
                   <p>
                     {teacher} · {students} alumnos previstos
                   </p>
-                  {patterns.map((p) => (
-                    <p key={p.day}>
-                      <strong>{dayNames[p.day]}</strong> · {p.start}–{p.end} ·
-                      Aula {p.room} ·{" "}
-                      {datesFor(p.day, schedule, p.start).length} clases
-                    </p>
-                  ))}
+                  {mode === "periodic" &&
+                    patterns.map((p) => (
+                      <p key={p.day}>
+                        <strong>{dayNames[p.day]}</strong> · {p.start}–{p.end} ·
+                        Aula {p.room} ·{" "}
+                        {datesFor(p.day, schedule, p.start).length} clases
+                      </p>
+                    ))}
                 </div>
                 <details>
                   <summary>
@@ -482,7 +582,7 @@ export function Wizard({
               )}
               <Button
                 type="submit"
-                disabled={step === 2 && patterns.some((p) => !p.room)}
+                disabled={step === 2 && occurrences.some((p) => !p.room)}
               >
                 {step === 3
                   ? "Confirmar reserva"
@@ -512,7 +612,11 @@ export function Wizard({
             {occurrences.length}
             <span>clases previstas</span>
           </p>
-          <p>{periodLabels[schedule.period]}</p>
+          <p>
+            {mode === "periodic"
+              ? periodLabels[schedule.period]
+              : "Fechas independientes · 2026"}
+          </p>
           <p className="muted">
             {omitted.filter((o) => o.reason === "Exclusión manual").length}{" "}
             exclusiones manuales ·{" "}

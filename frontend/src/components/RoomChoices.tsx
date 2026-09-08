@@ -10,6 +10,7 @@ export function RoomChoices({
   onSelect,
   name,
   privateContacts = true,
+  mode = "periodic",
 }: {
   request: Occurrence[];
   candidates: Room[];
@@ -18,9 +19,10 @@ export function RoomChoices({
   onSelect: (id: string) => void;
   name: string;
   privateContacts?: boolean;
+  mode?: "periodic" | "sporadic";
 }) {
   const [all, setAll] = useState(false);
-  const options = roomOptions(request, candidates, bookings);
+  const options = roomOptions(request, candidates, bookings, mode);
   const free = options.filter((o) => !o.conflicts.length);
   const shown = free.length ? free : options;
   return (
@@ -34,7 +36,7 @@ export function RoomChoices({
           <div className="conflict-notice">
             <h3>Requieren resolver conflictos</h3>
             <p>
-              No hay un aula libre durante todo el período. Estas alternativas
+              {mode === "periodic" ? "No hay un aula libre durante todo el período." : "No hay un aula libre para esta fecha y horario."} Estas alternativas
               son informativas: revisá las reservas afectadas y contactá a las
               personas involucradas fuera de la app.
             </p>
@@ -120,7 +122,11 @@ export function RoomChoices({
                 {option.room.capacity} personas · {option.room.type}
               </small>
             </div>
-            <span className="availability">Disponible todo el período</span>
+            <span className="availability">
+              {mode === "periodic"
+                ? "Disponible todo el período"
+                : "Disponible en esta fecha"}
+            </span>
           </label>
         ),
       )}

@@ -1,3 +1,4 @@
+import { validateDates } from "./booking-dates";
 import { compatible, type Resource } from "./equipment";
 import { teachers } from "./teachers";
 import {
@@ -126,6 +127,8 @@ export function validateBooking(
     !booking.occurrences.length
   )
     return "Indicá alumnos y al menos un día de clase.";
+  const invalidDates = validateDates(booking.occurrences);
+  if (invalidDates) return invalidDates;
   for (const o of booking.occurrences) {
     const room = rooms.find((r) => r.id === o.room);
     if (!room || room.capacity < booking.students)

@@ -10,7 +10,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Períodos y exclusiones | Implementado, validado | Primer/segundo cuatrimestre y anual, omisión del pasado/receso/feriados, exclusiones explícitas, inicio+duración con fin calculado, detalle de omisiones en revisión. 7 pruebas unitarias y 5 E2E. |
 | Alternativas y conflictos | Implementado, validado | Aulas ordenadas por capacidad/ID, primeras tres y ver todas, ranking por modalidad/fechas/minutos, detalle y contactos ficticios. 11 pruebas unitarias y 7 E2E. |
 | Catálogo y equipamiento | Implementado, validado | Cursos reutilizables con código generado, comisión/año y requisitos de recursos. 14 pruebas unitarias y 8 E2E; compilación y lint correctos. |
-| Esporádicas y consulta | Pendiente | Fechas independientes, aula por fecha, disponibilidad compartida solo consulta para Docente. |
+| Esporádicas | Implementado, validado | Fechas independientes, aula por fecha, validaciones y confirmación completa. 16 pruebas unitarias y 9 E2E. |
+| Consulta de disponibilidad | Siguiente | Consulta independiente compartida, solo lectura para Docente y continuidad a registro para operadores. |
 | Operación P-03 | Pendiente | Semana, filtros/listados definitivos, editar, cancelar, reprogramar, imprimir. Protección temporal y control de versión simulado. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
@@ -49,3 +50,11 @@ Referencia `mockups/flujo-periodico-b/01-datos.png`. Capturas `frontend/evidence
 Recursos comunes y de Multimedios son seleccionables; cantidad de PC sigue fuera de los filtros. El resumen conserva lo solicitado. E2E crea `001-B-2026` reutilizando Matemática I y confirma con proyector, verificando que Aula 204 no aparezca. La disponibilidad y la validación final comparten criterios. Crear/reutilizar cursos no reinicia la preparación activa.
 
 Siguiente: esporádicas y disponibilidad independiente; después las operaciones y demás paquetes pendientes de la tabla. El objetivo completo sigue abierto.
+
+## Revisión visual del corte de esporádicas
+
+Comparadas referencia `mockups/flujo-esporadico-b/01-datos.png` y capturas reproducibles `frontend/evidence/esporadica-desktop.png` / `esporadica-mobile.png`. La modalidad comparte datos y pasos con periódicas, pero la selección es por fecha y la reserva guardada carece de patrón semanal. Se compactaron filas de fecha/inicio/duración en escritorio; móvil apila campos sin desbordar. La finalización se calcula y los textos distinguen fechas puntuales de un cuatrimestre.
+
+E2E confirma 14/09 14–16 en 203 y 21/09 16–17:30 en 105, vuelve desde revisión sin perder elecciones y comprueba dos clases en detalle. Pruebas de fechas cubren duplicados, feriados, fines de semana, pasado, fecha inválida, apertura y una fecha fuera de cuatrimestres. La confirmación repite validación antes de guardar todo el conjunto. Compilación y lint correctos.
+
+La consulta independiente todavía está pendiente; P-02 no se declara completo. Más escenarios de fallo y revisión exhaustiva de tamaños forman parte de P-06.

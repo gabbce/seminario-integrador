@@ -1,5 +1,9 @@
 # Dominio: reservas de aulas
 
+## Estado de diseño y próximo trabajo
+
+Diseño B — PATIO, recorridos, administración, móvil, estados, indicadores y guía visual aprobados. Referencia principal: [diseño consolidado](docs/diseno/README.md). El [plan del prototipo navegable](docs/diseno/prototipo-navegable.md) está listo para comenzar: frontend con datos simulados y escenarios reproducibles, sin integrar todavía Java/Supabase. Aún no se inició implementación. Las correcciones escritas prevalecen sobre imprecisiones de las imágenes generadas; esta etapa no modifica el stack final ni las reglas funcionales.
+
 Vocabulario vigente de la especificación v1.0 final, basado en las fuentes y acuerdos del proyecto. Las decisiones que precisan las fuentes se registran en [registro de decisiones](docs/especificacion/04-decisiones-acordadas.md).
 
 ## Lenguaje
@@ -38,7 +42,7 @@ Vocabulario vigente de la especificación v1.0 final, basado en las fuentes y ac
 
 **Cantidad de alumnos prevista:** número esperado de alumnos de una reserva, común a sus ocurrencias; exige un aula de capacidad suficiente y alimenta la concurrencia teórica. Reemplaza «capacidad mínima solicitada» como único dato del pedido, sin cambiar la capacidad del aula (DA-46).
 
-**Patrón semanal:** días de semana e inicio/duración que definen la repetición de una reserva periódica. Las reprogramaciones puntuales no lo cambian.
+**Patrón semanal:** día, inicio/duración y aula asignada que definen la repetición periódica. Se elige una sola aula disponible en todas sus fechas efectivas. Un cambio de aula afecta todas sus futuras vigentes, conservando el aula de las pasadas.
 
 **Fecha excluida:** fecha retirada explícitamente de una serie al prepararla; no genera ocurrencia y se conserva para evitar incorporarla al modificar el calendario.
 

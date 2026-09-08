@@ -48,7 +48,7 @@ La transcripción de PlantUML conserva también tipos, tamaños, enumeraciones y
 | RN-08 | No eliminar año con cuatrimestres/reservas ni cuatrimestre con reservas. | RF-13/17 |
 | RN-09 | Duración de reserva en múltiplos de 30 minutos. | RF-18, CU-21/22/24 |
 | RN-10 | Fechas de registro futuras; reservas periódicas dentro de su período. | RF-21/22 |
-| RN-11 | Sugerir tres aulas por fecha con capacidad más cercana por exceso. | RF-19 |
+| RN-11 | Sugerir hasta tres aulas por capacidad suficiente: por fecha en esporádicas y por patrón semanal completo en periódicas. | RF-19 |
 | RN-12 | Verificar solapamientos antes de confirmar y modificar. | RF-20 |
 | RN-13 | Confirmar de forma transaccional; ante error de persistencia no registrar. | RF-23, CU-23 |
 | RN-14 | Cancelación total o por fecha, con motivo; no cancelar ocurrencias pasadas. | RF-25 |
@@ -82,7 +82,7 @@ El [ciclo de reservas](07-ciclo-de-reservas.md) precisa preparación, confirmaci
 
 ## Precisiones de selección de aulas
 
-DA-24 permite inicio y duración por día de semana durante la preparación; DetalleReserva conserva el horario concreto de cada fecha. DA-25 aplica aulas a varias fechas compatibles sin cambiar la relación de una sola aula por detalle. DA-26 ordena hasta tres sugerencias y permite acceder a otras aulas válidas. DA-27 no crea detalles para fechas excluidas antes de confirmar. DA-28 cuantifica el menor solapamiento en minutos, exclusivamente como información: no modifica la regla de ausencia de conflictos para confirmar.
+DA-24 permite inicio y duración por día de semana durante la preparación; DetalleReserva conserva el horario concreto de cada fecha. DA-25 asigna una única aula por día semanal de la periódica, libre en todas sus fechas efectivas; esporádicas seleccionan por fecha. DA-26 ordena hasta tres sugerencias y permite acceder a otras aulas válidas. DA-27 no crea detalles para fechas excluidas antes de confirmar. DA-28 ordena alternativas informativas según modalidad: primero conflictos solo esporádicos por fechas y minutos, después periódicos por minutos acumulados y fechas esporádicas; no modifica la regla de ausencia de conflictos para confirmar.
 
 ## Aulas: tipos, capacidad y protección de reservas (DA-29 a DA-32)
 
@@ -131,6 +131,6 @@ DA-54/55 exigen conservar información suficiente para generar nuevas ocurrencia
 
 ## Datos necesarios para regeneración acordada
 
-DA-57 a DA-60 requieren conservar patrón semanal, exclusiones de fechas, vínculo entre ocurrencia reprogramada y fecha original, y cese de continuidad por cancelación de todas las futuras. Estos datos complementan ReservaPeriódica y DetalleReserva; no sustituyen su separación. La selección de aula utiliza antecedentes de ocurrencias y se revalida para cada nueva fecha. Estos datos están incluidos en el [modelo consolidado](13-modelo-consolidado.md).
+DA-57 a DA-60 requieren conservar patrón semanal, exclusiones de fechas, vínculo entre ocurrencia reprogramada y fecha original, y cese de continuidad por cancelación de todas las futuras. Estos datos complementan ReservaPeriódica y DetalleReserva; no sustituyen su separación. Las nuevas fechas usan el aula asignada al patrón y se revalidan; no se selecciona otra aula por fecha. Estos datos están incluidos en el [modelo consolidado](13-modelo-consolidado.md).
 
 DA-66 a DA-69 concretan estados del calendario, eliminación protegida y prohibición de cambios retroactivos. Se elimina el estado independiente de Cuatrimestre del modelo vigente, conservándolo únicamente en las fuentes históricas.

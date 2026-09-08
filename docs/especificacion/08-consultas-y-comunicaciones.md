@@ -75,3 +75,7 @@ DA-33 precisa el significado de «notificar» en RF-23 y CU-23/25. DA-34 amplía
 ## Mensajes de cuentas
 
 El login informa errores de Supabase y la API informa falta de perfil, cuenta deshabilitada o permiso insuficiente. Alta y cambio administrativo de contraseña muestran éxito solo tras resultado confirmado, y diferencian fallo o resultado incierto del proveedor. No hay avisos de cambio obligatorio ni cuenta regresiva de inactividad propia.
+
+## Información para resolver conflictos
+
+Las alternativas sin disponibilidad son informativas. Admin/Bedel puede consultar las reservas afectadas, sus fechas/horarios, usuario registrador con nombre/email y docente solicitante con contacto, diferenciando ambas funciones. Esto permite comunicación fuera de la app; no hay mensajería, negociación ni cambios automáticos. Docente no recibe datos administrativos del registrador ni emails. La disponibilidad solo cambia cuando se modifican efectivamente las reservas y se repite la comprobación.

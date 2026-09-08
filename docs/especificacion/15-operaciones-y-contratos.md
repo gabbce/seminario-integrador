@@ -20,7 +20,7 @@ El cliente no determina usuario autor, estado derivado, rol autorizado, cantidad
 | Crear/modificar/deshabilitar/rehabilitar/reset de usuario | Admin | Datos de cuenta y versión cuando existe | Validación de email, rol/perfil y último Admin; no afectar reservas. |
 | Consultar/gestionar aulas | Admin/Bedel | Filtros o datos y versión | Operación válida o dependencias bloqueantes; historia de estado/tipo coherente. |
 | Gestionar año/cuatrimestre | Admin | Datos, estado/acción y versión | Consistencia de calendario, referencias y transiciones. |
-| Consultar disponibilidad | Todos | Tipo, alumnos, recursos, fechas/horarios | Aulas válidas por fecha y conflictos informativos cuando corresponde; no retiene aulas. |
+| Consultar disponibilidad | Todos | Tipo, alumnos, recursos, fechas/horarios | Esporádicas por fecha; periódicas por patrón con disponibilidad en todas sus fechas y alternativas informativas ordenadas; no retiene aulas. |
 | Confirmar reserva | Admin/Bedel | Cabecera, patrón/fechas, selecciones y exclusiones | Recalcula y valida propuesta; cabecera y detalles completos o ninguno. |
 | Modificar detalles | Admin/Bedel | Reserva/version, IDs elegidos y cambios | Revalidación temporal y de aula; alcance completo o rechazo. |
 | Cancelar detalles | Admin/Bedel | Reserva/version, IDs elegidos, motivo | Estados, motivos, cabecera y continuidad de serie consistentes en una transacción. |
@@ -48,7 +48,7 @@ Si dos confirmaciones compiten por la misma franja, una puede guardar y la otra 
 
 ## Actualización de calendario
 
-La preparación devuelve fechas nuevas asociadas al patrón y su aula propuesta; no guarda cambios. La confirmación repite el cálculo bajo los datos vigentes y verifica que el resumen siga correspondiendo al cambio. Si se modificó una reserva implicada desde la revisión, exige revisar el efecto actualizado.
+La preparación devuelve fechas nuevas asociadas al patrón y su aulaAsignada; no guarda cambios. La confirmación repite el cálculo bajo los datos vigentes y verifica que el resumen siga correspondiendo al cambio. Si se modificó una reserva implicada desde la revisión, exige revisar el efecto actualizado.
 
 No crear clases para fechas pasadas, canceladas, excluidas, ya representadas por una clase reprogramada o pertenecientes a series sin continuidad. Eliminar un feriado y ampliar cuatrimestre no son operaciones CRUD independientes de reservas, porque DA-57 exige persistencia conjunta.
 
@@ -75,3 +75,11 @@ Alta de identidad y creación de perfil no son una transacción única aunque la
 Ante timeout de una llamada administrativa, su resultado puede ser incierto: informar esa condición y verificar el estado antes de repetir cambios. Un cambio de contraseña no se considera atómico con su evento local; si Auth confirma el cambio pero falla la auditoría, no afirmar que la contraseña anterior sigue vigente ni repetir el cambio automáticamente. Las contraseñas nunca forman parte del registro de recuperación.
 
 Cambios de rol, perfil y estado de Usuario son transacciones locales con auditoría. Deshabilitar hace que la siguiente solicitud protegida se rechace; rehabilitar vuelve a permitir identidad válida según el proveedor. No exigir revocación instantánea de todos los JWT ni una tabla propia de sesiones.
+
+## Selección periódica y alternativas informativas
+
+Preparar periódica recibe días semanales/horarios, período y exclusiones explícitas. Java deriva fechas efectivas y devuelve por patrón aulas disponibles en todas ellas. Confirmar recibe aula por patrón, no un mapa editable de aula por fecha. El backend genera los detalles y rechaza cualquier entrada que intente eludir la uniformidad. Editar aula periódica actualiza patrón y todas sus futuras vigentes de forma atómica; fecha/horario puntual conserva el aula del patrón.
+
+Sin disponibilidad, devolver alternativas con grupo (solo esporádicas o con periódicas), fechas esporádicas distintas, minutos acumulados por modalidad y detalle de conflictos; orden exacto del documento 07. No convertir esas alternativas en asignaciones confirmables. Los contactos de registrador y solicitante solo se entregan a Admin/Bedel; usar datos existentes sin inferir una nueva entidad responsable. El ranking no persiste consultas ni alimenta indicadores de conflictos.
+
+Ampliar calendario usa el aula del patrón. Si falla disponibilidad, rechazar todo el cambio y mostrar interferencias; no permitir una asignación excepcional para las nuevas fechas. Toda resolución exige cambios efectivos y nueva validación, no un indicador de «acuerdo externo».

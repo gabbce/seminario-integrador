@@ -42,13 +42,13 @@ Cada fila relaciona el requisito y su caso de uso del mismo número. No se agreg
 
 DA-03 amplía explícitamente el alta de cuentas de RF-02/CU-02 al rol Docente para consulta. No agrega gestión académica de docentes. DA-04 elimina la necesidad de integración externa sugerida por las notas del DER; DA-48/52 definen posteriormente la identificación del curso.
 
-DA-06 completa los permisos: Admin accede a las operaciones de Bedel y administra exclusivamente cuentas y calendario. DA-07 permite registrar un docente sin cuenta y mantiene consulta general para el rol Docente. DA-08 elimina la exigencia de código institucional del curso; su identidad interna está en definición.
+DA-06 completa los permisos: Admin accede a las operaciones de Bedel y administra exclusivamente cuentas y calendario. DA-07 permite registrar un docente sin cuenta y mantiene consulta general para el rol Docente. DA-08 elimina la exigencia de código institucional del curso; su identidad está definida en el modelo consolidado.
 
 DA-15 exige seleccionar al docente desde la lista fija. DA-16 precisa fechas de recurrencias y bloqueo de feriados. La gestión manual de feriados de DA-13/17/18 es una ampliación solicitada durante la entrevista; su definición y criterios se mantienen en [calendario y datos de referencia](06-calendario-y-datos-de-referencia.md). No se altera la numeración de los requisitos históricos.
 
 DA-19 a DA-23 precisan preparación sin persistencia, confirmación completa, acciones sobre futuras, estados de cancelación y registro en períodos iniciados. Los flujos y criterios se detallan en [ciclo de reservas](07-ciclo-de-reservas.md).
 
-DA-24 a DA-28 precisan RF/CU-18/19/21/22/23: horario por día de semana, aplicación de aula a fechas compatibles, hasta tres sugerencias y acceso a otras, exclusión explícita de fechas e información de menor solapamiento. Ver [selección de aulas](07-ciclo-de-reservas.md#horarios-y-selección-de-aulas-da-24-a-da-28).
+DA-24 a DA-28 precisan RF/CU-18/19/21/22/23: horario por día de semana, aula por día semanal disponible en todo el período, hasta tres sugerencias y acceso a otras, exclusiones explícitas e información de alternativas según conflictos esporádicos/periódicos. Ver [selección de aulas](07-ciclo-de-reservas.md#horarios-y-selección-de-aulas-da-24-a-da-28).
 
 DA-29 a DA-32 precisan RF/CU-06 a 09 y 18/19: subtipos de aula originales, capacidad por personas, cantidad de PC solo descriptiva y protección de reservas ante cambios y bajas.
 
@@ -166,7 +166,7 @@ Administradores y Bedeles pueden preparar reservas de una o más fechas específ
 
 ### RF-22: Registrar reserva por período
 
-Administradores y Bedeles pueden preparar reservas periódicas cuatrimestrales o anuales con patrón semanal, generando ocurrencias futuras dentro de los períodos asignados y omitiendo feriados y recesos.
+Administradores y Bedeles pueden preparar reservas periódicas cuatrimestrales o anuales con patrón semanal, generando ocurrencias futuras dentro de los períodos asignados y omitiendo feriados y recesos. Se selecciona un aula por día semanal libre en todas sus fechas efectivas; no se combina aula por fecha.
 
 ### RF-23: Confirmar reserva
 

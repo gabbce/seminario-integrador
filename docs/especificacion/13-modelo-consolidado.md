@@ -32,6 +32,7 @@ classDiagram
     ReservaPeriodica "1" *-- "1..5" PatronSemanal : repite
     ReservaPeriodica "1" *-- "0..*" FechaExcluida : excluye
     Reserva "1" *-- "1..*" DetalleReserva : ocurrencias
+    PatronSemanal "0..*" --> "1" AulaGeneral : aula asignada
     PatronSemanal "0..1" --> "0..*" DetalleReserva : origina
     DetalleReserva "0..*" --> "1" AulaGeneral : ocupa
     AulaGeneral "1" *-- "1..*" HistorialAula : estado y tipo en el tiempo
@@ -139,7 +140,7 @@ Docente, curso, alumnos, tipo y equipamiento solicitados no se editan después d
 | continuidadCanceladaEn | Instante opcional: se canceló toda la continuidad futura. No cambia el estado histórico de cabecera. |
 | patrones | Uno por día seleccionado, de lunes a viernes. |
 
-PatronSemanal contiene ID, reserva periódica, día de semana, hora de inicio y cantidad de módulos. Unicidad de día dentro de la serie. Sustituye la simple lista de días/JSON del original porque DA-24 admite horas distintas por día. Las reprogramaciones puntuales no lo modifican.
+PatronSemanal contiene ID, reserva periódica, día de semana, hora de inicio, cantidad de módulos y aulaAsignada (referencia obligatoria a Aula). Unicidad de día dentro de la serie. Sustituye la simple lista de días/JSON del original porque DA-24 admite horas distintas por día. Las reprogramaciones puntuales no modifican día/horario del patrón ni permiten otro aula. Cambiar aula del patrón revalida y actualiza todas sus futuras vigentes en una transacción; los detalles pasados conservan su aula histórica.
 
 ContinuidadCanceladaEn se establece cuando una cancelación deja a la serie sin ocurrencias futuras vigentes, no por el mero paso del tiempo. La actualización del calendario no extiende esa serie. Una serie finalizada naturalmente puede extenderse mientras el año permita cambios y aparezcan nuevas fechas futuras.
 
@@ -157,7 +158,7 @@ ContinuidadCanceladaEn se establece cuando una cancelación deja a la serie sin 
 | patronOrigen | En periódicas, patrón que originó la clase; ausente en esporádicas. |
 | fechaOriginal | En periódicas, fecha nominal del patrón que representa; permanece al reprogramar. |
 
-La pareja reserva periódica + fechaOriginal identifica una clase de la serie. Evita regenerarla al retirar un feriado si ya se movió a otra fecha. Exigir coherencia de fechaOriginal con patronOrigen. Para nuevas fechas, la búsqueda del aula antecedente usa el mismo patronOrigen, aunque una ocurrencia anterior haya sido reprogramada a otro día.
+La pareja reserva periódica + fechaOriginal identifica una clase de la serie. Evita regenerarla al retirar un feriado si ya se movió a otra fecha. Exigir coherencia de fechaOriginal con patronOrigen. Las nuevas fechas usan aulaAsignada de patronOrigen; no se deduce el aula de una ocurrencia anterior ni se permite sustituirla individualmente. Toda ocurrencia futura vigente debe coincidir con el aula actual de su patrón, incluso si su fecha/horario fue reprogramado.
 
 FechaExcluida contiene reserva periódica + fecha original, únicas. Se conserva al confirmar una exclusión manual; no crea detalle cancelado. Feriados y fechas ya iniciadas no se guardan como exclusiones manuales: se derivan del calendario y tiempo, permitiendo DA-55. Los detalles cancelados tampoco se convierten en exclusiones: ya son la evidencia que impide regenerarlos.
 

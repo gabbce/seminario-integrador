@@ -4,6 +4,8 @@
 
 ## Problema y solución
 
+**Diseño aprobado:** [B — PATIO y recorridos consolidados](../diseno/README.md), con [guía visual](../diseno/guia-visual-b.md). La preparación documental del [prototipo navegable](../diseno/prototipo-navegable.md) está completa; su simulación de datos es una etapa de validación de interfaz y no cambia la arquitectura final.
+
 Una facultad necesita asignar aulas a clases y actividades sin superposiciones, considerando alumnos previstos, recursos, fechas y horarios. La app digitaliza ese circuito para Bedelía y permite consultar ocupación y analizar el uso programado de los espacios.
 
 Primera versión: demostración académica con datos ficticios, ejecutable localmente o en la web, para una institución de Santa Fe, Argentina. Operación desde computadora y consultas docentes también desde celular. Idioma español; horario local institucional.
@@ -38,7 +40,7 @@ La reserva conserva docente, curso/comisión, alumnos previstos, tipo y recursos
 
 Esporádicas para fechas concretas; periódicas cuatrimestrales o anuales con horario por día de semana. Una anual une los dos cuatrimestres y omite receso/feriados. Si el período comenzó, solo genera clases futuras.
 
-Hasta tres sugerencias por menor capacidad suficiente e identificador, con acceso a otras aulas válidas. Permite aplicar aula a fechas compatibles y excluir fechas expresamente. Si no hay aulas libres, mostrar conflictos y menor superposición como información, sin permitir sobre-reserva.
+Hasta tres sugerencias por menor capacidad suficiente e identificador, con acceso a otras aulas válidas. En periódicas se elige aula por día semanal, libre para todas sus fechas efectivas; en esporádicas, por fecha. Las exclusiones explícitas no habilitan excepciones de aula. Si no hay disponibilidad periódica, primero alternativas con solo esporádicas por menos fechas afectadas y luego minutos; después alternativas con periódicas por menos minutos acumulados y luego fechas esporádicas afectadas. Son informativas, con contactos para operadores, sin permitir sobre-reserva.
 
 Preparación temporal sin guardar ni ocupar aulas. Confirmación completa del conjunto elegido o ninguna; conflictos nuevos vuelven a revisión. Mutaciones revalidan permisos, tiempo y versión; no sobrescriben ediciones ajenas.
 
@@ -48,9 +50,9 @@ Docente, curso, alumnos y requisitos compartidos quedan fijos al empezar la seri
 
 ### Actualización de series
 
-Ampliar cuatrimestre o quitar feriado genera las clases periódicas correspondientes. Mostrar impacto, proponer aula de la última ocurrencia no cancelada del mismo patrón y resolver todas las fechas antes de guardar calendario y nuevas clases juntos.
+Ampliar cuatrimestre o quitar feriado genera las clases periódicas correspondientes. Mostrar impacto, usar el aula del patrón y resolver las interferencias sin permitir otra aula por fecha antes de guardar calendario y nuevas clases juntos.
 
-Respetar fechas excluidas, detalles cancelados, clases reprogramadas y cese de continuidad. No extender series a las que se cancelaron todas las futuras, ni generar pasado. Una modificación puntual no altera el patrón semanal.
+Respetar fechas excluidas, detalles cancelados, clases reprogramadas y cese de continuidad. No extender series a las que se cancelaron todas las futuras, ni generar pasado. Una modificación puntual de fecha/horario no altera el patrón semanal ni su aula. Reasignar aula periódica afecta todas las futuras del patrón, conservando detalles pasados.
 
 ### Consultas e indicadores
 

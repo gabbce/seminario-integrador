@@ -4,6 +4,8 @@
 
 Comenzar por la [especificación de la aplicación](especificacion/00-especificacion.md), que resume el alcance, las reglas y las exclusiones.
 
+El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [plan del prototipo navegable](diseno/prototipo-navegable.md) define pantallas, escenarios y verificación para comenzar la siguiente etapa; aún no hay implementación.
+
 ## Documentos de detalle
 
 - [Alcance y funcionamiento](especificacion/01-alcance-y-funcionamiento.md).

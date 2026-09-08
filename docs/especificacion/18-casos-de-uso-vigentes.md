@@ -150,16 +150,16 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-18; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Todos.
-- **Flujo y resultado:** Recibir tipo, alumnos, recursos, fechas o patrón y horario; descartar no reservables y superposiciones; devolver por fecha.
-- **Controles y alternativas:** Fechas/horarios inválidos se señalan. Sin disponibilidad mostrar opciones de menor solapamiento compatibles; sin aulas compatibles informarlo. No retiene espacios.
+- **Flujo y resultado:** Recibir tipo, alumnos, recursos, fechas o patrón y horario; descartar no reservables; devolver aulas libres por fecha esporádica o por todo el patrón periódico.
+- **Controles y alternativas:** Fechas/horarios inválidos se señalan. Sin disponibilidad mostrar alternativas compatibles según el ranking esporádico/periódico del documento 07; sin aulas compatibles informarlo. No retiene espacios.
 - **Interfaz:** UI-04. **Aceptación:** CA-A01/02/03/07, CA-R15/18.
 
-## CU-19 — Sugerir aulas por fecha
+## CU-19 — Sugerir aulas según modalidad
 
 - **Fuente:** RF-19; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin/Bedel.
 - **Flujo y resultado:** Ordenar aulas válidas por capacidad suficiente ascendente e identificador; mostrar hasta tres; permitir otras válidas y selección.
-- **Controles y alternativas:** Menos de tres no se completan con ocupadas. Aplicar aula a un día semanal asigna solo ocurrencias compatibles y deja las otras visibles para resolver.
+- **Controles y alternativas:** Menos de tres no se completan con ocupadas. Un aula periódica solo es válida si cubre todas las fechas del día semanal; no asignar parcialmente.
 - **Interfaz:** UI-04/05. **Aceptación:** CA-R12/13/14.
 
 ## CU-20 — Verificar solapamientos
@@ -182,7 +182,7 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-22; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin/Bedel.
-- **Flujo y resultado:** Elegir curso y docente, tipo/recursos/alumnos; período, días y horario por día; derivar fechas; omitir calendario/pasado; seleccionar aulas/exclusiones; confirmar.
+- **Flujo y resultado:** Elegir curso y docente, tipo/recursos/alumnos; período, días y horario por día; derivar fechas; omitir calendario/pasado; revisar exclusiones y seleccionar un aula por día semanal disponible en todas sus fechas; confirmar.
 - **Controles y alternativas:** Anual une ambos cuatrimestres. Con período iniciado solo generar futuras. Conservar patrón/exclusiones; ninguna fecha válida impide confirmar.
 - **Interfaz:** UI-05. **Aceptación:** CA-R09/10/11/12/16/17.
 
@@ -247,7 +247,7 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 | ID | Actor | Flujo y resultado | Reglas / aceptación |
 |---|---|---|---|
 | EX-01 — Gestionar feriados | Admin | Listar, agregar, corregir o quitar fecha y descripción del año. Alta verifica clases afectadas; eliminación puede activar EX-02. | No retroactividad, duplicados ni cambios de clases iniciadas. Resolver futuras antes de alta. CA-K08, CA-R26. |
-| EX-02 — Actualizar series por calendario | Admin | Preparar cambio, derivar nuevas futuras, proponer aula antecedente del patrón, resolver todas y confirmar conjunto de calendario/reservas. | Respetar exclusiones, cancelaciones, fecha original y continuidad. Revalidar versión y no solapamiento. CA-R24 a CA-R30. |
+| EX-02 — Actualizar series por calendario | Admin | Preparar cambio, derivar nuevas futuras, usar aula asignada al patrón, resolver conflictos sin excepciones de aula por fecha y confirmar conjunto de calendario/reservas. | Respetar exclusiones, cancelaciones, fecha original y continuidad. Revalidar versión y no solapamiento. CA-R24 a CA-R30. |
 | EX-03 — Restablecer contraseña | Admin | Ingresar nueva contraseña y confirmación; backend actualiza identidad en Auth. | Sin correo ni cambio obligatorio; errores del proveedor sin éxito falso. CA-U03/05/07/13. |
 | EX-04 — Rehabilitar usuario | Admin | Cambiar cuenta inactiva a activa y auditar. | Acceso con identidad válida y rol actual; no alterar reservas. CA-U09. |
 | OP-01 — Inicializar demo | Responsable | Configurar Supabase y app; crear identidad Auth y perfil Admin mediante variables privadas. | Sin duplicar ni sobrescribir; resolver inicialización incompleta. Documento 17. |
@@ -279,3 +279,11 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 ## Cobertura documental
 
 Los 29 RF y 29 CU originales tienen ficha vigente en este documento. Los 5 RNF se precisan en documentos 05, 11 y 17. Las historias HU del documento 16 cubren caminos principales, alternativos y errores; los criterios CA de documentos 03, 06, 07, 08, 10 y este documento permiten verificarlos. Esta trazabilidad no significa que las pruebas de aplicación hayan sido ejecutadas.
+
+## Selección y conflictos en reservas periódicas
+
+CU-18/19/20/22/23 aplican disponibilidad completa por día semanal: una aula por patrón, comprobada en todas sus fechas efectivas. CU-21 permite aula por fecha esporádica. La confirmación periódica no admite una asignación distinta por fecha. CU-24 permite cambiar aula periódica solo para todas las futuras vigentes del patrón, conservando pasado; los cambios puntuales de fecha/horario mantienen el aula de ese patrón.
+
+Sin disponibilidad, CU-18/20 muestra alternativas informativas según el orden esporádicas/periódicas del documento 07. Admin/Bedel consulta reservas afectadas, docente/contacto y usuario registrador con su email; Docente no recibe datos administrativos ni emails. La comunicación se realiza fuera de la app, sin envío, negociación, cancelación o reasignación automática. Volver a consultar después de cambios reales antes de confirmar.
+
+EX-02 usa el aula del patrón para nuevas fechas y bloquea interferencias sin permitir aulas excepcionales. Aceptación de estas reglas: CA-R12 y CA-R31 a CA-R37.

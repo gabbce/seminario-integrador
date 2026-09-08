@@ -46,8 +46,8 @@ La optimización automática global de horarios no forma parte de los casos de u
 2. Bedel inicia una reserva, informa curso y docente, tipo de aula, cantidad de alumnos prevista y características requeridas.
 3. En modalidad esporádica indica fechas; en periódica elige período y días de semana.
 4. Indica hora de inicio y duración múltiplo de 30 minutos; en periódicas puede definirlos por día de semana (DA-24).
-5. El sistema consulta disponibilidad por fecha, descarta aulas inactivas y conflictos y sugiere las de menor capacidad suficiente.
-6. Bedel selecciona un aula por fecha, pudiendo aplicarla a las fechas compatibles de un día de semana. Puede consultar otras aulas válidas y excluir fechas explícitamente; revisa asignaciones y exclusiones antes de confirmar (DA-25/26/27).
+5. Consulta disponibilidad por fecha en esporádicas y para todas las fechas de cada día semanal en periódicas; sugiere aulas válidas por menor capacidad suficiente.
+6. Bedel selecciona aula por fecha en esporádicas o un aula para todas las fechas efectivas de cada día semanal en periódicas. Las alternativas conflictivas se ordenan según modalidad y se muestran solo como información, con responsables/contactos para operadores. Puede consultar otras aulas válidas y excluir fechas explícitamente; revisa asignaciones y exclusiones antes de confirmar (DA-25/26/27).
 7. Al confirmar, se revalidan las asignaciones y se registra la operación de forma transaccional; se notifica el resultado.
 8. Bedel o Administrador pueden modificar o cancelar según las reglas de vigencia. Las cancelaciones admiten alcance total o por fecha y motivo.
 9. Los usuarios consultan listados; Docente consulta agenda; Administrador y Bedel acceden a estadísticas.

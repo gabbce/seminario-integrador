@@ -64,7 +64,7 @@ Estado: síntesis funcional 1.0 de los acuerdos, sin funcionalidades adicionales
 
 30. **HU-30** — Como Administrador o Bedel, quiero ver hasta tres aulas sugeridas y poder consultar otras válidas, para elegir una asignación apropiada. (CU-19)
 
-31. **HU-31** — Como Usuario, quiero ver las reservas conflictivas y minutos superpuestos cuando no hay aulas libres, para comprender la falta de disponibilidad. (CU-18/20)
+31. **HU-31** — Como Usuario, quiero ver alternativas ordenadas por tipo de conflicto, fechas afectadas y minutos cuando no hay aulas libres, para comprender la falta de disponibilidad. (CU-18/20)
 
 32. **HU-32** — Como Administrador o Bedel, quiero registrar una reserva para fechas específicas, para asignar aulas para actividades esporádicas, incluso en receso. (CU-21)
 
@@ -78,7 +78,7 @@ Estado: síntesis funcional 1.0 de los acuerdos, sin funcionalidades adicionales
 
 37. **HU-37** — Como Administrador o Bedel, quiero registrar una serie con el período iniciado y revisar fechas omitidas, para reservar solo clases que todavía pueden ocurrir. (CU-22)
 
-38. **HU-38** — Como Administrador o Bedel, quiero aplicar un aula a fechas compatibles del mismo día de semana, para reducir selección repetitiva sin asignar fechas ocupadas. (CU-19/22)
+38. **HU-38** — Como Administrador o Bedel, quiero elegir un aula disponible para todas las fechas de cada día semanal, para mantener un aula estable durante el período. (CU-19/22)
 
 39. **HU-39** — Como Administrador o Bedel, quiero excluir expresamente fechas antes de confirmar, para registrar solo el conjunto elegido y conservar esas excepciones. (CU-21/22/23)
 
@@ -135,3 +135,5 @@ Estado: síntesis funcional 1.0 de los acuerdos, sin funcionalidades adicionales
 65. **HU-65** — Como Responsable de la demo, quiero cargar datos ficticios de forma reproducible, para preparar un escenario conocido para presentar la app. (OP-03)
 
 66. **HU-66** — Como Usuario, quiero recibir un error claro ante un fallo técnico sin cambios parciales, para conocer el resultado real de mi operación. (TRANSVERSAL)
+
+Las historias de selección de periódicas se resuelven por día semanal: una sola aula para todas sus fechas efectivas, sin selección por fecha. Admin/Bedel consulta responsables y contactos de alternativas informativas para intentar resolver interferencias fuera de la app. Cambiar aula de una periódica afecta todas las futuras del patrón, no una fecha aislada.

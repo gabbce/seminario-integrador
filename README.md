@@ -5,6 +5,8 @@ Aplicación para una institución educativa, destinada a una demostración acad�
 El repositorio contiene la **especificación funcional y técnica v1.0**, final y aprobada por el usuario. No se ha iniciado la implementación.
 
 - [Leer la especificación](docs/especificacion/00-especificacion.md).
+- [Diseño B aprobado y referencias vigentes](docs/diseno/README.md).
+- [Plan listo para el prototipo navegable](docs/diseno/prototipo-navegable.md).
 - [85 decisiones acordadas](docs/especificacion/04-decisiones-acordadas.md).
 - [Índice completo y fuentes originales](docs/README.md).
 - [Vocabulario del dominio](CONTEXT.md).

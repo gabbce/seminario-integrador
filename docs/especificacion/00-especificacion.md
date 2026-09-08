@@ -6,7 +6,7 @@
 
 Una facultad necesita asignar aulas a clases y actividades sin superposiciones, considerando alumnos previstos, recursos, fechas y horarios. La app digitaliza ese circuito para Bedelía y permite consultar ocupación y analizar el uso programado de los espacios.
 
-Primera versión: demostración académica local con datos ficticios, para una institución de Santa Fe, Argentina. Operación desde computadora y consultas docentes también desde celular. Idioma español; horario local institucional.
+Primera versión: demostración académica con datos ficticios, ejecutable localmente o en la web, para una institución de Santa Fe, Argentina. Operación desde computadora y consultas docentes también desde celular. Idioma español; horario local institucional.
 
 ## Actores y alcance
 
@@ -60,30 +60,30 @@ Admin/Bedel consultan horas reservadas, ocupación porcentual sobre horas habili
 
 ### Acceso
 
-Email/contraseña y rol único, sin registro público. Mínimo 12 caracteres, bloqueo de 15 minutos tras cinco fallos y sesión de 120 minutos de inactividad. Altas/reset desde la app generan frase temporal legible con cambio obligatorio.
+Login email/contraseña con Supabase Auth, rol único y sin registro público. Admin crea cuentas y establece nuevas contraseñas desde el backend. Política y sesiones del proveedor, sin controles propios de bloqueo/inactividad ni cambio obligatorio.
 
-Admin inicial toma contraseña de variable de entorno, sin cambio obligatorio ni sobrescritura al reiniciar. Deshabilitar invalida sesiones sin cancelar reservas; se puede rehabilitar. Último Admin activo protegido. Turno/legajo opcionales, descriptivos y sin restricciones de acceso.
+Admin inicial se crea en Auth y en la app con variables privadas y sin sobrescrituras al reiniciar. Java comprueba rol y estado actuales; deshabilitar impide nuevas operaciones sin cancelar reservas, y se puede rehabilitar. Los tokens emitidos respetan los límites del proveedor. Último Admin activo protegido. Turno/legajo opcionales, descriptivos y sin restricciones de acceso.
 
 ## Arquitectura y operación
 
-Java 21/Spring Boot, Spring Security con sesiones y JPA/Hibernate; React/TypeScript/Vite, Tailwind/shadcn, Chart.js; PostgreSQL y Docker Compose. Un backend por módulos, interfaz cliente y una base. API y frontend empaquetado bajo el mismo origen local.
+Java 21/Spring Boot, Spring Security para validar JWT y permisos y JPA/Hibernate; React/TypeScript/Vite, Tailwind/shadcn, Chart.js; Supabase para PostgreSQL y Auth; Docker Compose para la app local. Un backend por módulos e interfaz cliente. API y frontend empaquetado bajo el mismo origen, local o web; ambos modos requieren internet para Supabase.
 
-Transacciones y restricciones de base protegen reservas/calendario bajo concurrencia. Auditoría consultable técnicamente, sin panel. Respaldos lógicos diarios con retención de 14 días y procedimiento de restauración verificable en el entorno local. Configuración, versiones base y límites de operación se detallan en el documento 17.
+Transacciones y restricciones de base protegen reservas/calendario bajo concurrencia. Auditoría consultable técnicamente, sin panel. Carga reproducible de datos ficticios; no se exigen respaldos, retención ni restauración. Configuración, versiones base y límites de operación se detallan en el documento 17.
 
 RNF de rendimiento conservados: p95 de disponibilidad/listados <1,5 s y altas/modificaciones periódicas <2 s con 50 usuarios concurrentes en la mezcla definida. Escenario sintético explícito, no volumen real conocido.
 
 ## Fuera de alcance
 
 - Gestión académica de docentes, cátedras, inscripciones, actas o exámenes.
-- Integraciones reales de docentes o feriados, varias instituciones y despliegue de producción.
+- Integraciones académicas o de feriados, varias instituciones y operación de producción; se admite alojamiento web de la demo.
 - Aplicación móvil nativa, correos automáticos y centro de notificaciones.
-- Registro público, borradores persistentes y aprobación de solicitudes.
+- Registro público, cambio obligatorio de contraseña, políticas propias de bloqueo/inactividad, borradores persistentes y aprobación de solicitudes.
 - Sobre-reservas, optimización automática global y asignaciones que ignoren conflictos.
 - Filtros por PC, métricas de conflictos, asistencia real o alumnos únicos.
 - Excel, PDF generado por servidor y panel de auditoría.
 - Restaurar aulas dadas de baja, reactivar canceladas y modificar clases iniciadas.
 
-Estos límites conservan el alcance funcional acordado; no eliminan mensajes de error, trazabilidad o recuperación de datos exigidos.
+Estos límites conservan mensajes de error, integridad de reservas y trazabilidad de las operaciones del dominio.
 
 ## Documentos normativos y trazabilidad
 
@@ -104,6 +104,6 @@ Los capítulos 01–11 desarrollan las reglas por tema. Las fuentes literales y 
 
 Se preservaron 29 RF, 5 RNF y 29 fichas originales. La versión vigente agrega las extensiones aprobadas y documenta exclusiones. El conjunto contiene modelo actualizado, pantallas, contratos, historias y criterios verificables.
 
-El usuario confirma esta entrega como estado final de la especificación v1.0, con DA-01 a DA-85 y los ajustes de la revisión independiente incorporados. No quedan decisiones funcionales pendientes. Los cambios posteriores de alcance deberán registrarse explícitamente y actualizar la versión y los documentos afectados.
+El usuario confirma esta entrega como estado final de la especificación v1.0, con las decisiones vigentes DA-01 a DA-85. No quedan decisiones funcionales pendientes. Los cambios posteriores de alcance deberán registrarse explícitamente y actualizar la versión y los documentos afectados.
 
-La aprobación es documental. No acredita rendimiento, seguridad implementada ni pruebas de restauración: esas evidencias corresponden a construcción posterior. La finalización de la especificación no inicia implementación automáticamente.
+La aprobación es documental. No acredita rendimiento ni seguridad implementada: esas evidencias corresponden a construcción posterior. La finalización de la especificación no inicia implementación automáticamente.

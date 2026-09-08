@@ -8,11 +8,11 @@ Estado: síntesis funcional 1.0 de los acuerdos, sin funcionalidades adicionales
 
 2. **HU-02** — Como Usuario, quiero cerrar mi sesión, para terminar mi acceso desde ese dispositivo. (CU-01)
 
-3. **HU-03** — Como Usuario, quiero recibir un error de credenciales y un bloqueo temporal tras cinco fallos consecutivos, para entender por qué no puedo ingresar y cuándo reintentar. (CU-01)
+3. **HU-03** — Como Usuario, quiero recibir un error comprensible si no puedo autenticarme, para corregir mis credenciales o reintentar cuando el proveedor lo permita. (CU-01)
 
-4. **HU-04** — Como Usuario, quiero cambiar la contraseña temporal antes de usar la app, para establecer una contraseña propia. (EX-03)
+4. **HU-04** — Como Usuario, quiero ingresar directamente a mis funciones después de que Admin cree mi cuenta, para utilizar la app sin un paso obligatorio de cambio de contraseña. (CU-01/02)
 
-5. **HU-05** — Como Usuario, quiero que mi sesión expire tras 120 minutos sin actividad, para evitar dejar mi cuenta abierta indefinidamente. (CU-01)
+5. **HU-05** — Como Usuario, quiero recibir una solicitud de ingreso cuando no haya una sesión válida, para saber por qué no puedo continuar una operación. (CU-01)
 
 6. **HU-06** — Como Administrador, quiero crear cuentas con un único rol, para habilitar a quienes operan o consultan el sistema. (CU-02)
 
@@ -26,7 +26,7 @@ Estado: síntesis funcional 1.0 de los acuerdos, sin funcionalidades adicionales
 
 11. **HU-11** — Como Administrador, quiero rehabilitar una cuenta, para permitir que su titular vuelva a ingresar. (EX-04)
 
-12. **HU-12** — Como Administrador, quiero restablecer una contraseña mediante una frase temporal legible, para devolver acceso a una cuenta sin enviar correos desde la app. (EX-03)
+12. **HU-12** — Como Administrador, quiero establecer una nueva contraseña para una cuenta, para devolverle acceso sin enviar correos desde la app. (EX-03)
 
 13. **HU-13** — Como Administrador o Bedel, quiero registrar aulas de los tipos previstos y su capacidad en personas, para disponer de espacios para las reservas. (CU-06)
 
@@ -128,10 +128,10 @@ Estado: síntesis funcional 1.0 de los acuerdos, sin funcionalidades adicionales
 
 62. **HU-62** — Como Administrador o Bedel, quiero distinguir cero, falta de cobertura y ausencia de horas habilitadas, para interpretar correctamente indicadores sin datos aplicables. (CU-29)
 
-63. **HU-63** — Como Responsable de la demo, quiero inicializar la cuenta administradora desde configuración local, para preparar la demostración sin registro público. (OP-01)
+63. **HU-63** — Como Responsable de la demo, quiero inicializar la identidad y el perfil administrador mediante configuración privada, para preparar el acceso sin registro público ni duplicados. (OP-01)
 
 64. **HU-64** — Como Responsable de la demo, quiero consultar auditoría con herramientas técnicas, para explicar operaciones sin agregar un panel a la app. (OP-02)
 
-65. **HU-65** — Como Responsable de la demo, quiero respaldar y restaurar datos ficticios, para demostrar recuperación y retención exigidas. (OP-03)
+65. **HU-65** — Como Responsable de la demo, quiero cargar datos ficticios de forma reproducible, para preparar un escenario conocido para presentar la app. (OP-03)
 
 66. **HU-66** — Como Usuario, quiero recibir un error claro ante un fallo técnico sin cambios parciales, para conocer el resultado real de mi operación. (TRANSVERSAL)

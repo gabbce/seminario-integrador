@@ -2,10 +2,12 @@
 status: accepted
 ---
 
-# Java/Spring Boot y React para la demo local
+# Java, React y Supabase para la app web
 
-Se adopta Java/Spring Boot con Spring Security y JPA/Hibernate, PostgreSQL y una interfaz React/TypeScript/Vite con Tailwind y shadcn/ui. Chart.js cubre gráficos y Docker Compose la ejecución local. El usuario aprobó el conjunto en DA-81 tras descartar Django y considerar Java, Node y Laravel.
+Java/Spring Boot concentra el dominio y las transacciones, con JPA/Hibernate sobre PostgreSQL administrado en Supabase. Supabase Auth gestiona identidad, credenciales y sesiones; Spring Security valida tokens y aplica rol y estado actuales del perfil de la app.
 
-Se mantiene un backend único organizado por módulos para preservar transacciones conjuntas entre calendario y reservas. La elección de React/Vite evita requerir un servidor de frontend adicional para funciones que ya resuelve Java; implica definir explícitamente navegación y contratos HTTP. Las entidades y especializaciones académicas se conservan, incorporando los ajustes funcionales acordados.
+React/TypeScript/Vite usa Tailwind, shadcn/ui y Chart.js. Spring sirve API y frontend compilado bajo el mismo origen. Docker Compose permite ejecutar la app local; se admite alojamiento web con HTTPS. Ambos modos requieren internet para Supabase.
 
-La decisión establece tecnologías y organización, no el inicio de implementación. Las versiones base y la ejecución local están en el [documento 17](../especificacion/17-operacion-local-y-verificacion.md); los parches de dependencias se fijarán con compatibilidad verificable al implementar.
+El navegador solo usa Auth directamente; los datos del dominio pasan por Java. Las credenciales administrativas permanecen en backend. No hay autenticación propia, servicio de respaldos ni infraestructura de alta disponibilidad. Modelo y contratos concretan permisos, integridad y resultados parciales de las operaciones de identidad.
+
+[Arquitectura](../especificacion/12-arquitectura-y-stack.md) y [operación](../especificacion/17-operacion-local-y-verificacion.md) definen la configuración. Esta especificación no inicia implementación.

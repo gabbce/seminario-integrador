@@ -45,9 +45,9 @@ La carga es de circuito cerrado: con respuesta instantánea el máximo teórico 
 
 El guion consume casos en orden fijo de un conjunto de prueba versionado, con semilla, fechas de referencia, filtros, IDs y asignaciones conocidos. Las consultas de listados solicitan la primera página de 20 resultados; alternar altas/modificaciones cuatrimestrales y anuales en partes iguales. Cada sesión operativa tiene series y franjas reservadas para la prueba, suficientes para completar el escenario sin colisiones artificiales. Preparación de propuestas y lectura de versiones preceden a la medición sostenida; si se requieren llamadas auxiliares durante ella, se registran separadas y se conserva su guion entre ejecuciones.
 
-Restaurar el mismo conjunto inicial antes de cada ejecución. Las modificaciones alternan entre dos asignaciones válidas predefinidas y actualizan la versión devuelta por la operación anterior. Las pruebas de conflictos deliberados se ejecutan aparte de este escenario nominal. Conservar el guion y el conjunto definitivo como artefactos de la futura implementación; no se han creado ni ejecutado en esta etapa.
+Preparar el mismo conjunto inicial mediante la carga reproducible antes de cada ejecución. Las modificaciones alternan entre dos asignaciones válidas predefinidas y actualizan la versión devuelta por la operación anterior. Las pruebas de conflictos deliberados se ejecutan aparte de este escenario nominal. Conservar el guion y el conjunto definitivo como artefactos de la futura implementación; no se han creado ni ejecutado en esta etapa.
 
-Incluir reservas cuatrimestrales de hasta 32 ocurrencias y anuales de hasta 64 como casos de referencia, antes de exclusiones. Registrar ambiente, equipo, recursos asignados, ubicación de cliente/servidor y tamaño de datos junto con los resultados. No declarar cumplimiento a partir de una sola respuesta rápida.
+Incluir reservas cuatrimestrales de hasta 32 ocurrencias y anuales de hasta 64 como casos de referencia, antes de exclusiones. Registrar ambiente, equipo, recursos asignados, región de Supabase, latencia de red, ubicación de cliente/servidor y tamaño de datos junto con los resultados. No declarar cumplimiento a partir de una sola respuesta rápida.
 
 Separar errores de validación esperados de errores técnicos. Registrar ambos; no ocultar errores del escenario para mejorar el porcentaje. Las operaciones de expansión conjunta de calendario y dashboard requieren validación funcional, pero el documento original no les fija el mismo umbral de 2 segundos: no extenderlo sin justificar la carga de múltiples series.
 
@@ -57,14 +57,12 @@ Validar operaciones principales de Admin/Bedel en computadora y consultas de Doc
 
 La matriz del documento 17 fija Chromium/Firefox y tamaños de computadora/móvil; al ejecutar se registran sus versiones exactas, sin prometer soporte de todas las versiones o dispositivos.
 
-## Respaldos, recuperación y administración inicial
+## Ejecución y administración
 
-RNF-02 sigue exigiendo PostgreSQL, respaldos lógicos diarios y retención de 14 días. La condición de demo no elimina ese requisito. El documento 17 define el procedimiento demostrable de respaldo/restauración y precisa que la periodicidad depende de la disponibilidad del entorno local.
+La app se presenta localmente o desde alojamiento web; ambos modos usan Supabase remoto para PostgreSQL y Auth y requieren internet. Docker Compose facilita la ejecución de Java/React local. La publicación admite URL HTTPS; no exige infraestructura de producción ni un proveedor de hosting concreto.
 
-DA-77 crea Admin inicial con contraseña de variable de entorno, sin frase temporal ni cambio obligatorio; se guarda hash y no se sobrescriben cuentas existentes al reiniciar. No hay asistente ni recuperación pública especial. DA-76 conserva auditoría con consulta técnica, sin pantalla propia.
-
-DA-75 confirma ejecución local reproducible. DA-74 confirma ausencia de restricciones académicas de lenguaje o framework. DA-79 aprueba PostgreSQL y Docker Compose; DA-78 acota backend a Java/Node/Laravel y frontend a React/Next. DA-81 aprueba Java/Spring Boot y React/Vite con las bibliotecas indicadas en documento 12. No se ha autorizado ni requerido infraestructura de producción.
+El Admin inicial se crea en Auth y en el dominio mediante variables privadas, sin sobrescribir cuentas existentes. Mantener carga reproducible de datos ficticios y auditoría técnica del dominio. No se exige respaldar, retener copias ni demostrar restauración. La bitácora interna de Auth queda a cargo del proveedor.
 
 ## Concreción de esta versión
 
-El [documento 17](17-operacion-local-y-verificacion.md) concreta versiones base, ejecución local, eventos de auditoría, navegadores y prueba de restauración. Los documentos 13–16 y 18 completan modelo, navegación, contratos, historias y aceptación. La [síntesis](00-especificacion.md) es el punto de entrada a la especificación v1.0 final y aprobada.
+El [documento 17](17-operacion-local-y-verificacion.md) concreta versiones base, ejecución local, eventos del dominio, navegadores e integración con Supabase. Los documentos 13–16 y 18 completan modelo, navegación, contratos, historias y aceptación. La [síntesis](00-especificacion.md) es el punto de entrada a la especificación v1.0 final y aprobada.

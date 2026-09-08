@@ -6,7 +6,7 @@ Versión 1.0. Conserva CU-01 a CU-29 y los relaciona con RF del mismo número. L
 
 ## Condiciones comunes
 
-Salvo ingreso y provisión inicial, todo caso requiere sesión válida, rol autorizado y contraseña temporal ya cambiada. Toda escritura valida datos y estado vigente en backend, registra la auditoría exigida y es completa o no guarda cambios. Cancelar un formulario no cambia datos. Un fallo de almacenamiento se informa sin éxito; los errores de consulta no alteran estado. Las versiones evitan sobrescribir ediciones ajenas.
+Salvo ingreso y provisión inicial, todo caso requiere identidad válida, perfil activo y rol autorizado. Las escrituras del dominio validan datos y estado, y guardan cambios y auditoría en transacciones. Las operaciones de identidad en Auth y perfil aplican el manejo de resultados parciales del documento 15. Cancelar un formulario no cambia datos. Un fallo de almacenamiento se informa sin éxito; los errores de consulta no alteran estado. Las versiones evitan sobrescribir ediciones ajenas.
 
 Las precondiciones específicas se expresan en cada flujo. La salida indica postcondición de éxito; los controles y alternativas precisan rechazo o ausencia de resultados. Las operaciones de actor Admin/Bedel incluyen ambos roles por DA-06.
 
@@ -14,17 +14,17 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-01; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Todos.
-- **Flujo y resultado:** Ingresar email/contraseña; validar cuenta y bloqueo; establecer sesión del rol o exigir cambio de temporal. Cerrar sesión invalida acceso.
-- **Controles y alternativas:** Credenciales incorrectas no crean sesión; cinco fallos bloquean 15 minutos; 120 minutos sin actividad cierran sesión. Cuenta inactiva no accede.
-- **Interfaz:** UI-01/02. **Aceptación:** CA-U03/04/06/07/08/10.
+- **Flujo y resultado:** Ingresar email/contraseña con Auth; Java verifica perfil activo y rol. Cerrar la sesión del proveedor y eliminar la sesión del cliente.
+- **Controles y alternativas:** Credenciales incorrectas, token inválido o cuenta sin perfil/inhabilitada impiden acceso. Política y sesiones de Supabase; no se garantiza revocación instantánea de JWT emitidos.
+- **Interfaz:** UI-01. **Aceptación:** CA-U03/04/06/07/08/10.
 
 ## CU-02 — Registrar usuario
 
 - **Fuente:** RF-02; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin.
-- **Flujo y resultado:** Ingresar identificación y rol; validar email único; generar temporal legible y registrar cuenta/perfil.
-- **Controles y alternativas:** Email duplicado o datos inválidos impiden alta; temporal solo se muestra al generarla. Turno/legajo opcionales; Admin inicial se trata por OP-01.
-- **Interfaz:** UI-13. **Aceptación:** CA-U01/02/05.
+- **Flujo y resultado:** Ingresar identificación, rol y contraseña; crear identidad Auth y perfil vinculado desde backend. Mostrar éxito solo con ambos completos.
+- **Controles y alternativas:** Email duplicado o política del proveedor incumplida impiden alta; un fallo parcial se resuelve sin duplicar identidad/perfil. Turno/legajo opcionales; Admin inicial se trata por OP-01.
+- **Interfaz:** UI-13. **Aceptación:** CA-U01/02/05/12.
 
 ## CU-03 — Buscar usuarios
 
@@ -38,15 +38,15 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-04; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin.
-- **Flujo y resultado:** Abrir cuenta y versión; editar datos/rol; validar y guardar perfil, permisos y auditoría conjuntamente.
-- **Controles y alternativas:** Impedir degradar último Admin activo y sobrescribir versión vieja; cambio de rol invalida sesiones.
+- **Flujo y resultado:** Abrir cuenta y versión; editar datos/rol; guardar cambios locales con auditoría; un cambio de email coordina Auth y copia local conforme al documento 15.
+- **Controles y alternativas:** Impedir degradar último Admin activo y sobrescribir versión vieja; cada solicitud usa rol vigente, sin confiar en permisos antiguos del token.
 - **Interfaz:** UI-13. **Aceptación:** CA-U11, CA-X02.
 
 ## CU-05 — Eliminar usuario: baja lógica
 
 - **Fuente:** RF-05; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin.
-- **Flujo y resultado:** Seleccionar cuenta; confirmar deshabilitación; invalidar sesiones y auditar.
+- **Flujo y resultado:** Seleccionar cuenta; confirmar deshabilitación local y auditar; rechazar nuevas solicitudes a la app incluso con token válido.
 - **Controles y alternativas:** Impedir baja del último Admin activo; cancelar el diálogo no cambia datos. Reservas e historial se conservan.
 - **Interfaz:** UI-13. **Aceptación:** CA-U08/11.
 
@@ -248,11 +248,11 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 |---|---|---|---|
 | EX-01 — Gestionar feriados | Admin | Listar, agregar, corregir o quitar fecha y descripción del año. Alta verifica clases afectadas; eliminación puede activar EX-02. | No retroactividad, duplicados ni cambios de clases iniciadas. Resolver futuras antes de alta. CA-K08, CA-R26. |
 | EX-02 — Actualizar series por calendario | Admin | Preparar cambio, derivar nuevas futuras, proponer aula antecedente del patrón, resolver todas y confirmar conjunto de calendario/reservas. | Respetar exclusiones, cancelaciones, fecha original y continuidad. Revalidar versión y no solapamiento. CA-R24 a CA-R30. |
-| EX-03 — Temporal y restablecimiento | Admin / titular | Admin genera frase legible y titular la reemplaza al ingresar antes de otras funciones. | Sin correo, no mostrar hash, secreto previo inválido y sesiones revocadas. CA-U05/06/07. |
-| EX-04 — Rehabilitar usuario | Admin | Cambiar cuenta inactiva a activa y auditar. | No restaurar sesiones antiguas ni alterar reservas. CA-U09. |
-| OP-01 — Inicializar demo | Responsable local | Preparar entorno con Admin inicial de variable de entorno y datos ficticios. | Sin cambio obligatorio inicial, sin sobrescribir cuenta existente. Documento 17. |
+| EX-03 — Restablecer contraseña | Admin | Ingresar nueva contraseña y confirmación; backend actualiza identidad en Auth. | Sin correo ni cambio obligatorio; errores del proveedor sin éxito falso. CA-U03/05/07/13. |
+| EX-04 — Rehabilitar usuario | Admin | Cambiar cuenta inactiva a activa y auditar. | Acceso con identidad válida y rol actual; no alterar reservas. CA-U09. |
+| OP-01 — Inicializar demo | Responsable | Configurar Supabase y app; crear identidad Auth y perfil Admin mediante variables privadas. | Sin duplicar ni sobrescribir; resolver inicialización incompleta. Documento 17. |
 | OP-02 — Consultar auditoría | Responsable local | Consultar eventos con herramientas técnicas. | Sin panel en app, sin secretos ni estadísticas de conflictos. Documento 17. |
-| OP-03 — Respaldar/restaurar | Responsable local | Copias lógicas diarias y restauración de prueba en base separada. | Retención 14 días y verificación de contenido. Documento 17. |
+| OP-03 — Preparar datos ficticios | Responsable | Cargar escenario conocido para presentar o verificar la app. | Carga explícita y reproducible; no repoblar destructivamente al reiniciar. Documento 17. |
 
 ## Criterios adicionales para completar cobertura
 

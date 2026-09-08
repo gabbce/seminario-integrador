@@ -1,92 +1,56 @@
-# Arquitectura y stack acordados para la demo local
+# Arquitectura y stack
 
 **Versión:** 1.0 final, aprobada. Alcance vigente definido en la [especificación general](00-especificacion.md).
 
-Estado: stack aprobado por DA-81, registrado en [ADR-0001](../adr/0001-stack-y-organizacion.md). No se ha creado código ni instalado dependencias. Las convenciones técnicas siguientes concretan el stack dentro del alcance acordado.
+## Componentes
 
-## Stack aprobado
+| Parte | Selección y responsabilidad |
+|---|---|
+| Backend | Java 21 y Spring Boot, monolito organizado por módulos de negocio. |
+| Identidad y autenticación | Supabase Auth: credenciales, login y sesiones. |
+| Autorización | Spring Security valida JWT de Supabase y comprueba Usuario activo y rol vigente. |
+| Persistencia | PostgreSQL administrado en Supabase, acceso desde Java con JPA/Hibernate. |
+| Frontend | React, TypeScript, Vite y React Router. |
+| Interfaz y gráficos | Tailwind CSS, shadcn/ui, Chart.js y tabla coloreada para semana típica. |
+| Ejecución | App local mediante Docker Compose o despliegue web; ambos conectan al mismo tipo de servicios Supabase. |
 
-Java con Spring Boot para una API y React con TypeScript y Vite para la interfaz. Tailwind CSS y shadcn/ui como base de componentes, Chart.js para gráficos y una tabla coloreada para la semana típica. PostgreSQL y Docker Compose como decisiones ya aprobadas.
+```mermaid
+flowchart LR
+    Navegador[React] -->|Login y sesiones| Auth[Supabase Auth]
+    Navegador -->|API con Bearer token| Java[Java / Spring Boot]
+    Java -->|Validación de firma con claves públicas| Auth
+    Java -->|Administración de identidades desde servidor| Auth
+    Java -->|JDBC TLS y transacciones| DB[PostgreSQL en Supabase]
+```
 
-| Parte | Selección | Estado |
-|---|---|---|
-| Backend | Java + Spring Boot | Aprobada por DA-81 |
-| Autenticación y autorización | Spring Security, sesiones de servidor | Aprobada por DA-81 |
-| Persistencia | Spring Data JPA/Hibernate, con transacciones y restricciones explícitas | Aprobada por DA-81 |
-| Base de datos | PostgreSQL | Aprobada |
-| Frontend | React + TypeScript + Vite | Aprobada por DA-81 |
-| Interfaz | Tailwind CSS + shadcn/ui | Aprobada por DA-81 |
-| Navegación | React Router en modo de aplicación cliente | Convención técnica |
-| Gráficos | Chart.js y tabla coloreada para mapa semanal | Aprobada |
-| Ejecución local | Docker Compose | Aprobada |
+La app puede presentarse localmente; requiere internet para Auth y base de datos. Puede publicarse con una URL HTTPS sin cambiar el dominio. El proveedor de alojamiento de Java/React se elige al desplegar; no se exige despliegue de producción, alta disponibilidad ni funcionamiento offline.
 
-Las versiones base se concretan en el [documento 17](17-operacion-local-y-verificacion.md); los parches compatibles se fijarán en las dependencias al implementar.
+## Organización y acceso a datos
 
-## Motivos y alternativas
+Módulos: cuentas, aulas, calendario, referencias, reservas y consultas/indicadores. Java calcula fechas, disponibilidad e indicadores y valida estados, permisos y concurrencia. Calendario y generación de ocurrencias comparten transacciones del dominio.
 
-Java permite expresar con claridad las entidades y especializaciones de los diagramas. Spring Boot, Spring Security y JPA ofrecen una base para la API, permisos y persistencia, pero no resuelven por sí solos las reglas de reservas ni sustituyen el diseño de transacciones. Esta es una recomendación de adecuación al proyecto, no una afirmación de que otros lenguajes impidan respetar el modelo.
+Spring Boot sirve la API bajo /api y el build estático de React bajo un mismo origen. En desarrollo Vite usa proxy a Java. Maven y npm gestionan dependencias, con versiones reproducibles al implementar. No se necesita Next ni un servidor Node de aplicación.
 
-Node con NestJS es una alternativa razonable si el equipo prioriza TypeScript en frontend y backend. Laravel también cubre el dominio si PHP es la tecnología que mejor domina el equipo. Ante ausencia de esa preferencia, se seleccionó Java/Spring por la correspondencia con el diseño orientado a objetos académico. No se realizará una prueba de implementación para decidir en esta etapa.
+React usa Supabase solo para autenticación; todas las consultas y mutaciones del dominio pasan por Java. Las tablas del dominio se mantienen en un esquema no expuesto por la Data API o sin permisos de acceso para los roles públicos de Supabase. La clave pública de Auth no permite saltarse las reglas de Java. No se agregan Realtime, Storage, Edge Functions ni políticas duplicadas de negocio en el cliente.
 
-React/Vite cubre una app de gestión autenticada servida por una API Java. El alcance actual no requiere renderizado de servidor de frontend ni funcionalidades de Next. Elegir React/Vite implica concretar navegación y acceso a datos; Vite no los aporta automáticamente. Se adopta React Router y llamadas HTTP al backend, sin introducir por defecto un estado global complejo.
+## Autenticación y cuentas
 
-## Arquitectura
+El cliente de Supabase mantiene la sesión del navegador y renueva tokens conforme al proveedor. Java funciona como API autenticada por Bearer, sin una segunda sesión de servidor ni reloj de inactividad. Configurar validación de firma, emisor, audiencia y expiración con las claves públicas del proyecto. No confiar solo en decodificar el JWT. Configurar CORS para los orígenes de la app cuando corresponda; la API no utiliza cookies como credencial implícita.
 
-Un backend único organizado por módulos funcionales, una interfaz React y una base PostgreSQL. La separación de interfaz y API no implica separar el backend en microservicios. El repositorio contendrá ambos proyectos y la configuración de demo; aún no se crean carpetas de aplicación.
+La identidad Auth se vincula por UUID con Usuario. El estado activo y rol de Usuario son la autoridad para permisos y se revisan en solicitudes protegidas. Crear cuentas y cambiar contraseñas requiere Admin de la app y llamadas administrativas desde Java, con credencial privada. Los detalles de email, deshabilitación y límites de revocación están en documento 10.
 
-Módulos del backend: cuentas, aulas, calendario, referencias de materias/cursos/docentes, reservas y consultas/indicadores. Las operaciones de calendario y generación de clases comparten el límite transaccional acordado en DA-57, dentro de la misma aplicación.
+## Persistencia e integridad
 
-La API valida permisos, datos, estados, horarios y concurrencia. El frontend presenta formularios, agenda y gráficos; sus validaciones ayudan al usuario, pero no constituyen la protección de integridad. Los indicadores se calculan en backend con las fórmulas acordadas para evitar discrepancias entre vistas.
+PostgreSQL contiene el dominio; Auth administra sus propios datos internos. JPA y migraciones solo gestionan el esquema de la app, sin modificar tablas internas de Auth. Mantener Usuario y especializaciones, aulas y subtipos, Reserva y DetalleReserva según documento 13.
 
-## Autenticación
+Exclusión de solapamientos, control de versiones y transacciones conjuntas siguen siendo obligatorios. Usar conexión PostgreSQL compatible con el proveedor y un pool acotado a su límite de conexiones. Verificar las restricciones de exclusión y extensión necesaria en la base elegida. Los cambios administrativos de identidad por HTTP no forman parte de una transacción JDBC: el documento 15 define resultados y recuperación de fallos parciales.
 
-Sesiones de servidor con cookie HttpOnly, usando Spring Security. Configurar expresamente protección CSRF, permisos y endpoints de sesión. Evitar introducir JWT con renovación cuando solo hay un navegador y una API de esta demo. Las sesiones forman parte del stack aceptado.
+## Operación
 
-Bloqueo tras cinco fallos, inactividad de 120 minutos, invalidación al deshabilitar y contraseña temporal obligatoria son requisitos propios: no afirmar que quedan cumplidos automáticamente por instalar Spring Security. El cálculo de inactividad debe excluir refrescos automáticos del frontend.
+Docker Compose levanta la aplicación propia; PostgreSQL y Auth son servicios remotos administrados. No incorpora un servidor PostgreSQL local, una instalación local de Supabase ni un servicio de respaldos. La inicialización carga Admin y datos ficticios sin duplicar ni sobrescribir al reiniciar.
 
-Admin inicial usa variable de entorno conforme a DA-77, guardando hash y sin sobrescribir una cuenta existente al arrancar. No tiene cambio obligatorio; las altas desde la app sí.
+El build incluye componentes y gráficos sin CDN en tiempo de uso. Publicar requiere HTTPS y variables privadas en el host. No hay respaldos programados, política de retención ni prueba de restauración exigida. Los eventos del dominio se consultan técnicamente sin panel.
 
-## Modelos y concurrencia
+## Referencias
 
-Preservar Usuario y especializaciones, aulas y subtipos, Reserva y modalidades, y DetalleReserva. El documento 13 concreta tablas base y especializaciones vinculadas por clave compartida, conservando el diseño de dominio.
-
-Confirmar una reserva y actualizar calendario con nuevas clases requieren transacciones; la ausencia de solapamientos debe protegerse también bajo concurrencia. JPA no basta por sí solo para impedir carreras entre dos confirmaciones. Los documentos 13/15 concretan restricciones de exclusión, versiones y coordinación transaccional además de validaciones funcionales.
-
-DA-50 exige detectar una edición sobre datos desactualizados y devolver un conflicto comprensible al operador. El contrato de API distingue este caso de errores de formulario y fallos técnicos.
-
-## UI y gráficos
-
-Usar componentes propios basados en shadcn/ui y Tailwind para formularios, filtros, tablas, diálogos y navegación adaptable. No convertir la biblioteca en un motivo para agregar pantallas. Chart.js dibuja curvas/barras; la semana típica se representa con tabla coloreada y valores legibles. Las vistas usan datos calculados por la API y permisos del rol.
-
-Se conserva impresión por navegador del listado diario y ausencia de aplicación móvil nativa. Las vistas y filtros de agenda están en documentos 08/14; la selección de un componente al implementar debe respetarlos, sin agregar arrastrar y soltar.
-
-## Demo local
-
-Docker Compose coordina aplicación y base de datos, con servicio auxiliar de respaldos. Spring sirve frontend estático y API bajo un único origen; durante desarrollo Vite reenvía consultas al backend. El documento 17 concreta ejecución y configuración.
-
-Los gráficos y componentes se distribuyen con la app para que su uso no dependa de una CDN durante la demo. La preparación inicial puede requerir descargar herramientas y dependencias; no se promete instalación inicial sin internet.
-
-Respaldos lógicos diarios con retención de 14 días permanecen exigidos por RNF-02. El documento 17 define el mecanismo local y la prueba de restauración. Auditoría consultada con herramientas técnicas, sin pantalla de app, conforme a DA-76.
-
-## Fuentes primarias consultadas
-
-- [Spring Boot](https://docs.spring.io/spring-boot/index.html): aplicaciones Java autónomas y configuración integrada.
-- [Spring Security](https://docs.spring.io/spring-security/reference/index.html): autenticación y autorización.
-- [React: construir una app](https://react.dev/learn/build-a-react-app-from-scratch): Vite con TypeScript y responsabilidades adicionales de navegación/datos.
-- [shadcn/ui con Vite](https://ui.shadcn.com/docs/installation/vite): integración de componentes y Tailwind.
-- [Chart.js: integración](https://www.chartjs.org/docs/latest/getting-started/integration.html).
-- [Docker Compose](https://docs.docker.com/compose/).
-
-## Concreción técnica
-
-- Java 21 como base del proyecto. La documentación actual de requisitos de Spring Boot admite esa versión; las versiones base están en documento 17 y sus parches se fijarán al implementar mediante un conjunto compatible, sin mezclar versiones de Spring elegidas individualmente.
-- Maven para backend y npm para frontend, con versiones reproducibles y archivos de bloqueo cuando se implemente. No son nuevas capacidades funcionales.
-- Una API bajo /api y frontend estático bajo el mismo origen local. Spring Boot puede servir los archivos estáticos del build de React; Vite se usa en desarrollo y compilación, no requiere otro servidor de aplicación para la demo empaquetada.
-- DTO de entrada/salida separados de entidades persistentes, para no entregar hashes, email docente a roles no autorizados o relaciones internas por serialización automática.
-- El modelo consolidado y las operaciones indican dónde usar transacciones; JPA no es una sustitución de las restricciones de integridad.
-
-Fuentes adicionales: [requisitos de Spring Boot](https://docs.spring.io/spring-boot/system-requirements.html) y [aplicaciones web y recursos estáticos](https://docs.spring.io/spring-boot/reference/web/servlet.html).
-
-## Estado de cierre
-
-Stack acordado y decisiones funcionales cerradas hasta DA-85. La versión 1.0 de modelo, contratos y navegación está finalizada y aprobada por el usuario. La implementación sigue fuera de esta etapa.
+[Spring Security JWT](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html), [Supabase JWT](https://supabase.com/docs/guides/auth/jwts), [conexión PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres), [React con Vite](https://react.dev/learn/build-a-react-app-from-scratch), [shadcn con Vite](https://ui.shadcn.com/docs/installation/vite) y [Chart.js](https://www.chartjs.org/docs/latest/getting-started/integration.html).

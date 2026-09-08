@@ -2,7 +2,7 @@
 
 **Versión:** 1.0 final, aprobada. Alcance vigente definido en la [especificación general](00-especificacion.md).
 
-Estado: catálogo y trazabilidad de la especificación v1.0 final; conserva la base documental histórica. El detalle literal de los flujos, precondiciones, postcondiciones, alternativas y excepciones se conserva en las [29 fichas originales](../fuentes/02-requerimientos.md#5-fichas-de-casos-de-uso).
+Estado: catálogo vigente de la especificación v1.0 final. El detalle literal de los flujos, precondiciones, postcondiciones, alternativas y excepciones se conserva en las [29 fichas originales](../fuentes/02-requerimientos.md#5-fichas-de-casos-de-uso).
 
 Cada fila relaciona el requisito y su caso de uso del mismo número. No se agregaron ni renumeraron RF históricos; las ampliaciones aprobadas se documentan como extensiones en los [casos de uso vigentes](18-casos-de-uso-vigentes.md).
 
@@ -66,27 +66,27 @@ DA-52 a DA-56 definen código anual de curso, esporádicas en receso, extensión
 
 DA-57 a DA-60 exigen revisión y guardado conjunto del calendario y nuevas clases, preservando exclusiones, cancelaciones, cese de continuidad y patrón semanal. Ver el ciclo de reservas actualizado.
 
-DA-61 a DA-65 concretan RF/CU-01 a 05: email y contraseña, rol único, política de 12 caracteres, frase temporal y cambio obligatorio, baja/rehabilitación y cierre tras 120 minutos de inactividad. Ver [cuentas y acceso](10-cuentas-y-acceso.md).
+DA-61 a DA-65 concretan RF/CU-01 a 05: Supabase Auth, login email/contraseña, alta y restablecimiento por Admin, rol único y baja/rehabilitación; políticas y sesiones del proveedor. Ver [cuentas y acceso](10-cuentas-y-acceso.md).
 
 DA-66 a DA-69 precisan RF/CU-10 a 17: estados del año, eliminación del estado independiente de cuatrimestre, eliminación protegida y calendario sin cambios retroactivos. El estado de cuatrimestre de los textos originales siguientes queda sustituido por dependencia del año, no por un nuevo campo editable.
 
-DA-74 a DA-77 fijan libertad tecnológica, demo local, auditoría consultable con herramientas técnicas y excepción de Admin inicial por variable de entorno sin cambio obligatorio.
+DA-74 a DA-77 fijan tecnología, ejecución local o web con Supabase remoto, auditoría del dominio con consulta técnica e inicialización del Admin mediante variables privadas.
 
-DA-78 a DA-80 reemplazan Django por opciones Java/Node/Laravel y React/Next; aprueban PostgreSQL, Docker Compose y gráficos con Chart.js/tabla coloreada. DA-81 aprueba el stack concreto del documento 12.
+DA-78 a DA-80 definen Java/React, Supabase PostgreSQL/Auth, Docker Compose para la app y gráficos con Chart.js/tabla coloreada. DA-81 aprueba el stack concreto del documento 12.
 
 DA-81 aprueba Java/Spring Boot y React/Vite con las bibliotecas acordadas. Modelo, pantallas y contratos consolidados se encuentran en documentos 13 a 15; aún no se ha iniciado código.
 
 DA-82/83/84 cierran turno/legajo opcionales, requisitos compartidos fijos tras iniciar la serie y reprogramación dentro de períodos asignados. DA-85 precisa el denominador de ocupación sin historial de estados del año. Los casos de uso vigentes están consolidados en el documento 18.
 
-## Requisitos funcionales originales
+## Requisitos funcionales vigentes
 
 ### RF-01: Autenticación y autorización
 
-El sistema debe permitir a Administradores, Bedeles y Docentes iniciar y cerrar sesión aplicando control de acceso por rol y bloqueo temporal tras cinco intentos fallidos.
+El sistema debe permitir a Administradores, Bedeles y Docentes iniciar y cerrar sesión con Supabase Auth; el backend verifica rol y estado vigentes.
 
 ### RF-02: Registrar usuario
 
-El sistema debe permitir al Administrador crear usuarios con nombre, email, rol y contraseña, validando unicidad de email y políticas de contraseña.
+El sistema debe permitir al Administrador crear usuarios con nombre, email, rol y contraseña, mediante Supabase Auth y un perfil vinculado, respetando unicidad de email y política del proveedor.
 
 ### RF-03: Buscar usuarios
 
@@ -94,7 +94,7 @@ El sistema debe permitir al Administrador buscar usuarios por nombre, email, rol
 
 ### RF-04: Modificar usuario
 
-El sistema debe permitir al Administrador editar datos y rol de un usuario asegurando que no se degrade ni elimine al último Administrador activo.
+El Administrador puede editar datos y rol de un usuario, proteger al último Admin activo y actualizar el email mediante Auth y su copia local siguiendo el contrato de cuentas.
 
 ### RF-05: Eliminar usuario (baja lógica)
 
@@ -110,11 +110,11 @@ El sistema debe permitir a Bedeles buscar aulas por número, tipo, capacidad mí
 
 ### RF-08: Modificar aula
 
-El sistema debe permitir a Bedeles actualizar datos y estado de un aula bloqueando la inhabilitación si existen reservas futuras y registrando auditoría
+Administradores y Bedeles pueden actualizar datos y estado del aula sin invalidar reservas futuras o en curso, conservando historial y auditoría.
 
 ### RF-09: Eliminar aula (baja lógica)
 
-El sistema debe permitir a Bedeles dar de baja aulas con confirmación, impidiendo la operación si existen reservas futuras y dejando traza de auditoría
+Administradores y Bedeles pueden dar de baja lógica un aula sin reservas futuras o en curso vigentes, conservando referencias históricas y auditoría.
 
 ### RF-10: Buscar año lectivo
 
@@ -122,7 +122,7 @@ El sistema debe permitir a los Administradores listar años lectivos por año y 
 
 ### RF-11: Crear año lectivo
 
-El sistema debe permitir a los Administradores crear años lectivos únicos definiendo su estado y estableciendo que cada año contiene exactamente dos cuatrimestres.
+El sistema debe permitir a los Administradores crear años lectivos únicos en preparación, admitiendo carga parcial de sus dos cuatrimestres hasta habilitarlos.
 
 ### RF-12: Modificar año lectivo
 
@@ -134,15 +134,15 @@ El sistema debe permitir a los Administradores eliminar un año lectivo solo si 
 
 ### RF-14: Buscar cuatrimestre
 
-El sistema debe permitir a los Administradores listar cuatrimestres por año, fechas de inicio y fin y estado, con filtros y paginación.
+El Administrador puede listar cuatrimestres por año y fechas, mostrando la pertenencia y estado del año sin habilitación independiente del cuatrimestre.
 
 ### RF-15: Crear cuatrimestre
 
-El sistema debe permitir a los Administradores crear cuatrimestres para un año lectivo definiendo fechas de inicio y fin y estado, evitando solapamientos y más de dos por año.
+El Administrador puede crear hasta dos cuatrimestres por año con número y fechas válidas, sin solapamientos y dentro del año.
 
 ### RF-16: Modificar cuatrimestre
 
-El sistema debe permitir a los Administradores actualizar fechas y estado de un cuatrimestre validando que no se solape con otro del mismo año.
+El Administrador puede modificar fechas de cuatrimestres respetando reservas, sin retroactividad y generando las nuevas clases requeridas al ampliar junto con el cambio de calendario.
 
 ### RF-17: Eliminar cuatrimestre
 
@@ -162,15 +162,15 @@ El sistema debe verificar, antes de confirmar o modificar reservas, la existenci
 
 ### RF-21: Registrar reserva esporádica
 
-El sistema debe permitir a Bedeles registrar reservas para una o más fechas específicas indicando curso, docente, email, tipo de aula, capacidad mínima, características, hora de inicio y duración, validando fechas futuras y ausencia de solapamientos.
+Administradores y Bedeles pueden preparar reservas de una o más fechas específicas indicando curso anual, docente de lista simulada, alumnos previstos, tipo y recursos de aula y horario; validar año, apertura, feriados, vigencia y solapamientos.
 
 ### RF-22: Registrar reserva por período
 
-El sistema debe permitir a Bedeles registrar reservas periódicas dentro de un cuatrimestre o año seleccionando días, hora de inicio y duración, derivando ocurrencias y validando solapamientos
+Administradores y Bedeles pueden preparar reservas periódicas cuatrimestrales o anuales con patrón semanal, generando ocurrencias futuras dentro de los períodos asignados y omitiendo feriados y recesos.
 
 ### RF-23: Confirmar reserva
 
-El sistema debe permitir a Bedeles confirmar reservas válidas generando las mismas de forma transaccional y emitiendo notificaciones.
+Administradores y Bedeles pueden confirmar el conjunto seleccionado de ocurrencias de forma transaccional, previa revalidación, y recibir el resultado en pantalla.
 
 ### RF-24: Modificar reserva
 
@@ -190,12 +190,12 @@ El sistema debe permitir a Administradores, Bedeles y Docentes obtener el listad
 
 ### RF-28: Visualización de ocupación (agenda Docente)
 
-El sistema debe permitir a Docentes visualizar en modo solo lectura una agenda diaria o semanal con disponibilidad y reservas asociadas.
+Los tres roles pueden consultar agenda diaria o semanal de ocupación; Docente solo consulta y Admin/Bedel acceden a operaciones permitidas según vigencia.
 
 ### RF-29: Dashboards y estadísticas
 
-El sistema debe permitir a Administradores y Bedeles visualizar paneles con indicadores de ocupación, horas reservadas, conflictos y demanda por rangos de fechas.
+Administradores y Bedeles pueden consultar ocupación, horas reservadas, demanda atendida y horas pico de alumnos teóricos/clases, con rangos y fórmulas del documento 09. No hay indicadores de conflictos.
 
-## Uso durante la definición
+## Documentos complementarios
 
-Las fichas históricas se mantienen sin reescribir; los cambios de comportamiento están registrados en DA-01 a DA-85. El documento 18 contiene los casos vigentes y sus criterios de aceptación. Este catálogo preserva la numeración y texto original para trazabilidad.
+Las fuentes originales se conservan como material de referencia; las decisiones vigentes se describen en DA-01 a DA-85. El documento 18 contiene los casos vigentes y sus criterios de aceptación. Este catálogo conserva la numeración RF/CU; el comportamiento de la app es el vigente aquí y en el documento 18.

@@ -17,12 +17,12 @@ Comenzar por la [especificación de la aplicación](especificacion/00-especifica
 - [Indicadores y horas pico](especificacion/09-indicadores-y-horas-pico.md).
 - [Cuentas y acceso](especificacion/10-cuentas-y-acceso.md).
 - [Contexto de demostración y validación](especificacion/11-contexto-de-demo-y-validacion.md).
-- [Arquitectura y stack acordados para la demo local](especificacion/12-arquitectura-y-stack.md).
+- [Arquitectura y stack](especificacion/12-arquitectura-y-stack.md).
 - [Modelo consolidado de datos y reglas](especificacion/13-modelo-consolidado.md).
 - [Pantallas y navegación](especificacion/14-pantallas-y-navegacion.md).
 - [Operaciones y contratos de la aplicación](especificacion/15-operaciones-y-contratos.md).
 - [Historias de usuario](especificacion/16-historias-de-usuario.md).
-- [Operación local y verificación de la demo](especificacion/17-operacion-local-y-verificacion.md).
+- [Operación y verificación de la demo](especificacion/17-operacion-local-y-verificacion.md).
 - [Casos de uso vigentes y trazabilidad](especificacion/18-casos-de-uso-vigentes.md).
 
 - [Vocabulario del dominio](../CONTEXT.md).
@@ -44,4 +44,4 @@ La síntesis 00 orienta la lectura. Los capítulos 01–11 desarrollan las regla
 
 Ante diferencias con la versión histórica, aplicar el ajuste DA documentado y el modelo/caso vigente. Las decisiones técnicas derivadas se identifican como tales; no son requisitos adicionales de negocio. Cambios futuros de alcance deben quedar registrados y actualizar los documentos afectados.
 
-Esta entrega constituye el estado final de la especificación v1.0. Las pruebas de aplicación, carga y restauración son trabajo de la futura implementación, no resultados de esta revisión documental.
+Esta entrega constituye el estado final de la especificación v1.0. Las pruebas de aplicación, carga e integración son trabajo de la futura implementación, no resultados de esta revisión documental.

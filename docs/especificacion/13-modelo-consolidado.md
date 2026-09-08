@@ -14,6 +14,7 @@ Los campos de versión son técnicos y permiten rechazar escrituras desactualiza
 
 ```mermaid
 classDiagram
+    IdentidadSupabase "1" ..> "0..1" Usuario : vincula por UUID
     Usuario <|-- Administrador
     Usuario <|-- Bedel
     Usuario <|-- Docente
@@ -45,20 +46,18 @@ El año admite menos de dos cuatrimestres solo en preparación. DocenteExterno e
 | Campo | Tipo conceptual | Regla |
 |---|---|---|
 | idUsuario | ID | Interno, estable. |
-| email | Texto | Obligatorio, único entre cuentas activas/inactivas; normalizar espacios de extremos y comparación de mayúsculas para identidad. |
+| email | Texto | Copia para consultas del email de Auth, autoridad de identidad y unicidad. Solo se actualiza desde el circuito administrativo del backend. |
 | nombre, apellido | Texto | Identificación de persona conservada del diagrama; no vacíos. |
-| passwordHash | Texto | Nunca expuesto en API; no es la contraseña temporal. |
+| supabaseAuthId | UUID único | Identidad de Supabase Auth; obligatorio en todo perfil utilizable. No es un ID numérico del dominio. |
 | rol | Enum | ADMINISTRADOR, BEDEL o DOCENTE; uno solo. |
 | activo | Booleano | Baja lógica, no elimina historial. |
-| requiereCambioPassword | Booleano | Alta/reset desde app: sí; Admin inicial de entorno: no. |
-| intentosFallidos, bloqueadoHasta | Contador e instante opcional | Cinco consecutivos y bloqueo 15 minutos. |
 | version | Número técnico | Evitar edición desactualizada. |
 | turno | Enum del perfil Bedel | Opcional: MAÑANA, TARDE, NOCHE; descriptivo, sin restricciones horarias (DA-82). |
 | legajo | Texto del perfil Docente | Opcional, descriptivo, sin relación obligatoria con lista ficticia ni unicidad funcional adicional (DA-82). |
 
 Mapeo relacional: cuenta en Usuario y perfiles por especialización con la misma clave como PK/FK. Administrador conserva identidad de especialización, aunque no agrega datos propios. Un perfil corresponde al rol actual; cambiar rol actualiza perfil y permisos en una transacción. Esta representación evita tener que cambiar la identidad de Usuario para cambiar rol, conservando el esquema conceptual original.
 
-Invalidar sesiones al deshabilitar, cambiar rol o restablecer contraseña es la concreción de no conservar permisos/credenciales vencidos. El último Admin activo debe protegerse también ante solicitudes simultáneas, no solo en el formulario.
+La API comprueba activo y rol actuales para cada solicitud autenticada. No se almacenan contraseñas, hashes, contadores de intentos ni sesiones en el dominio. Supabase administra esos aspectos. El último Admin activo se protege también bajo concurrencia. IdentidadSupabase es un servicio externo al dominio; las migraciones no gestionan sus tablas internas. El vínculo estable es supabaseAuthId y no el email. Las altas parciales y cambios de email se resuelven según documento 15.
 
 ## Materia, curso y docente externo
 
@@ -173,13 +172,11 @@ FechaExcluida contiene reserva periódica + fecha original, únicas. Se conserva
 
 Las restricciones de exclusión y rangos de PostgreSQL admiten expresar no solapamiento; la elección exacta de columnas/rango se concretará en migraciones, sin introducir SQL de implementación en esta especificación. [Rangos](https://www.postgresql.org/docs/current/rangetypes.html), [restricciones](https://www.postgresql.org/docs/current/ddl-constraints.html).
 
-## Auditoría y sesiones
+## Auditoría y autenticación
 
-EventoAuditoria registra instante, actor opcional para intentos anónimos, operación, tipo/ID de entidad y resultado. Para cambios, datos antes/después necesarios para explicar la modificación, excluyendo contraseñas, hashes y cookies. Registrar autenticación y mutaciones de usuarios, aulas, calendario y reservas exigidas por las fuentes y acuerdos; no registrar cada consulta ni construir estadísticas de conflictos.
+EventoAuditoria registra actor, instante, operación, tipo/ID de entidad y resultado de mutaciones de cuentas, aulas, calendario y reservas. Incluye cambios necesarios para explicar la operación sin contraseñas, tokens ni credenciales administrativas. Eventos y mutaciones locales exitosas comparten transacción; los resultados de llamadas de Auth se registran según lo conocido, sin prometer atomicidad distribuida.
 
-La auditoría de una mutación exitosa acompaña su transacción. Los fallos de autenticación requieren registro aun sin una transacción de negocio exitosa. Para la demo no se agrega purga automática de auditoría ni panel; se conserva mientras se conserve la base, con consulta técnica. La retención de 14 días aplica a archivos de respaldo, no al historial de dominio.
-
-Las sesiones de servidor conservan identidad, permisos actuales y actividad significativa. Refrescos automáticos no prolongan el plazo de 120 minutos. Restablecer contraseña/deshabilitar/cambiar rol invalida sesiones. Solo la pantalla de cambio de contraseña y cierre están disponibles mientras se exige cambio de temporal.
+No se replica la bitácora interna de autenticación de Supabase. La auditoría del dominio se consulta técnicamente y se conserva durante la vida de la base, sin panel ni purga automática. La validación JWT y los límites de cierre/renovación siguen el documento 10; no hay entidad de sesión propia.
 
 ## Trazabilidad de cambios al DER y clases originales
 

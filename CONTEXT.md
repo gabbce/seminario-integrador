@@ -49,3 +49,5 @@ Vocabulario vigente de la especificación v1.0 final, basado en las fuentes y ac
 **Historial de aula:** registro de los períodos de estado y tipo de un aula para interpretar su disponibilidad histórica, sin reconstruir el pasado con su estado actual.
 
 **Ocupación porcentual:** horas reservadas divididas por horas disponibles del mismo rango y aulas, multiplicadas por cien. La disponibilidad considera módulos completos de 30 minutos según apertura, feriados e historial del aula; el estado administrativo del año no modifica las métricas (DA-85).
+
+**Cuenta de acceso:** perfil Usuario vinculado por UUID a una identidad Supabase Auth. Auth administra credenciales y email de acceso; la app administra rol, estado y datos de la persona. La autenticación válida no autoriza operar sin perfil activo.

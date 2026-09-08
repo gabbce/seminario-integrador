@@ -8,7 +8,7 @@ Estado: reglas y trazabilidad de la especificación v1.0 final; el modelo vigent
 
 | Concepto | Datos documentados | Observaciones |
 |---|---|---|
-| Usuario | ID, email, contraseña, nombre, apellido, rol, activo | RNF exige hash de contraseña; no almacenamiento en claro. |
+| Usuario | ID, email, contraseña, nombre, apellido, rol, activo | Supabase gestiona credenciales; Usuario conserva el vínculo UUID y perfil, sin contraseña en el dominio. |
 | Administrador | Especialización de Usuario | Sin atributos específicos en los diagramas. |
 | Bedel | Turno: mañana, tarde, noche | La justificación menciona habilitado; el modelo lo representa con activo en Usuario. |
 | Docente | Legajo como usuario; nombre, apellido, email e ID en reserva | No requiere cuenta para figurar en una reserva (DA-07); fuente externa simulada como lista local (DA-09). |
@@ -38,9 +38,9 @@ La transcripción de PlantUML conserva también tipos, tamaños, enumeraciones y
 
 | ID | Regla | Fuente |
 |---|---|---|
-| RN-01 | Email de usuario único y contraseña sujeta a política. | RF-02 |
+| RN-01 | Email de acceso único y contraseña gestionados por Supabase Auth. | RF-02 |
 | RN-02 | No degradar ni deshabilitar al último Administrador activo. | RF-04/05 |
-| RN-03 | Cinco intentos fallidos bloquean el acceso por 15 minutos. | RF-01, CU-01 |
+| RN-03 | Autenticación y límites ante intentos gestionados por Supabase, sin contador propio. | RF-01, CU-01 |
 | RN-04 | Identificador de aula único; un aula inactiva no es reservable. | RF-06, CU-06, RF-18 |
 | RN-05 | No inhabilitar ni dar de baja un aula con reservas futuras. | RF-08/09 |
 | RN-06 | La capacidad del aula debe ser mayor o igual a la solicitada. | RF-07/18/19 |
@@ -56,7 +56,7 @@ La transcripción de PlantUML conserva también tipos, tamaños, enumeraciones y
 
 ## Estados documentados y acuerdos posteriores
 
-- Usuario: activo/inactivo; bloqueo temporal de autenticación como condición adicional.
+- Usuario: activo/inactivo y rol vigente; identidad vinculada por UUID a Supabase Auth.
 - Aula: HABILITADA es reservable; INHABILITADA y MANTENIMIENTO no. La baja lógica retira el aula de la operación habitual sin borrar historial (DA-32).
 - Reserva: PENDIENTE solo durante preparación temporal, sin persistencia (DA-19). CONFIRMADA si queda alguna ocurrencia no cancelada; CANCELADA si todas lo están (DA-22).
 - Año: EN PREPARACIÓN, HABILITADO y CERRADO (DA-66). Cuatrimestre: sin habilitación independiente, depende de año y fechas (DA-67).

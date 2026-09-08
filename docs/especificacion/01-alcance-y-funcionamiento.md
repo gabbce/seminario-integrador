@@ -6,7 +6,7 @@ Estado: alcance funcional consolidado 1.0 tras la entrevista. Fuentes: [presenta
 
 ## Contexto de la primera versión
 
-Demo académica con datos ficticios para una facultad de Santa Fe. Aplicación web: operación Admin/Bedel desde computadora y consultas docentes también desde celular. Horario institucional de Santa Fe, sin app móvil nativa (DA-70/71/73). El volumen real no está estimado; se usa un escenario sintético de validación, no un límite del producto (DA-72).
+Demo académica con datos ficticios para una facultad de Santa Fe. Aplicación web: operación Admin/Bedel desde computadora y consultas docentes también desde celular. Horario institucional de Santa Fe, sin app móvil nativa (DA-70/71/73). Puede ejecutarse localmente o en alojamiento web; necesita internet para Supabase en ambos casos. No se exigen respaldos ni recuperación de copias. El volumen real no está estimado; se usa un escenario sintético de validación, no un límite del producto (DA-72).
 
 ## Problema y objetivo
 
@@ -16,7 +16,7 @@ El objetivo es registrar reservas esporádicas y recurrentes, consultar disponib
 
 ## Alcance documentado
 
-- Inicio con email/contraseña y permisos por rol único: Administrador, Bedel y Docente. Sin registro público; cierre tras 120 minutos de inactividad (DA-61/65).
+- Inicio con email/contraseña y permisos por rol único: Administrador, Bedel y Docente. Sin registro público; autenticación y sesiones gestionadas por Supabase (DA-61/65).
 - Alta, búsqueda, modificación y baja lógica de cuentas de administradores y bedeles. Se acuerda que el Administrador crea también cuentas docentes de consulta (DA-03).
 - Gestión de aulas generales, multimedios y laboratorios informáticos. La capacidad se mide por personas; cantidad de PC queda como dato descriptivo y no es parámetro de búsqueda ni reserva (DA-29/30).
 - Gestión de años lectivos en preparación, habilitados o cerrados. Cuatrimestres dependientes del año, carga por etapas y habilitación con ambos completos (DA-11/66/67).
@@ -34,7 +34,7 @@ Gestión académica de cátedras y gestión académica de docentes. Esto no elim
 
 ## Límites acordados
 
-Una institución, sin integración externa. Los datos necesarios de docente y curso se registran en la reserva. El docente proviene de una lista fija que simula el origen externo (DA-09). Se distinguen comisiones (DA-10). Los diagramas son fuente de verdad y se respeta su diseño tanto como sea posible; los ajustes se justificarán y acordarán.
+Una institución, sin integración académica externa; Supabase provee PostgreSQL y autenticación. Los datos necesarios de docente y curso se registran en la reserva. El docente proviene de una lista fija que simula el origen externo (DA-09). Se distinguen comisiones (DA-10). Los diagramas son fuente de verdad y se respeta su diseño tanto como sea posible; los ajustes se justificarán y acordarán.
 
 ## Límites del alcance definido
 
@@ -83,4 +83,4 @@ DA-31 conserva los requisitos solicitados para impedir cambios de aula que inval
 
 DA-46 renombra el dato de capacidad mínima del pedido a «cantidad de alumnos prevista»: se utiliza tanto para seleccionar aulas de capacidad suficiente como para los indicadores teóricos. No cambia la capacidad propia de cada aula.
 
-Altas y restablecimientos usan una frase temporal legible con cambio obligatorio; las contraseñas definitivas requieren 12 caracteres como mínimo. Las cuentas deshabilitadas pierden sesiones sin cancelar sus reservas y pueden rehabilitarse (DA-62/63/64). Ver [cuentas y acceso](10-cuentas-y-acceso.md).
+Admin establece contraseñas mediante Auth, sin cambio obligatorio; se aplica la política del proveedor. Java rechaza operaciones de cuentas deshabilitadas sin cancelar reservas; se permite rehabilitar (DA-62/63/64). Ver [cuentas y acceso](10-cuentas-y-acceso.md).

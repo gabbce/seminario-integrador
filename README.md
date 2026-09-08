@@ -1,6 +1,6 @@
 # Gestión y reservas de aulas
 
-Aplicación para una institución educativa, destinada a una demostración académica local con datos ficticios.
+Aplicación para una institución educativa, destinada a una demostración académica con datos ficticios, ejecutable localmente o en la web con Supabase remoto.
 
 El repositorio contiene la **especificación funcional y técnica v1.0**, final y aprobada por el usuario. No se ha iniciado la implementación.
 
@@ -9,4 +9,4 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 - [Índice completo y fuentes originales](docs/README.md).
 - [Vocabulario del dominio](CONTEXT.md).
 
-Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, PostgreSQL y Docker Compose.
+Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.

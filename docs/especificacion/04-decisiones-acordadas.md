@@ -2,7 +2,7 @@
 
 **Versión:** 1.0 final, aprobada. Alcance vigente definido en la [especificación general](00-especificacion.md).
 
-Registro de los 85 acuerdos de la entrevista y su revisión. Fecha de inicio: 05/09/2026. Las recomendaciones históricas descartadas no son requisitos; las decisiones posteriores referenciadas precisan el alcance vigente.
+Registro de las 85 decisiones vigentes de la especificación v1.0.
 
 **DA significa Decisión Acordada.** Cada fila identifica una definición resuelta, su alcance y sus implicaciones. Estado: registro final de la especificación v1.0.
 
@@ -13,7 +13,7 @@ Registro de los 85 acuerdos de la entrevista y su revisión. Fecha de inicio: 05
 | DA-01 | Respetar lo más posible el diseño de los diagramas; son fuente de verdad, aunque no inmutables. | Justificar y acordar los cambios. No reemplazar el modelo por preferencias de implementación. |
 | DA-02 | Primera versión para una institución. | No incluir administración de múltiples instituciones. |
 | DA-03 | Administrador crea cuentas docentes de consulta. | Completar RF-02/CU-02 para incluir ese rol; mantener fuera la gestión académica de docentes. |
-| DA-04 | Sin integración externa. | Registrar en la reserva los datos necesarios de docente y curso. Resolver el significado de los IDs externos sin inventar una API. |
+| DA-04 | Sin integración académica externa ni API de feriados. | Supabase provee PostgreSQL y Auth; docentes y cursos no se sincronizan con otro sistema académico. |
 | DA-05 | Esta etapa es exclusivamente de definición y documentación. | No escribir código de aplicación ni ampliar el alcance innecesariamente. |
 | DA-06 | Administrador puede realizar todas las operaciones de Bedel; solo Administrador gestiona cuentas y calendario académico. Docente solo consulta. | Ajustar asociaciones de permisos del diagrama CU y permitir que Admin registre reservas. |
 | DA-07 | Se puede reservar para un docente sin cuenta, registrando nombre, apellido y email. Las cuentas docentes consultan la ocupación general. | No exigir una cuenta docente como condición de registro ni limitar listados a reservas propias. |
@@ -70,11 +70,11 @@ Registro de los 85 acuerdos de la entrevista y su revisión. Fecha de inicio: 05
 | DA-58 | Generar solo fechas futuras omitidas por calendario o agregadas por ampliación. | No recuperar detalles cancelados, fechas excluidas manualmente ni reservas totalmente canceladas. |
 | DA-59 | No extender series que quedaron sin continuidad porque se cancelaron todas sus ocurrencias futuras, aunque la cabecera siga CONFIRMADA por clases pasadas. | No confundir este caso con una serie que terminó naturalmente su calendario; preservar intención de cese. |
 | DA-60 | Una reprogramación puntual es una excepción de la fecha, no un cambio del patrón semanal. | Las nuevas fechas se generan con día y horario del patrón original, sin duplicar la clase reprogramada. |
-| DA-61 | Inicio con email y contraseña; sin registro público. Administrador crea cuentas con un único rol Admin, Bedel o Docente. | Conservar identidad y especialización por rol. |
-| DA-62 | Contraseñas de al menos 12 caracteres, admitiendo frases, sin composición obligatoria de mayúsculas, números y símbolos. | Cinco intentos fallidos consecutivos bloquean 15 minutos, conforme al requisito original. |
-| DA-63 | Administrador entrega contraseña temporal al crear o restablecer cuenta; debe cambiarse al ingresar. Debe ser legible y relativamente fácil de recordar. | Usar frase aleatoria por operación, no hash mostrado al usuario ni clave fija compartida; no enviar emails. |
-| DA-64 | Deshabilitar impide acceso e invalida sesiones; conserva historial y reservas. Administrador puede rehabilitar la cuenta. | No cancelar reservas por baja del usuario. |
-| DA-65 | Cerrar sesión tras 120 minutos de inactividad. | Sustituye la propuesta de 60 minutos. Se pierde preparación sin guardar y se requiere nuevo ingreso. |
+| DA-61 | Login con email y contraseña mediante Supabase Auth; sin registro público. | Administrador crea cuentas con rol único de Admin, Bedel o Docente. |
+| DA-62 | Política de contraseña y límites de autenticación gestionados por Supabase. | No implementar mínimo, contadores de fallos ni bloqueo propios; mostrar errores del proveedor. |
+| DA-63 | Administrador establece la contraseña al crear o restablecer una cuenta desde la app. | Operación privilegiada del backend; sin frase temporal generada, cambio obligatorio ni correo. |
+| DA-64 | Deshabilitar impide operaciones de la app; rehabilitar permite acceso con identidad válida. | Java verifica activo y rol actuales en cada solicitud; se conservan reservas e historial sin exigir revocación global instantánea de JWT. |
+| DA-65 | Supabase gestiona sesiones, renovación y cierre. | Sin reloj propio de inactividad ni tabla de sesiones. Si no hay identidad válida, solicitar ingreso; la preparación no se recupera. Se respetan los límites del proveedor sobre tokens emitidos. |
 | DA-66 | Año lectivo con estados EN PREPARACIÓN, HABILITADO y CERRADO. Solo cerrar sin clases futuras ni en curso. | Preparación permite cargar datos; habilitado permite reservar; cerrado conserva consultas/historial e impide nuevas reservas y cambios. |
 | DA-67 | Cuatrimestres sin habilitación independiente; disponibilidad determinada por año y fechas. | Simplificar el atributo estado del modelo original, sin eliminar las fechas ni la pertenencia al año. |
 | DA-68 | Eliminar cuatrimestre solo sin reservas asociadas; el año vuelve a preparación. Bloquear si afecta reservas futuras o en curso del año. | Mantener integridad de reservas y regla de dos cuatrimestres para habilitar. |
@@ -82,15 +82,15 @@ Registro de los 85 acuerdos de la entrevista y su revisión. Fecha de inicio: 05
 | DA-70 | Referencia institucional: facultad de Santa Fe, Argentina, con fechas y horas locales. | Usar zona institucional America/Argentina/Cordoba; no el horario del equipo del visitante. |
 | DA-71 | Aplicación web; operación Admin/Bedel principalmente en computadora y consultas docentes cómodas desde celular. | Sin app móvil nativa. |
 | DA-72 | No existe estimación de aulas ni reservas. | Adoptar un escenario sintético de validación documentado, sin considerarlo volumen real ni límite del sistema. |
-| DA-73 | Primera versión para demostración académica con datos ficticios. | Definir instalación y recuperación proporcionadas a la demo; no inferir requisitos de producción ni eliminar RNF originales. |
+| DA-73 | Demo académica con datos ficticios y carga reproducible. | No exigir respaldos, retención, restauración, alta disponibilidad ni infraestructura de producción. |
 | DA-74 | La cátedra no impone tecnologías; deben definirse para el proyecto. | PostgreSQL continúa como requisito original; stack concreto aprobado por DA-81. |
-| DA-75 | Demo ejecutable localmente con instrucciones reproducibles, sin servidor público necesario. | No exigir despliegue remoto. |
-| DA-76 | Conservar bitácora requerida y consultarla con herramientas técnicas para la demo. | No incluir pantalla de auditoría en la app. |
-| DA-77 | Contraseña del administrador inicial definida en variable de entorno para la demo local. | Excepción al alta con frase temporal/cambio obligatorio; guardar hash y crear solo si no existe, sin sobrescribir credenciales al arrancar. |
-| DA-78 | Backend basado en Java, Node o Laravel; frontend React o Next con apoyo de biblioteca de interfaces como shadcn/ui y Tailwind. | Sustituye propuesta Django/templates; elección específica aprobada por DA-81. |
-| DA-79 | PostgreSQL y Docker Compose aprobados explícitamente. | Base relacional y ejecución local reproducible; no implica elegir todavía versiones. |
+| DA-75 | La app puede ejecutarse localmente o alojarse en la web; necesita internet para Supabase. | Docker Compose facilita ejecución local de la app. Hosting de Java/React se elige al publicar, con HTTPS. |
+| DA-76 | Conservar auditoría de operaciones del dominio con consulta técnica. | Sin panel ni réplica en Java de la bitácora interna de autenticación de Supabase. |
+| DA-77 | Inicializar identidad Auth y perfil del primer Admin con email y contraseña de variables privadas. | No duplicar ni sobrescribir cuentas al arrancar; completar inicializaciones parciales verificando el vínculo. Sin cambio obligatorio. |
+| DA-78 | Backend Java/Spring Boot y frontend React/TypeScript/Vite con shadcn/ui y Tailwind. | Supabase administra base e identidad; las reglas de negocio permanecen en Java. |
+| DA-79 | PostgreSQL administrado en Supabase y Docker Compose para la app local. | No levantar base local ni servicio auxiliar de respaldos; registrar versión de PostgreSQL del proyecto elegido. |
 | DA-80 | Aprobada la propuesta de gráficos: Chart.js y tabla coloreada para semana típica. | Conservar fórmulas y vistas acordadas; no agregar plataforma analítica. |
-| DA-81 | Stack aprobado: Java/Spring Boot, Spring Security con sesiones, Spring Data JPA/Hibernate, React/TypeScript/Vite, shadcn/ui/Tailwind, Chart.js, PostgreSQL y Docker Compose. | Consolidar diseño técnico en este stack; no autoriza abandonar la etapa de especificación ni comenzar código. |
+| DA-81 | Java/Spring Boot, Spring Security para validar JWT y permisos, JPA/Hibernate, React/TypeScript/Vite, shadcn/Tailwind, Chart.js y Supabase PostgreSQL/Auth. | API de negocio única; cliente usa Auth y Java accede a la base. Las credenciales administrativas se guardan solo en backend. |
 | DA-82 | Turno de Bedel y legajo de Docente son datos descriptivos opcionales. | No restringen acceso ni requieren coincidencia con la lista externa simulada. |
 | DA-83 | Tipo de aula y equipamiento solicitados quedan fijos cuando comienza la serie, igual que docente, curso y alumnos. | Si cambian, cancelar futuras afectadas y crear otra reserva. Reasignaciones de aula/horario deben seguir cumpliendo el pedido original. |
 | DA-84 | Reprogramar una ocurrencia periódica solo dentro de los períodos asignados. | Para recuperar fuera, cancelar la original y registrar una esporádica, respetando año, apertura, feriados y disponibilidad. |
@@ -129,7 +129,7 @@ Se verificó la documentación de [ArgentinaDatos — Feriados](https://argentin
 
 Existe también un [calendario oficial nacional](https://www.argentina.gob.ar/feriados) para consulta humana. La existencia de una API facilita traer fechas, pero no define cuáles suspenden clases en esta institución.
 
-Resultado de la entrevista (DA-18): gestión manual en la primera versión; autocompletado fuera del alcance comprometido. Si en el futuro se adopta, que sea una importación puntual con revisión de Admin y alternativa manual ante fallo o año sin datos; nunca dependencia de red al reservar. Agregar esta importación sería una excepción explícita a DA-04 y no se considera todavía aprobada.
+Resultado de la entrevista (DA-18): gestión manual en la primera versión; autocompletado fuera del alcance comprometido. Si en el futuro se adopta, que sea una importación puntual con revisión de Admin y alternativa manual ante fallo o año sin datos; nunca dependencia de red al reservar. La importación de feriados no forma parte de esta versión.
 
 ## Regeneración de series: resultado
 

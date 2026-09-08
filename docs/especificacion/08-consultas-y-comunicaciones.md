@@ -71,3 +71,7 @@ No se extiende por defecto la impresión al resto de las pantallas, porque el ca
 ## Trazabilidad
 
 DA-33 precisa el significado de «notificar» en RF-23 y CU-23/25. DA-34 amplía la agenda de RF/CU-28 a los roles operativos manteniendo permisos. DA-35 define información visible. DA-36 resuelve la consulta de cancelación parcial. DA-37 concreta la alternativa de exportación/impresión de CU-26. Los indicadores de RF/CU-29 se desarrollan en [indicadores y horas pico](09-indicadores-y-horas-pico.md), con acuerdos y propuestas separados.
+
+## Mensajes de cuentas
+
+El login informa errores de Supabase y la API informa falta de perfil, cuenta deshabilitada o permiso insuficiente. Alta y cambio administrativo de contraseña muestran éxito solo tras resultado confirmado, y diferencian fallo o resultado incierto del proveedor. No hay avisos de cambio obligatorio ni cuenta regresiva de inactividad propia.

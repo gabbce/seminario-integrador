@@ -1,3 +1,4 @@
+import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
 import { initialCourses } from "./catalog";
 import { useState } from "react";
@@ -122,7 +123,22 @@ function App() {
               />
               <Route
                 path="/reservas/:id"
-                element={<Detail bookings={bookings} />}
+                element={
+                  <Detail
+                    bookings={bookings}
+                    role={role}
+                    cancel={(id, request) => {
+                      const current = bookings.find((b) => b.id === id);
+                      if (!current) return "La reserva ya no está disponible.";
+                      const result = cancelClasses(current, request, role);
+                      if (result.error) return result.error;
+                      if (result.booking)
+                        setBookings((old) =>
+                          old.map((b) => (b.id === id ? result.booking : b)),
+                        );
+                    }}
+                  />
+                }
               />
               <Route
                 path="/reservas"

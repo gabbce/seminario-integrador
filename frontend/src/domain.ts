@@ -22,8 +22,11 @@ export type Occurrence = {
   end: string;
   room: string;
   cancelled?: boolean;
+  cancellation?: { reason: string; actor: string; at: string };
 };
 export type Booking = {
+  version?: number;
+  continuityCancelledAt?: string;
   id: string;
   subject: string;
   course: string;

@@ -1,3 +1,4 @@
+import { changeRoom } from "./room-change";
 import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
 import { initialCourses } from "./catalog";
@@ -127,6 +128,21 @@ function App() {
                   <Detail
                     bookings={bookings}
                     role={role}
+                    changeRoom={(id, request) => {
+                      const current = bookings.find((b) => b.id === id);
+                      if (!current) return "Reserva no encontrada.";
+                      const result = changeRoom(
+                        current,
+                        request,
+                        bookings,
+                        role,
+                      );
+                      if (result.error) return result.error;
+                      if (result.booking)
+                        setBookings((old) =>
+                          old.map((b) => (b.id === id ? result.booking : b)),
+                        );
+                    }}
                     cancel={(id, request) => {
                       const current = bookings.find((b) => b.id === id);
                       if (!current) return "La reserva ya no está disponible.";

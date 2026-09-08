@@ -1232,3 +1232,42 @@ body {
     grid-template-columns: 1fr;
   }
 }
+.room-comparison {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+}
+.change-room-option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid #adb7aa;
+  border-radius: 8px;
+  margin: 12px 0;
+  cursor: pointer;
+}
+.change-room-option:has(input:checked) {
+  background: #e8eee4;
+  border-color: #194d3a;
+}
+.change-room-option input {
+  width: 20px;
+  height: 20px;
+  accent-color: #194d3a;
+}
+.change-room-option small {
+  display: block;
+  font-weight: normal;
+  margin-top: 8px;
+}
+.change-room-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}

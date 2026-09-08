@@ -15,7 +15,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Listados e impresión P-03 | Implementado, validado | Día/curso, filtros por ocurrencia, 20/50/100, impresión completa. 18 pruebas unitarias y 13 de navegador. |
 | Agenda semanal P-03 | Implementado, validado | Semana con filtros, días cerrados diferenciados y acceso diario móvil. 20 pruebas unitarias y 14 E2E. |
 | Cancelación P-03 | Implementado, validado | Selección futura, motivo, historial, liberación de aulas y cese de continuidad. 23 pruebas unitarias y 15 E2E. |
-| Edición P-03 | Siguiente | Editar y reprogramar con protección temporal y control de versión. |
+| Cambio de aula P-03 | Implementado, validado | Futuras del patrón o fecha esporádica; comparación y disponibilidad conjunta. 27 pruebas unitarias, 16 E2E. |
+| Datos compartidos y reprogramación P-03 | Siguiente | Edición de cabecera y fecha/horario con protección temporal y control de versión. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
@@ -93,3 +94,9 @@ Comparadas referencia `mockups/operacion-diaria-b/04-cancelar.png` y capturas `f
 Cancelación de una, varias o todas las futuras, motivo obligatorio, registro del actor y momento, estado derivado e historial por ocurrencia. Las pruebas verifican rechazo íntegro por pasado/inicio exacto, versión vieja, rol Docente, motivo vacío o cancelación previa. Al cesar todas las futuras de una periódica se conserva la intención de cese para la futura reconciliación de calendario. La app comparte el resultado con agenda y listados; E2E verifica desaparición de la ocupación y consulta por filtro canceladas. El reloj sigue siendo el de la demo; controles de escenarios temporales se completan en P-06.
 
 Revisiones independientes de especificación y estándares sin hallazgos. Build, lint, 23 pruebas unitarias y 15 de navegador correctos. Próximo corte: edición y reprogramación. Administración, indicadores y validación global continúan pendientes.
+
+## Revisión visual del cambio de aula
+
+Referencia `mockups/operacion-diaria-b/03-modificar.png`; capturas `frontend/evidence/cambio-aula-desktop.png` y `cambio-aula-mobile.png`. Conserva grupos semanales, comparación actual/nueva aula, candidatas válidas para todas las fechas, desplegable de fechas y acciones de guardar/descartar. Móvil apila comparación y opciones sin desbordar. Cabecera compacta conforme al resto del prototipo; no se inventan edificios/pisos ausentes en los datos actuales.
+
+Cambio conjunto del patrón y sus futuras vigentes; conserva otras clases, pasado y canceladas. Esporádicas operan por fecha. Al guardar se revalidan versión, permiso, alcance temporal, requisitos y ocupación. Queda historial del cambio visible a operadores. E2E cambia 12 lunes a 301, conserva 14 miércoles en 105 y cancela luego sin duplicar historial. Se corrigió una duplicación del historial detectada por ambas revisiones independientes. Reprogramaciones y edición de datos compartidos siguen pendientes; todavía no se declara cerrado P-03.

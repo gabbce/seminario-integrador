@@ -25,6 +25,7 @@ export type Occurrence = {
   cancellation?: { reason: string; actor: string; at: string };
 };
 export type Booking = {
+  changes?: { at: string; actor: string; description: string }[];
   version?: number;
   continuityCancelledAt?: string;
   id: string;

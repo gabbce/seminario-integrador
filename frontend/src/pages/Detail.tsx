@@ -1,3 +1,5 @@
+import { ChangeRoom } from "./ChangeRoom";
+import type { RoomChange } from "../room-change";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -10,25 +12,41 @@ export function Detail({
   bookings,
   role,
   cancel,
+  changeRoom,
 }: {
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
+  changeRoom: (id: string, request: RoomChange) => string | undefined;
 }) {
   const { id } = useParams();
   const b = bookings.find((b) => b.id === id);
   if (!b) return <Pending name="Reserva no encontrada" />;
-  return <BookingDetail key={b.id} booking={b} role={role} cancel={cancel} />;
+  return (
+    <BookingDetail
+      key={b.id}
+      booking={b}
+      role={role}
+      cancel={cancel}
+      changeRoom={changeRoom}
+      bookings={bookings}
+    />
+  );
 }
 function BookingDetail({
   booking: b,
+  bookings,
   role,
   cancel,
+  changeRoom,
 }: {
   booking: Booking;
+  bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
+  changeRoom: (id: string, request: RoomChange) => string | undefined;
 }) {
+  const [changingRoom, setChangingRoom] = useState(false);
   const go = useNavigate();
   const [editing, setEditing] = useState(false);
   const [indices, setIndices] = useState<number[]>([]);
@@ -40,6 +58,22 @@ function BookingDetail({
     !o.cancelled && isFuture(o) ? [i] : [],
   );
   const operator = role !== "Docente";
+  if (changingRoom)
+    return (
+      <ChangeRoom
+        booking={b}
+        bookings={bookings}
+        back={() => setChangingRoom(false)}
+        save={(request) => {
+          const error = changeRoom(b.id, request);
+          if (error) return error;
+          setChangingRoom(false);
+          setMessage(
+            "Cambio de aula guardado. Se actualizaron todas las clases seleccionadas.",
+          );
+        }}
+      />
+    );
   return (
     <>
       <Button
@@ -60,6 +94,11 @@ function BookingDetail({
             {b.course} · {b.teacher} · {b.students} alumnos previstos
           </p>
         </div>
+        {!editing && operator && future.length > 0 && (
+          <Button variant="outline" onClick={() => setChangingRoom(true)}>
+            Cambiar aula
+          </Button>
+        )}
         {!editing && operator && future.length > 0 && (
           <Button
             variant="outline"
@@ -83,6 +122,18 @@ function BookingDetail({
       )}
       {!editing && (
         <>
+          {operator && b.changes?.length && (
+            <section className="panel booking-contacts">
+              <h2>Historial de cambios</h2>
+              {b.changes.map((change, i) => (
+                <p key={i}>
+                  {change.description}
+                  <br />
+                  {change.actor} · {change.at.replace("T", " ")}
+                </p>
+              ))}
+            </section>
+          )}
           {operator && (
             <section className="panel booking-contacts">
               <h2>Contactos de la reserva</h2>

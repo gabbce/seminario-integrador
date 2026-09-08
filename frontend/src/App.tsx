@@ -1,3 +1,4 @@
+import { type ReservationDraft } from "./reservation-draft";
 import { initialCourses } from "./catalog";
 import { useState } from "react";
 import {
@@ -39,6 +40,7 @@ function App() {
   const [role, setRole] = useState<Role | null>(null);
   const [bookings, setBookings] = useState(initialBookings);
   const [courses, setCourses] = useState(initialCourses);
+  const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
   return (
     <BrowserRouter>
@@ -100,6 +102,9 @@ function App() {
                     <Navigate to="/agenda" />
                   ) : (
                     <Wizard
+                      key="register"
+                      initial={draft}
+                      onConsume={() => setDraft(undefined)}
                       courses={courses}
                       addCourse={(course) =>
                         setCourses((old) =>
@@ -124,15 +129,28 @@ function App() {
                 element={<Listing bookings={bookings} />}
               />
               <Route path="/aulas" element={<Rooms />} />
-              {["disponibilidad", "indicadores", "administracion"].map(
-                (path) => (
-                  <Route
-                    key={path}
-                    path={`/${path}`}
-                    element={<Pending name={path} />}
+              <Route
+                path="/disponibilidad"
+                element={
+                  <Wizard
+                    key="query"
+                    queryOnly
+                    role={role}
+                    bookings={bookings}
+                    courses={courses}
+                    addCourse={() => {}}
+                    save={() => {}}
+                    onPrepare={setDraft}
                   />
-                ),
-              )}
+                }
+              />
+              {["indicadores", "administracion"].map((path) => (
+                <Route
+                  key={path}
+                  path={`/${path}`}
+                  element={<Pending name={path} />}
+                />
+              ))}
               <Route path="*" element={<Navigate to="/agenda" replace />} />
             </Routes>
           </main>

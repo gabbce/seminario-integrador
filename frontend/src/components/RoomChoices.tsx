@@ -10,6 +10,7 @@ export function RoomChoices({
   onSelect,
   name,
   privateContacts = true,
+  readOnly = false,
   mode = "periodic",
 }: {
   request: Occurrence[];
@@ -19,6 +20,7 @@ export function RoomChoices({
   onSelect: (id: string) => void;
   name: string;
   privateContacts?: boolean;
+  readOnly?: boolean;
   mode?: "periodic" | "sporadic";
 }) {
   const [all, setAll] = useState(false);
@@ -36,9 +38,11 @@ export function RoomChoices({
           <div className="conflict-notice">
             <h3>Requieren resolver conflictos</h3>
             <p>
-              {mode === "periodic" ? "No hay un aula libre durante todo el período." : "No hay un aula libre para esta fecha y horario."} Estas alternativas
-              son informativas: revisá las reservas afectadas y contactá a las
-              personas involucradas fuera de la app.
+              {mode === "periodic"
+                ? "No hay un aula libre durante todo el período."
+                : "No hay un aula libre para esta fecha y horario."}{" "}
+              Estas alternativas son informativas: revisá las reservas afectadas
+              y contactá a las personas involucradas fuera de la app.
             </p>
           </div>
         )
@@ -63,7 +67,9 @@ export function RoomChoices({
                 : `${option.sporadicDates} fechas afectadas · ${option.sporadicMinutes} minutos con esporádicas`}
             </p>
             <details>
-              <summary>Ver reservas y contactos</summary>
+              <summary>
+                {privateContacts ? "Ver reservas y contactos" : "Ver reservas"}
+              </summary>
               {option.conflicts.map((c, i) => (
                 <div
                   className="conflict-detail"
@@ -109,13 +115,15 @@ export function RoomChoices({
             }
             key={option.room.id}
           >
-            <input
-              type="radio"
-              name={name}
-              required
-              checked={selected === option.room.id}
-              onChange={() => onSelect(option.room.id)}
-            />
+            {!readOnly && (
+              <input
+                type="radio"
+                name={name}
+                required
+                checked={selected === option.room.id}
+                onChange={() => onSelect(option.room.id)}
+              />
+            )}
             <div>
               <strong>Aula {option.room.id}</strong>
               <small>

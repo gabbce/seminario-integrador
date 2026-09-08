@@ -1,3 +1,4 @@
+import { type ReservationDraft } from "../reservation-draft";
 import { SporadicDates } from "../components/SporadicDates";
 import { validateDates } from "../booking-dates";
 import { overlaps, type Occurrence } from "../domain";
@@ -20,7 +21,7 @@ import {
   type Period,
   type Schedule,
 } from "../calendar";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import {
@@ -43,35 +44,56 @@ export function Wizard({
   role,
   courses,
   addCourse,
+  queryOnly = false,
+  initial,
+  onPrepare,
+  onConsume,
 }: {
   bookings: Booking[];
   courses: Course[];
   addCourse: (course: Course) => void;
-  role: "Administrador" | "Bedel";
+  role: "Administrador" | "Bedel" | "Docente";
+  queryOnly?: boolean;
+  onConsume?: () => void;
+  initial?: ReservationDraft;
+  onPrepare?: (draft: ReservationDraft) => void;
   save: (b: Booking) => void;
 }) {
   const go = useNavigate();
+  useEffect(() => {
+    if (initial) onConsume?.();
+  }, [initial, onConsume]);
   const [step, setStep] = useState(1);
-  const [mode, setMode] = useState<"periodic" | "sporadic">("periodic");
-  const [dates, setDates] = useState<Occurrence[]>([
-    { date: "2026-09-14", start: "14:00", end: "16:00", room: "" },
-    { date: "2026-09-21", start: "16:00", end: "17:30", room: "" },
-  ]);
+  const [mode, setMode] = useState<"periodic" | "sporadic">(
+    initial?.mode ?? "periodic",
+  );
+  const [dates, setDates] = useState<Occurrence[]>(
+    initial?.dates ?? [
+      { date: "2026-09-14", start: "14:00", end: "16:00", room: "" },
+      { date: "2026-09-21", start: "16:00", end: "17:30", room: "" },
+    ],
+  );
   const [subject, setSubject] = useState("Matemática I");
   const [course, setCourse] = useState("001-A-2026");
   const [teacher, setTeacher] = useState("Laura Gómez");
-  const [students, setStudents] = useState(30);
-  const [type, setType] = useState("Multimedios");
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [board, setBoard] = useState("");
+  const [students, setStudents] = useState(initial?.students ?? 30);
+  const [type, setType] = useState(initial?.type ?? "Multimedios");
+  const [resources, setResources] = useState<Resource[]>(
+    initial?.resources ?? [],
+  );
+  const [board, setBoard] = useState(initial?.board ?? "");
   const requirements = { type, students, resources, board };
-  const [patterns, setPatterns] = useState<Pattern[]>([
-    { day: 1, start: "14:00", end: "16:00", room: "" },
-    { day: 3, start: "14:00", end: "16:00", room: "" },
-  ]);
+  const [patterns, setPatterns] = useState<Pattern[]>(
+    initial?.patterns ?? [
+      { day: 1, start: "14:00", end: "16:00", room: "" },
+      { day: 3, start: "14:00", end: "16:00", room: "" },
+    ],
+  );
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<Booking | null>(null);
-  const [schedule, setSchedule] = useState<Schedule>(defaultSchedule);
+  const [schedule, setSchedule] = useState<Schedule>(
+    initial?.schedule ?? defaultSchedule,
+  );
   const occurrences = mode === "periodic" ? expand(patterns, schedule) : dates;
   const omitted = mode === "periodic" ? omittedDates(patterns, schedule) : [];
   const endTime = (start: string, duration: number) => {
@@ -155,6 +177,7 @@ export function Wizard({
       setStep(2);
       return;
     }
+    if (queryOnly) return;
     const issue = validateBooking(booking, bookings);
     if (issue) {
       setError(issue);
@@ -200,7 +223,9 @@ export function Wizard({
               : "RESERVAR FECHAS PUNTUALES"}
           </p>
           <h1>
-            Nueva reserva {mode === "periodic" ? "periódica" : "esporádica"}
+            {queryOnly
+              ? "Disponibilidad de aulas"
+              : `Nueva reserva ${mode === "periodic" ? "periódica" : "esporádica"}`}
           </h1>
         </div>
         <Button variant="ghost" onClick={() => go("/agenda")}>
@@ -208,25 +233,28 @@ export function Wizard({
         </Button>
       </div>
       <ol className="steps">
-        {["Datos y horarios", "Elegir aulas", "Revisar y confirmar"].map(
-          (s, i) => (
-            <li
-              key={s}
-              aria-current={step === i + 1 ? "step" : undefined}
-              className={step >= i + 1 ? "current" : ""}
-            >
-              <span>{i + 1}</span>
-              {s}
-            </li>
-          ),
-        )}
+        {(queryOnly
+          ? ["Criterios y fechas", "Resultados"]
+          : ["Datos y horarios", "Elegir aulas", "Revisar y confirmar"]
+        ).map((s, i) => (
+          <li
+            key={s}
+            aria-current={step === i + 1 ? "step" : undefined}
+            className={step >= i + 1 ? "current" : ""}
+          >
+            <span>{i + 1}</span>
+            {s}
+          </li>
+        ))}
       </ol>
       <form onSubmit={next} className="wizard">
         <div>
           <section className="panel">
             <h2>
               {step === 1
-                ? "Datos de la reserva"
+                ? queryOnly
+                  ? "Criterios de búsqueda"
+                  : "Datos de la reserva"
                 : step === 2
                   ? mode === "periodic"
                     ? "Un aula para cada día semanal"
@@ -269,26 +297,30 @@ export function Wizard({
                   </Button>
                 </div>
                 <div className="form-grid">
-                  <CoursePicker
-                    courses={courses}
-                    selected={course}
-                    choose={(c) => {
-                      setCourse(c.id);
-                      setSubject(c.subject);
-                    }}
-                    add={addCourse}
-                  />
-                  <label>
-                    Docente
-                    <select
-                      value={teacher}
-                      onChange={(e) => setTeacher(e.target.value)}
-                    >
-                      {teachers.map((t) => (
-                        <option key={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </label>
+                  {!queryOnly && (
+                    <CoursePicker
+                      courses={courses}
+                      selected={course}
+                      choose={(c) => {
+                        setCourse(c.id);
+                        setSubject(c.subject);
+                      }}
+                      add={addCourse}
+                    />
+                  )}
+                  {!queryOnly && (
+                    <label>
+                      Docente
+                      <select
+                        value={teacher}
+                        onChange={(e) => setTeacher(e.target.value)}
+                      >
+                        {teachers.map((t) => (
+                          <option key={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   <label>
                     Cantidad de alumnos prevista
                     <input
@@ -480,6 +512,8 @@ export function Wizard({
                       {dateLabel(o.date)} · {o.start}–{o.end}
                     </legend>
                     <RoomChoices
+                      readOnly={queryOnly}
+                      privateContacts={role !== "Docente"}
                       mode="sporadic"
                       request={[o]}
                       candidates={rooms.filter((r) =>
@@ -508,6 +542,8 @@ export function Wizard({
                       </small>
                     </legend>
                     <RoomChoices
+                      readOnly={queryOnly}
+                      privateContacts={role !== "Docente"}
                       request={expand([p], schedule)}
                       candidates={rooms.filter((r) =>
                         compatible(r, requirements),
@@ -580,26 +616,49 @@ export function Wizard({
                   Volver
                 </Button>
               )}
-              <Button
-                type="submit"
-                disabled={step === 2 && occurrences.some((p) => !p.room)}
-              >
-                {step === 3
-                  ? "Confirmar reserva"
-                  : step === 2
-                    ? "Revisar reserva"
-                    : "Buscar aulas"}
-                <ArrowRight />
-              </Button>
+              {queryOnly && step === 2 ? (
+                role !== "Docente" && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      onPrepare?.({
+                        mode,
+                        students,
+                        type,
+                        resources,
+                        board,
+                        patterns,
+                        dates,
+                        schedule,
+                      });
+                      go("/reservas/nueva");
+                    }}
+                  >
+                    Preparar reserva
+                  </Button>
+                )
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={step === 2 && occurrences.some((p) => !p.room)}
+                >
+                  {step === 3
+                    ? "Confirmar reserva"
+                    : step === 2
+                      ? "Revisar reserva"
+                      : "Buscar aulas"}
+                  <ArrowRight />
+                </Button>
+              )}
             </div>
           </section>
         </div>
         <aside className="panel summary">
-          <p className="eyebrow">TU RESERVA</p>
-          <h2>{subject || "Nueva clase"}</h2>
-          <p>{course}</p>
+          <p className="eyebrow">{queryOnly ? "CRITERIOS CONSULTADOS" : "TU RESERVA"}</p>
+          <h2>{queryOnly ? "Tu consulta" : subject || "Nueva clase"}</h2>
+          {!queryOnly && <p>{course}</p>}
           <hr />
-          <p>{teacher}</p>
+          {!queryOnly && <p>{teacher}</p>}
           <p>{students} alumnos previstos</p>
           <p>{type}</p>
           <p>

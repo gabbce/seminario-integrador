@@ -1,3 +1,11 @@
+import {
+  compatible,
+  resourcesFor,
+  resourceLabels,
+  type Resource,
+} from "../equipment";
+import { type Course } from "../catalog";
+import { CoursePicker } from "../components/CoursePicker";
 import { teachers } from "../teachers";
 import { RoomChoices } from "../components/RoomChoices";
 import { ScheduleDates } from "../components/ScheduleDates";
@@ -30,8 +38,12 @@ export function Wizard({
   bookings,
   save,
   role,
+  courses,
+  addCourse,
 }: {
   bookings: Booking[];
+  courses: Course[];
+  addCourse: (course: Course) => void;
   role: "Administrador" | "Bedel";
   save: (b: Booking) => void;
 }) {
@@ -42,6 +54,9 @@ export function Wizard({
   const [teacher, setTeacher] = useState("Laura Gómez");
   const [students, setStudents] = useState(30);
   const [type, setType] = useState("Multimedios");
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [board, setBoard] = useState("");
+  const requirements = { type, students, resources, board };
   const [patterns, setPatterns] = useState<Pattern[]>([
     { day: 1, start: "14:00", end: "16:00", room: "" },
     { day: 3, start: "14:00", end: "16:00", room: "" },
@@ -65,7 +80,7 @@ export function Wizard({
       name: "Demo · " + role,
       email: role === "Administrador" ? "admin@demo.local" : "bedel@demo.local",
     },
-    students,
+    ...requirements,
     occurrences,
     schedule,
     patterns,
@@ -101,8 +116,7 @@ export function Wizard({
         current.map((pattern) => {
           const room = rooms.find((candidate) => candidate.id === pattern.room);
           return room &&
-            room.capacity >= students &&
-            room.type === type &&
+            compatible(room, requirements) &&
             available(pattern, room.id, bookings, schedule)
             ? pattern
             : { ...pattern, room: "" };
@@ -191,24 +205,15 @@ export function Wizard({
             {step === 1 ? (
               <>
                 <div className="form-grid">
-                  <label>
-                    Materia
-                    <input
-                      required
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Curso
-                    <input
-                      required
-                      pattern="[0-9]{3}-[A-Z0-9]+-2026"
-                      title="Formato: 001-A-2026"
-                      value={course}
-                      onChange={(e) => setCourse(e.target.value)}
-                    />
-                  </label>
+                  <CoursePicker
+                    courses={courses}
+                    selected={course}
+                    choose={(c) => {
+                      setCourse(c.id);
+                      setSubject(c.subject);
+                    }}
+                    add={addCourse}
+                  />
                   <label>
                     Docente
                     <select
@@ -234,7 +239,14 @@ export function Wizard({
                     Tipo de aula
                     <select
                       value={type}
-                      onChange={(e) => setType(e.target.value)}
+                      onChange={(e) => {
+                        setType(e.target.value);
+                        setResources((current) =>
+                          current.filter((r) =>
+                            resourcesFor(e.target.value).includes(r),
+                          ),
+                        );
+                      }}
                     >
                       {["Multimedios", "General", "Laboratorio"].map((t) => (
                         <option key={t}>{t}</option>
@@ -261,6 +273,39 @@ export function Wizard({
                     </select>
                   </label>
                 </div>
+                <fieldset className="equipment">
+                  <legend>Características requeridas</legend>
+                  <label>
+                    Tipo de pizarrón
+                    <select
+                      aria-label="Tipo de pizarrón"
+                      value={board}
+                      onChange={(e) => setBoard(e.target.value)}
+                    >
+                      <option value="">Cualquiera</option>
+                      <option>Tiza</option>
+                      <option>Fibrón</option>
+                    </select>
+                  </label>
+                  <div className="weekdays">
+                    {resourcesFor(type).map((r) => (
+                      <label key={r}>
+                        <input
+                          type="checkbox"
+                          checked={resources.includes(r)}
+                          onChange={(e) =>
+                            setResources((current) =>
+                              e.target.checked
+                                ? [...current, r]
+                                : current.filter((x) => x !== r),
+                            )
+                          }
+                        />
+                        {resourceLabels[r]}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
                 <div className="section-divider">
                   <h2>Días y horarios</h2>
                   <p className="muted">
@@ -366,8 +411,8 @@ export function Wizard({
                   </legend>
                   <RoomChoices
                     request={expand([p], schedule)}
-                    candidates={rooms.filter(
-                      (r) => r.capacity >= students && r.type === type,
+                    candidates={rooms.filter((r) =>
+                      compatible(r, requirements),
                     )}
                     bookings={bookings}
                     selected={p.room}
@@ -457,6 +502,11 @@ export function Wizard({
           <p>{teacher}</p>
           <p>{students} alumnos previstos</p>
           <p>{type}</p>
+          <p>
+            {[board, ...resources.map((r) => resourceLabels[r])]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
           <hr />
           <p className="big-number">
             {occurrences.length}

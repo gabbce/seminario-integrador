@@ -1,3 +1,4 @@
+import { initialCourses } from "./catalog";
 import { useState } from "react";
 import {
   BrowserRouter,
@@ -37,6 +38,7 @@ const navigation = [
 function App() {
   const [role, setRole] = useState<Role | null>(null);
   const [bookings, setBookings] = useState(initialBookings);
+  const [courses, setCourses] = useState(initialCourses);
   const [menu, setMenu] = useState(false);
   return (
     <BrowserRouter>
@@ -98,6 +100,14 @@ function App() {
                     <Navigate to="/agenda" />
                   ) : (
                     <Wizard
+                      courses={courses}
+                      addCourse={(course) =>
+                        setCourses((old) =>
+                          old.some((c) => c.id === course.id)
+                            ? old
+                            : [...old, course],
+                        )
+                      }
                       role={role}
                       bookings={bookings}
                       save={(b) => setBookings((old) => [...old, b])}

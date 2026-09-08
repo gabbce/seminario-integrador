@@ -9,7 +9,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Base | Commit `d6f0b93` | React B, agenda, roles ficticios, primera periódica, Spring Boot. 4 pruebas de dominio y 3 E2E; revisión visual escritorio/móvil. Corregida pérdida de aulas al volver a datos. |
 | Períodos y exclusiones | Implementado, validado | Primer/segundo cuatrimestre y anual, omisión del pasado/receso/feriados, exclusiones explícitas, inicio+duración con fin calculado, detalle de omisiones en revisión. 7 pruebas unitarias y 5 E2E. |
 | Alternativas y conflictos | Implementado, validado | Aulas ordenadas por capacidad/ID, primeras tres y ver todas, ranking por modalidad/fechas/minutos, detalle y contactos ficticios. 11 pruebas unitarias y 7 E2E. |
-| Catálogo y equipamiento | Siguiente | Cursos reutilizables con código generado, comisión/año y requisitos de recursos. |
+| Catálogo y equipamiento | Implementado, validado | Cursos reutilizables con código generado, comisión/año y requisitos de recursos. 14 pruebas unitarias y 8 E2E; compilación y lint correctos. |
 | Esporádicas y consulta | Pendiente | Fechas independientes, aula por fecha, disponibilidad compartida solo consulta para Docente. |
 | Operación P-03 | Pendiente | Semana, filtros/listados definitivos, editar, cancelar, reprogramar, imprimir. Protección temporal y control de versión simulado. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
@@ -41,3 +41,11 @@ Referencia: `mockups/v2/b-seleccion-aula.png`. Capturas reproducibles `frontend/
 - El escenario visual usa General/108 bloqueada un lunes por Historia; no duplica literalmente datos ilustrativos del mockup. El orden entre múltiples aulas y la unión de minutos se verifican con pruebas unitarias.
 
 Pendientes del flujo completo: catálogo, equipamiento, consulta independiente y esporádicas. No se declara cerrado P-02.
+
+## Revisión visual del corte de catálogo y equipamiento
+
+Referencia `mockups/flujo-periodico-b/01-datos.png`. Capturas `frontend/evidence/catalogo-desktop.png` y `catalogo-mobile.png` inspeccionadas junto a la referencia. Se mantiene formulario único, resumen B y adaptación a una columna. El catálogo reemplaza entradas libres de materia/identificador por curso seleccionable y creación contextual; el código no se pide al usuario. La creación está limitada al año 2026 de la demo hasta completar administración.
+
+Recursos comunes y de Multimedios son seleccionables; cantidad de PC sigue fuera de los filtros. El resumen conserva lo solicitado. E2E crea `001-B-2026` reutilizando Matemática I y confirma con proyector, verificando que Aula 204 no aparezca. La disponibilidad y la validación final comparten criterios. Crear/reutilizar cursos no reinicia la preparación activa.
+
+Siguiente: esporádicas y disponibilidad independiente; después las operaciones y demás paquetes pendientes de la tabla. El objetivo completo sigue abierto.

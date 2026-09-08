@@ -899,3 +899,27 @@ body {
     margin-left: 30px;
   }
 }
+.course-picker {
+  grid-column: 1/-1;
+}
+.course-picker > button {
+  margin-top: 8px;
+}
+.course-create {
+  border: 1px solid #d8dcd5;
+  border-radius: 8px;
+  padding: 18px;
+  margin-top: 12px;
+  background: #f5f6ef;
+}
+.course-create label {
+  margin: 16px 0;
+}
+.equipment {
+  border: 0;
+  padding: 16px 0 0;
+}
+.equipment legend {
+  font-weight: 600;
+  margin-bottom: 12px;
+}

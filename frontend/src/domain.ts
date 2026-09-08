@@ -1,3 +1,4 @@
+import { compatible, type Resource } from "./equipment";
 import { teachers } from "./teachers";
 import {
   candidateDates,
@@ -7,7 +8,13 @@ import {
 } from "./calendar";
 export { holidays, omittedDates } from "./calendar";
 export type Role = "Administrador" | "Bedel" | "Docente";
-export type Room = { id: string; capacity: number; type: string };
+export type Room = {
+  id: string;
+  capacity: number;
+  type: string;
+  resources?: Resource[];
+  board?: string;
+};
 export type Occurrence = {
   date: string;
   start: string;
@@ -21,6 +28,9 @@ export type Booking = {
   course: string;
   teacher: string;
   students: number;
+  type?: string;
+  resources?: Resource[];
+  board?: string;
   teacherEmail?: string;
   registrant?: { name: string; email: string; inactive?: boolean };
   occurrences: Occurrence[];
@@ -28,7 +38,7 @@ export type Booking = {
   patterns?: Pattern[];
 };
 export type Pattern = { day: number; start: string; end: string; room: string };
-export const rooms: Room[] = [
+const roomFixtures: Room[] = [
   { id: "105", capacity: 40, type: "Multimedios" },
   { id: "203", capacity: 32, type: "Multimedios" },
   { id: "108", capacity: 60, type: "General" },
@@ -36,6 +46,16 @@ export const rooms: Room[] = [
   { id: "301", capacity: 48, type: "Multimedios" },
   { id: "204", capacity: 60, type: "Multimedios" },
 ];
+export const rooms: Room[] = roomFixtures.map((r) => ({
+  ...r,
+  board: r.id === "108" ? "Tiza" : "Fibrón",
+  resources:
+    r.type === "Multimedios"
+      ? r.id === "204"
+        ? ["fans", "television"]
+        : ["air", "projector", "computer"]
+      : ["fans"],
+}));
 export const dayNames = [
   "",
   "Lunes",
@@ -96,7 +116,7 @@ export function validateBooking(
 ): string | null {
   if (
     !booking.subject.trim() ||
-    !/^\d{3}-[A-Z0-9]+-2026$/.test(booking.course) ||
+    !/^\d{3,}-.+-2026$/.test(booking.course) ||
     !booking.teacher
   )
     return "Completá la materia, el curso y el docente.";
@@ -110,6 +130,8 @@ export function validateBooking(
     const room = rooms.find((r) => r.id === o.room);
     if (!room || room.capacity < booking.students)
       return "El aula debe tener capacidad para todos los alumnos previstos.";
+    if (booking.type && !compatible(room, { ...booking, type: booking.type }))
+      return "El aula ya no cumple el tipo o equipamiento solicitado.";
     if (
       minutes(o.start) < 420 ||
       minutes(o.end) > 1380 ||

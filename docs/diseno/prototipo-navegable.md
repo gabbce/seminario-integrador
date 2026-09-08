@@ -1,14 +1,14 @@
 # Plan de preparación del prototipo navegable
 
-**Listo para comenzar.** Diseño aprobado consolidado en el [índice](README.md). Este documento prepara el trabajo; no inicia código ni integra servicios.
+**En implementación por subcortes.** Diseño aprobado consolidado en el [índice](README.md). Consultar el [estado de la primera entrega](entrega-01.md). Este plan describe el alcance completo pendiente, no lo declara implementado.
 
 ## Objetivo y límite de esta etapa
 
 Permitir recorrer y evaluar los flujos aprobados con datos ficticios coherentes, componentes reales y adaptación móvil. La entrega será un frontend navegable con estado de demostración, no una colección de imágenes enlazadas.
 
-Base: React, TypeScript, Vite, Tailwind/shadcn y Chart.js, ya acordados. Ubicación propuesta al comenzar: `prototipo/` en la raíz del repo. Elegir versiones compatibles al iniciar, comprobar sus instrucciones actuales y dejar un archivo de dependencias bloqueadas; no fijar aquí versiones no verificadas.
+Base: React, TypeScript, Vite, Tailwind/shadcn y Chart.js, ya acordados. Ubicación: `frontend/` en la raíz del repo, con dependencias bloqueadas en package-lock.json. `backend/` contiene el esqueleto Java/Spring Boot ejecutable solicitado por el usuario.
 
-El prototipo usa un servicio local en memoria para consultas y operaciones simuladas. Una interfaz pequeña entre vistas y datos permitirá integrar luego los contratos reales; no se necesita un framework propio de repositorios ni reproducir toda la arquitectura Java. Sin Java, Supabase, Docker, despliegue ni credenciales reales en esta etapa. El sistema final conserva su stack y autenticación aprobados: esta simulación es exclusiva del prototipo.
+El prototipo usa un servicio local en memoria para consultas y operaciones simuladas. Una interfaz pequeña entre vistas y datos permitirá integrar luego los contratos reales; no se necesita un framework propio de repositorios ni reproducir toda la arquitectura Java. El esqueleto Java incluye arranque y salud, sin lógica del dominio todavía. Sin integración Supabase, Docker, despliegue ni credenciales reales en esta etapa. El sistema final conserva su stack y autenticación aprobados: esta simulación es exclusiva del prototipo.
 
 Se mantienen cambios mientras se navega; recargar reinicia los datos y pierde preparaciones. No hay persistencia de borradores. Los controles de escenarios y reinicio son herramientas de demostración separadas de la navegación del producto. Las cuentas de prueba y sus claves ficticias se documentarán para el evaluador; el login simulado no valida seguridad ni sustituye a Supabase.
 

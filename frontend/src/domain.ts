@@ -1,3 +1,4 @@
+import { teachers } from "./teachers";
 import {
   candidateDates,
   omission,
@@ -12,6 +13,7 @@ export type Occurrence = {
   start: string;
   end: string;
   room: string;
+  cancelled?: boolean;
 };
 export type Booking = {
   id: string;
@@ -19,6 +21,8 @@ export type Booking = {
   course: string;
   teacher: string;
   students: number;
+  teacherEmail?: string;
+  registrant?: { name: string; email: string; inactive?: boolean };
   occurrences: Occurrence[];
   schedule?: Schedule;
   patterns?: Pattern[];
@@ -81,7 +85,9 @@ export function available(
   schedule: Schedule = defaultSchedule,
 ) {
   return !expand([{ ...pattern, room }], schedule).some((a) =>
-    bookings.some((b) => b.occurrences.some((o) => overlaps(a, o))),
+    bookings.some((b) =>
+      b.occurrences.some((o) => !o.cancelled && overlaps(a, o)),
+    ),
   );
 }
 export function validateBooking(
@@ -112,12 +118,16 @@ export function validateBooking(
       minutes(o.end) % 30
     )
       return "Usá horarios de 07:00 a 23:00, en intervalos de 30 minutos.";
-    if (existing.some((b) => b.occurrences.some((other) => overlaps(o, other))))
+    if (
+      existing.some((b) =>
+        b.occurrences.some((other) => !other.cancelled && overlaps(o, other)),
+      )
+    )
       return "La disponibilidad cambió. Volvé a elegir las aulas; no se guardó ninguna clase.";
   }
   return null;
 }
-export const initialBookings: Booking[] = [
+const bookingFixtures: Booking[] = [
   {
     id: "R-001",
     subject: "Historia",
@@ -159,6 +169,11 @@ export const initialBookings: Booking[] = [
     ],
   },
 ];
+export const initialBookings: Booking[] = bookingFixtures.map((b) => ({
+  ...b,
+  teacherEmail: teachers.find((t) => t.name === b.teacher)?.email,
+  registrant: { name: "Gabriela · Bedel", email: "bedel@demo.local" },
+}));
 export const dateLabel = (date: string) =>
   new Intl.DateTimeFormat("es-AR", {
     day: "numeric",

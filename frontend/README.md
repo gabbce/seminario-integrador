@@ -40,7 +40,7 @@ Playwright inicia Vite si hace falta. Las capturas quedan en `evidence/` y los r
 - `src/App.tsx`: navegación, sesión y estado compartido.
 - `src/App.css`: adaptación visual B; `src/components/`: componentes compartidos.
 
-La reserva periódica permite elegir ambos cuatrimestres de 2026 o una anual, omite pasado/receso/feriados y conserva exclusiones manuales. Inicio y duración determinan el fin. Aún faltan equipamiento, catálogo de cursos, ranking informativo de conflictos, reserva esporádica y consulta independiente. Tampoco están implementadas semana, edición, cancelación, impresión, administración ni indicadores. Sus entradas informan que pertenecen a entregas posteriores. El detalle/listado y aulas son de consulta básica.
+La reserva periódica permite elegir ambos cuatrimestres de 2026 o una anual, omite pasado/receso/feriados y conserva exclusiones manuales. Inicio y duración determinan el fin. Las aulas se ordenan por capacidad y código, con tres sugerencias y opción de ver todas. Cuando no hay disponibilidad, las alternativas muestran conflictos y contactos ficticios, sin permitir elegir un aula ocupada. Aún faltan equipamiento, catálogo de cursos, reserva esporádica y consulta independiente. Tampoco están implementadas semana, edición, cancelación, impresión, administración ni indicadores. Sus entradas informan que pertenecen a entregas posteriores. El detalle/listado y aulas son de consulta básica.
 
 El proxy `/api` apunta al Spring Boot local en 8080; el frontend todavía no consume servicios. El alcance completo permanece en la especificación y el plan de entregas.
 

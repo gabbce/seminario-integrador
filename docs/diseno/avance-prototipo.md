@@ -8,7 +8,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 |---|---|---|
 | Base | Commit `d6f0b93` | React B, agenda, roles ficticios, primera periódica, Spring Boot. 4 pruebas de dominio y 3 E2E; revisión visual escritorio/móvil. Corregida pérdida de aulas al volver a datos. |
 | Períodos y exclusiones | Implementado, validado | Primer/segundo cuatrimestre y anual, omisión del pasado/receso/feriados, exclusiones explícitas, inicio+duración con fin calculado, detalle de omisiones en revisión. 7 pruebas unitarias y 5 E2E. |
-| Criterios y conflictos | Siguiente | Catálogo de cursos y docentes con contacto, requisitos de equipamiento, orden de candidatas y alternativas informativas por modalidad, detalle de conflictos sin permitir confirmar. |
+| Alternativas y conflictos | Implementado, validado | Aulas ordenadas por capacidad/ID, primeras tres y ver todas, ranking por modalidad/fechas/minutos, detalle y contactos ficticios. 11 pruebas unitarias y 7 E2E. |
+| Catálogo y equipamiento | Siguiente | Cursos reutilizables con código generado, comisión/año y requisitos de recursos. |
 | Esporádicas y consulta | Pendiente | Fechas independientes, aula por fecha, disponibilidad compartida solo consulta para Docente. |
 | Operación P-03 | Pendiente | Semana, filtros/listados definitivos, editar, cancelar, reprogramar, imprimir. Protección temporal y control de versión simulado. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
@@ -27,3 +28,16 @@ Referencia: `mockups/flujo-periodico-b/01-datos.png`, con las correcciones del R
 - La revisión final incluye fechas registradas y omitidas en desplegables separados. No hay selección de aula por fecha.
 
 La fidelidad completa de las pantallas pendientes no está aprobada por estas comprobaciones. El diseño y alcance originales siguen vigentes.
+
+## Revisión visual del corte de conflictos
+
+Referencia: `mockups/v2/b-seleccion-aula.png`. Capturas reproducibles `frontend/evidence/conflictos-desktop.png` y `conflictos-mobile.png`, inspeccionadas en navegador y como imágenes junto al mockup.
+
+- Aviso terracota y texto «Requieren resolver conflictos» separan opciones informativas de aulas seleccionables.
+- Detalle identifica curso, reserva, modalidad, fecha, horario e interferencia, además de contactos ficticios de docente y registrador para operadores.
+- Se conserva resumen lateral y se apila en móvil. Corregida compresión del texto de aula por el estado de disponibilidad en pantallas estrechas.
+- Se inhabilita revisar mientras falta aula para algún patrón. Ninguna alternativa ocupada incluye selector ni acción para modificar reservas.
+- Corregida pérdida visual de la cuarta opción elegida al contraer o volver desde revisión; se mantiene visible y marcada. E2E específico verifica ambos caminos.
+- El escenario visual usa General/108 bloqueada un lunes por Historia; no duplica literalmente datos ilustrativos del mockup. El orden entre múltiples aulas y la unión de minutos se verifican con pruebas unitarias.
+
+Pendientes del flujo completo: catálogo, equipamiento, consulta independiente y esporádicas. No se declara cerrado P-02.

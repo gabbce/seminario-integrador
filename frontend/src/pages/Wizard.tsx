@@ -1,3 +1,5 @@
+import { teachers } from "../teachers";
+import { RoomChoices } from "../components/RoomChoices";
 import { ScheduleDates } from "../components/ScheduleDates";
 import {
   defaultSchedule,
@@ -27,8 +29,10 @@ import { Button } from "../components/ui/button";
 export function Wizard({
   bookings,
   save,
+  role,
 }: {
   bookings: Booking[];
+  role: "Administrador" | "Bedel";
   save: (b: Booking) => void;
 }) {
   const go = useNavigate();
@@ -56,6 +60,11 @@ export function Wizard({
     subject,
     course,
     teacher,
+    teacherEmail: teachers.find((t) => t.name === teacher)?.email,
+    registrant: {
+      name: "Demo · " + role,
+      email: role === "Administrador" ? "admin@demo.local" : "bedel@demo.local",
+    },
     students,
     occurrences,
     schedule,
@@ -206,14 +215,8 @@ export function Wizard({
                       value={teacher}
                       onChange={(e) => setTeacher(e.target.value)}
                     >
-                      {[
-                        "Laura Gómez",
-                        "Ana Ruiz",
-                        "Martín Díaz",
-                        "Sofía Paz",
-                        "Diego Luna",
-                      ].map((t) => (
-                        <option key={t}>{t}</option>
+                      {teachers.map((t) => (
+                        <option key={t.id}>{t.name}</option>
                       ))}
                     </select>
                   </label>
@@ -361,52 +364,16 @@ export function Wizard({
                       {datesFor(p.day, schedule, p.start).length} clases
                     </small>
                   </legend>
-                  {rooms
-                    .filter(
-                      (r) =>
-                        r.capacity >= students &&
-                        r.type === type &&
-                        available(p, r.id, bookings, schedule),
-                    )
-                    .map((r) => (
-                      <label
-                        className={
-                          p.room === r.id
-                            ? "room-option selected"
-                            : "room-option"
-                        }
-                        key={r.id}
-                      >
-                        <input
-                          type="radio"
-                          name={`room-${p.day}`}
-                          required
-                          checked={p.room === r.id}
-                          onChange={() => update(p.day, { room: r.id })}
-                        />
-                        <div>
-                          <strong>Aula {r.id}</strong>
-                          <small>
-                            {r.capacity} personas · {r.type}
-                          </small>
-                        </div>
-                        <span className="availability">
-                          Disponible todo el período
-                        </span>
-                      </label>
-                    ))}
-                  {!rooms.some(
-                    (r) =>
-                      r.capacity >= students &&
-                      r.type === type &&
-                      available(p, r.id, bookings, schedule),
-                  ) && (
-                    <p className="error">
-                      No hay aulas disponibles durante todo el período. Volvé
-                      para ajustar los criterios. El ranking informativo de
-                      conflictos se incorporará en el próximo subcorte.
-                    </p>
-                  )}
+                  <RoomChoices
+                    request={expand([p], schedule)}
+                    candidates={rooms.filter(
+                      (r) => r.capacity >= students && r.type === type,
+                    )}
+                    bookings={bookings}
+                    selected={p.room}
+                    onSelect={(room) => update(p.day, { room })}
+                    name={`room-${p.day}`}
+                  />
                 </fieldset>
               ))
             ) : (
@@ -468,7 +435,10 @@ export function Wizard({
                   Volver
                 </Button>
               )}
-              <Button type="submit">
+              <Button
+                type="submit"
+                disabled={step === 2 && patterns.some((p) => !p.room)}
+              >
                 {step === 3
                   ? "Confirmar reserva"
                   : step === 2

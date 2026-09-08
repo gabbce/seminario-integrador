@@ -98,6 +98,7 @@ function App() {
                     <Navigate to="/agenda" />
                   ) : (
                     <Wizard
+                      role={role}
                       bookings={bookings}
                       save={(b) => setBookings((old) => [...old, b])}
                     />

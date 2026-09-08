@@ -1,3 +1,10 @@
+import {
+  candidateDates,
+  omission,
+  defaultSchedule,
+  type Schedule,
+} from "./calendar";
+export { holidays, omittedDates } from "./calendar";
 export type Role = "Administrador" | "Bedel" | "Docente";
 export type Room = { id: string; capacity: number; type: string };
 export type Occurrence = {
@@ -13,6 +20,8 @@ export type Booking = {
   teacher: string;
   students: number;
   occurrences: Occurrence[];
+  schedule?: Schedule;
+  patterns?: Pattern[];
 };
 export type Pattern = { day: number; start: string; end: string; room: string };
 export const rooms: Room[] = [
@@ -23,7 +32,6 @@ export const rooms: Room[] = [
   { id: "301", capacity: 48, type: "Multimedios" },
   { id: "204", capacity: 60, type: "Multimedios" },
 ];
-export const holidays = ["2026-10-12", "2026-11-23"];
 export const dayNames = [
   "",
   "Lunes",
@@ -34,22 +42,22 @@ export const dayNames = [
 ];
 export const minutes = (time: string) =>
   Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
-export function datesFor(day: number): string[] {
-  const dates: string[] = [];
-  for (
-    const d = new Date("2026-09-14T12:00:00Z");
-    d <= new Date("2026-12-18T12:00:00Z");
-    d.setUTCDate(d.getUTCDate() + 1)
-  ) {
-    const date = d.toISOString().slice(0, 10);
-    if (d.getUTCDay() === day && !holidays.includes(date)) dates.push(date);
-  }
-  return dates;
+export function datesFor(
+  day: number,
+  schedule: Schedule = defaultSchedule,
+  start = "14:00",
+): string[] {
+  return candidateDates(day, schedule.period).filter(
+    (date) => !omission(date, start, schedule),
+  );
 }
-export function expand(patterns: Pattern[]): Occurrence[] {
+export function expand(
+  patterns: Pattern[],
+  schedule: Schedule = defaultSchedule,
+): Occurrence[] {
   return patterns
     .flatMap((p) =>
-      datesFor(p.day).map((date) => ({
+      datesFor(p.day, schedule, p.start).map((date) => ({
         date,
         start: p.start,
         end: p.end,
@@ -66,8 +74,13 @@ export function overlaps(a: Occurrence, b: Occurrence) {
     minutes(b.start) < minutes(a.end)
   );
 }
-export function available(pattern: Pattern, room: string, bookings: Booking[]) {
-  return !expand([{ ...pattern, room }]).some((a) =>
+export function available(
+  pattern: Pattern,
+  room: string,
+  bookings: Booking[],
+  schedule: Schedule = defaultSchedule,
+) {
+  return !expand([{ ...pattern, room }], schedule).some((a) =>
     bookings.some((b) => b.occurrences.some((o) => overlaps(a, o))),
   );
 }

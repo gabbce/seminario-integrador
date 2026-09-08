@@ -822,3 +822,40 @@ body {
 .booking span {
   font-size: 14px;
 }
+.pattern {
+  grid-template-columns: 1fr 1fr 1fr 80px;
+}
+.calculated-end {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.schedule-dates {
+  border-top: 1px solid #d8dcd5;
+  margin-top: 24px;
+  padding-top: 12px;
+}
+.date-check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-weight: 400;
+  padding: 10px 0;
+}
+.date-check input {
+  width: 18px;
+  min-height: 18px;
+  height: 18px;
+  accent-color: #194d3a;
+  flex-shrink: 0;
+}
+@media (max-width: 800px) {
+  .pattern {
+    grid-template-columns: 1fr 1fr;
+  }
+  .calculated-end {
+    grid-column: 1/-1;
+    flex-direction: row;
+    align-items: center;
+  }
+}

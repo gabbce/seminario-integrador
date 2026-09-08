@@ -1,3 +1,12 @@
+import { ScheduleDates } from "../components/ScheduleDates";
+import {
+  defaultSchedule,
+  omittedDates,
+  periodLabels,
+  terms,
+  type Period,
+  type Schedule,
+} from "../calendar";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
@@ -35,7 +44,13 @@ export function Wizard({
   ]);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<Booking | null>(null);
-  const occurrences = expand(patterns);
+  const [schedule, setSchedule] = useState<Schedule>(defaultSchedule);
+  const occurrences = expand(patterns, schedule);
+  const omitted = omittedDates(patterns, schedule);
+  const endTime = (start: string, duration: number) => {
+    const total = minutes(start) + duration;
+    return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+  };
   const booking = {
     id: `R-${String(bookings.length + 1).padStart(3, "0")}`,
     subject,
@@ -43,6 +58,8 @@ export function Wizard({
     teacher,
     students,
     occurrences,
+    schedule,
+    patterns,
   };
   function update(day: number, patch: Partial<Pattern>) {
     setPatterns((p) => p.map((x) => (x.day === day ? { ...x, ...patch } : x)));
@@ -52,10 +69,21 @@ export function Wizard({
     setError("");
     if (
       !patterns.length ||
-      patterns.some((p) => minutes(p.start) >= minutes(p.end))
+      patterns.some(
+        (p) =>
+          !Number.isFinite(minutes(p.start)) ||
+          minutes(p.start) >= minutes(p.end) ||
+          minutes(p.end) > 1380,
+      )
     ) {
       setError(
         "Seleccioná al menos un día y un horario de inicio anterior al final.",
+      );
+      return;
+    }
+    if (patterns.some((p) => datesFor(p.day, schedule, p.start).length === 0)) {
+      setError(
+        "Cada día semanal seleccionado debe tener al menos una clase futura. Ajustá el período, los días o las exclusiones.",
       );
       return;
     }
@@ -66,7 +94,7 @@ export function Wizard({
           return room &&
             room.capacity >= students &&
             room.type === type &&
-            available(pattern, room.id, bookings)
+            available(pattern, room.id, bookings, schedule)
             ? pattern
             : { ...pattern, room: "" };
         }),
@@ -212,13 +240,30 @@ export function Wizard({
                   </label>
                   <label>
                     Período
-                    <input readOnly value="2.º cuatrimestre · 2026" />
+                    <select
+                      aria-label="Período"
+                      value={schedule.period}
+                      onChange={(e) =>
+                        setSchedule({
+                          period: e.target.value as Period,
+                          excluded: [],
+                        })
+                      }
+                    >
+                      {Object.entries(periodLabels).map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 </div>
                 <div className="section-divider">
                   <h2>Días y horarios</h2>
                   <p className="muted">
-                    14 de septiembre al 18 de diciembre de 2026
+                    {schedule.period === "annual"
+                      ? "Ambos cuatrimestres, sin clases en el receso"
+                      : `${dateLabel(terms[schedule.period][0])} al ${dateLabel(terms[schedule.period][1])}`}
                   </p>
                   <div className="weekdays">
                     {[1, 2, 3, 4, 5].map((day) => (
@@ -264,26 +309,47 @@ export function Wizard({
                           required
                           value={p.start}
                           onChange={(e) =>
-                            update(p.day, { start: e.target.value })
+                            update(p.day, {
+                              start: e.target.value,
+                              end: endTime(
+                                e.target.value,
+                                minutes(p.end) - minutes(p.start),
+                              ),
+                            })
                           }
                         />
                       </label>
                       <label>
-                        Hasta
-                        <input
-                          type="time"
-                          min="07:30"
-                          max="23:00"
-                          step="1800"
-                          required
-                          value={p.end}
+                        Duración
+                        <select
+                          value={minutes(p.end) - minutes(p.start)}
                           onChange={(e) =>
-                            update(p.day, { end: e.target.value })
+                            update(p.day, {
+                              end: endTime(p.start, Number(e.target.value)),
+                            })
                           }
-                        />
+                        >
+                          {Array.from(
+                            { length: 32 },
+                            (_, i) => (i + 1) * 30,
+                          ).map((n) => (
+                            <option key={n} value={n}>
+                              {n / 60} h
+                            </option>
+                          ))}
+                        </select>
                       </label>
+                      <div className="calculated-end">
+                        <small>Finaliza</small>
+                        <strong>{p.end}</strong>
+                      </div>
                     </div>
                   ))}
+                  <ScheduleDates
+                    patterns={patterns}
+                    schedule={schedule}
+                    change={setSchedule}
+                  />
                 </div>
               </>
             ) : step === 2 ? (
@@ -291,14 +357,16 @@ export function Wizard({
                 <fieldset className="room-options" key={p.day}>
                   <legend>
                     {dayNames[p.day]} · {p.start}–{p.end}{" "}
-                    <small>{datesFor(p.day).length} clases</small>
+                    <small>
+                      {datesFor(p.day, schedule, p.start).length} clases
+                    </small>
                   </legend>
                   {rooms
                     .filter(
                       (r) =>
                         r.capacity >= students &&
                         r.type === type &&
-                        available(p, r.id, bookings),
+                        available(p, r.id, bookings, schedule),
                     )
                     .map((r) => (
                       <label
@@ -331,7 +399,7 @@ export function Wizard({
                     (r) =>
                       r.capacity >= students &&
                       r.type === type &&
-                      available(p, r.id, bookings),
+                      available(p, r.id, bookings, schedule),
                   ) && (
                     <p className="error">
                       No hay aulas disponibles durante todo el período. Volvé
@@ -353,7 +421,8 @@ export function Wizard({
                   {patterns.map((p) => (
                     <p key={p.day}>
                       <strong>{dayNames[p.day]}</strong> · {p.start}–{p.end} ·
-                      Aula {p.room} · {datesFor(p.day).length} clases
+                      Aula {p.room} ·{" "}
+                      {datesFor(p.day, schedule, p.start).length} clases
                     </p>
                   ))}
                 </div>
@@ -365,6 +434,16 @@ export function Wizard({
                     {occurrences.map((o) => (
                       <p key={o.date}>
                         {dateLabel(o.date)} · {o.start}–{o.end} · Aula {o.room}
+                      </p>
+                    ))}
+                  </div>
+                </details>
+                <details>
+                  <summary>Ver fechas omitidas ({omitted.length})</summary>
+                  <div className="date-list">
+                    {omitted.map((o) => (
+                      <p key={o.date}>
+                        {dateLabel(o.date)} · {o.reason}
                       </p>
                     ))}
                   </div>
@@ -413,9 +492,12 @@ export function Wizard({
             {occurrences.length}
             <span>clases previstas</span>
           </p>
-          <p>2.º cuatrimestre 2026</p>
+          <p>{periodLabels[schedule.period]}</p>
           <p className="muted">
-            Se omiten los feriados del 12 de octubre y 23 de noviembre.
+            {omitted.filter((o) => o.reason === "Exclusión manual").length}{" "}
+            exclusiones manuales ·{" "}
+            {omitted.filter((o) => o.reason !== "Exclusión manual").length}{" "}
+            fechas omitidas por calendario o pasado.
           </p>
         </aside>
       </form>

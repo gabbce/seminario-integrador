@@ -1,3 +1,5 @@
+import { WeekAgenda } from "../components/WeekAgenda";
+import { weekDates, closedDay } from "../agenda";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,6 +13,7 @@ export function Agenda({
   bookings: Booking[];
   operator: boolean;
 }) {
+  const [view, setView] = useState<"day" | "week">("day");
   const [date, setDate] = useState("2026-09-14");
   const [room, setRoom] = useState("");
   const [type, setType] = useState("");
@@ -18,14 +21,19 @@ export function Agenda({
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 720;
-  }, []);
+  }, [view]);
   const shown = rooms.filter(
     (r) => (!room || r.id === room) && (!type || r.type === type),
   );
   const entries = bookings
     .flatMap((b) =>
       b.occurrences
-        .filter((o) => o.date === date && shown.some((r) => r.id === o.room))
+        .filter(
+          (o) =>
+            o.date === date &&
+            !o.cancelled &&
+            shown.some((r) => r.id === o.room),
+        )
         .map((o) => ({ b, o })),
     )
     .sort((a, b) => a.o.start.localeCompare(b.o.start));
@@ -38,8 +46,14 @@ export function Agenda({
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">AGENDA DIARIA</p>
-          <h1>{dateLabel(date)}</h1>
+          <p className="eyebrow">
+            {view === "day" ? "AGENDA DIARIA" : "AGENDA SEMANAL"}
+          </p>
+          <h1>
+            {view === "day"
+              ? dateLabel(date)
+              : `Semana del ${dateLabel(weekDates(date)[0])}`}
+          </h1>
         </div>
         {operator && (
           <Button onClick={() => go("/reservas/nueva")}>
@@ -48,12 +62,30 @@ export function Agenda({
           </Button>
         )}
       </div>
+      <div
+        className="actions agenda-view"
+        role="group"
+        aria-label="Vista de agenda"
+      >
+        <Button
+          variant={view === "day" ? "default" : "outline"}
+          onClick={() => setView("day")}
+        >
+          Día
+        </Button>
+        <Button
+          variant={view === "week" ? "default" : "outline"}
+          onClick={() => setView("week")}
+        >
+          Semana
+        </Button>
+      </div>
       <div className="toolbar">
         <div className="date-tools">
           <Button
             variant="outline"
-            aria-label="Día anterior"
-            onClick={() => move(-1)}
+            aria-label={view === "day" ? "Día anterior" : "Semana anterior"}
+            onClick={() => move(view === "day" ? -1 : -7)}
           >
             <ChevronLeft />
           </Button>
@@ -62,8 +94,8 @@ export function Agenda({
           </Button>
           <Button
             variant="outline"
-            aria-label="Día siguiente"
-            onClick={() => move(1)}
+            aria-label={view === "day" ? "Día siguiente" : "Semana siguiente"}
+            onClick={() => move(view === "day" ? 1 : 7)}
           >
             <ChevronRight />
           </Button>
@@ -97,82 +129,107 @@ export function Agenda({
           </select>
         </div>
       </div>
-      <div className="agenda-desktop" ref={scrollRef}>
-        <div
-          className="agenda-grid"
-          style={{
-            gridTemplateColumns: `76px repeat(${shown.length}, minmax(190px, 1fr))`,
+      {view === "week" ? (
+        <WeekAgenda
+          date={date}
+          rooms={shown}
+          bookings={bookings}
+          openDay={(day) => {
+            setDate(day);
+            setView("day");
           }}
-        >
-          <div className="room-head">Hora</div>
-          {shown.map((r) => (
-            <div className="room-head" key={r.id}>
-              <strong>{r.id.startsWith("Lab") ? r.id : `Aula ${r.id}`}</strong>
-              <small>
-                {r.capacity} personas · {r.type}
-              </small>
-            </div>
-          ))}
-          <div className="time-column">
-            {Array.from({ length: 16 }, (_, i) => (
-              <div key={i}>{String(i + 7).padStart(2, "0")}:00</div>
-            ))}
-          </div>
-          {shown.map((r) => (
-            <div className="room-column" key={r.id}>
-              {entries
-                .filter((x) => x.o.room === r.id)
-                .map(({ b, o }) => (
-                  <button
-                    className={`booking ${r.type}`}
-                    key={`${b.id}-${o.date}`}
-                    style={{
-                      top: (minutes(o.start) - 420) * 2,
-                      height: (minutes(o.end) - minutes(o.start)) * 2,
-                    }}
-                    onClick={() => go(`/reservas/${b.id}`)}
-                  >
-                    <span>
-                      {o.start}–{o.end}
-                    </span>
-                    <strong>{b.subject}</strong>
-                    <span>{b.course}</span>
-                    <span>{b.teacher}</span>
-                    <span>{b.students} alumnos</span>
-                  </button>
-                ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="agenda-mobile">
-        {entries.length ? (
-          entries.map(({ b, o }) => (
-            <button
-              className="mobile-booking"
-              key={`${b.id}-${o.date}`}
-              onClick={() => go(`/reservas/${b.id}`)}
+        />
+      ) : (
+        <>
+          {closedDay(date) && (
+            <p className="closed-notice" role="status">
+              {closedDay(date)}. La ausencia de clases no implica
+              disponibilidad.
+            </p>
+          )}
+          <div
+            className={`agenda-desktop ${closedDay(date) ? "closed-day" : ""}`}
+            ref={scrollRef}
+          >
+            <div
+              className="agenda-grid"
+              style={{
+                gridTemplateColumns: `76px repeat(${shown.length}, minmax(190px, 1fr))`,
+              }}
             >
-              <span className="eyebrow">
-                {o.start} — {o.end} ·{" "}
-                {o.room.startsWith("Lab") ? o.room : `Aula ${o.room}`}
-              </span>
-              <h2>{b.subject}</h2>
-              <p>
-                {b.course} · {b.teacher}
-              </p>
-              <small>{b.students} alumnos previstos</small>
-              <ChevronRight />
-            </button>
-          ))
-        ) : (
-          <div className="panel">No hay reservas para esta fecha.</div>
-        )}
-      </div>
+              <div className="room-head">Hora</div>
+              {shown.map((r) => (
+                <div className="room-head" key={r.id}>
+                  <strong>
+                    {r.id.startsWith("Lab") ? r.id : `Aula ${r.id}`}
+                  </strong>
+                  <small>
+                    {r.capacity} personas · {r.type}
+                  </small>
+                </div>
+              ))}
+              <div className="time-column">
+                {Array.from({ length: 16 }, (_, i) => (
+                  <div key={i}>{String(i + 7).padStart(2, "0")}:00</div>
+                ))}
+              </div>
+              {shown.map((r) => (
+                <div className="room-column" key={r.id}>
+                  {entries
+                    .filter((x) => x.o.room === r.id)
+                    .map(({ b, o }) => (
+                      <button
+                        className={`booking ${r.type}`}
+                        key={`${b.id}-${o.date}`}
+                        style={{
+                          top: (minutes(o.start) - 420) * 2,
+                          height: (minutes(o.end) - minutes(o.start)) * 2,
+                        }}
+                        onClick={() => go(`/reservas/${b.id}`)}
+                      >
+                        <span>
+                          {o.start}–{o.end}
+                        </span>
+                        <strong>{b.subject}</strong>
+                        <span>{b.course}</span>
+                        <span>{b.teacher}</span>
+                        <span>{b.students} alumnos</span>
+                      </button>
+                    ))}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="agenda-mobile">
+            {entries.length ? (
+              entries.map(({ b, o }) => (
+                <button
+                  className="mobile-booking"
+                  key={`${b.id}-${o.date}`}
+                  onClick={() => go(`/reservas/${b.id}`)}
+                >
+                  <span className="eyebrow">
+                    {o.start} — {o.end} ·{" "}
+                    {o.room.startsWith("Lab") ? o.room : `Aula ${o.room}`}
+                  </span>
+                  <h2>{b.subject}</h2>
+                  <p>
+                    {b.course} · {b.teacher}
+                  </p>
+                  <small>{b.students} alumnos previstos</small>
+                  <ChevronRight />
+                </button>
+              ))
+            ) : (
+              <div className="panel">No hay reservas para esta fecha.</div>
+            )}
+          </div>
+        </>
+      )}
       <div className="agenda-caption">
         <span>{shown.length} aulas mostradas</span>
         <span>Horarios: 07:00–23:00</span>
-        <span>{entries.length} clases este día</span>
+        {view === "day" && <span>{entries.length} clases este día</span>}
       </div>
     </>
   );

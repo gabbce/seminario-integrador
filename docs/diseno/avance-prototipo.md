@@ -13,7 +13,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Esporádicas | Implementado, validado | Fechas independientes, aula por fecha, validaciones y confirmación completa. 16 pruebas unitarias y 9 E2E. |
 | Consulta de disponibilidad | Implementado, validado | Criterios compartidos, solo lectura para Docente y continuidad a registro para operadores. 16 pruebas unitarias y 11 E2E. |
 | Listados e impresión P-03 | Implementado, validado | Día/curso, filtros por ocurrencia, 20/50/100, impresión completa. 18 pruebas unitarias y 13 de navegador. |
-| Agenda y operaciones P-03 | Siguiente | Semana, editar, cancelar, reprogramar. Protección temporal y control de versión simulado. |
+| Agenda semanal P-03 | Implementado, validado | Semana con filtros, días cerrados diferenciados y acceso diario móvil. 20 pruebas unitarias y 14 E2E. |
+| Operaciones P-03 | Siguiente | Editar, cancelar, reprogramar. Protección temporal y control de versión simulado. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
@@ -75,3 +76,11 @@ Referencia `mockups/listados-b/01-listado-diario.png`. Capturas `frontend/eviden
 La prueba de impresión carga el componente real mediante Vite SSR con 25 clases de horarios contiguos, comprueba 20 filas en pantalla y 25 en el medio print, oculta controles y genera PDF A4 horizontal. La prueba de la app comprueba filtros, cambio por curso y llamada al diálogo de impresión. El PDF se genera con Chromium; la revisión de saltos y otros navegadores forma parte de P-06.
 
 La impresión conserva fecha y filtros; nunca incluye emails. Filtrar canceladas opera sobre cada ocurrencia. Las operaciones de cancelación se incorporarán en el siguiente bloque. Compilación y lint correctos.
+
+## Revisión visual de agenda semanal
+
+Referencia de lenguaje visual: `mockups/operacion-diaria-b/01-agenda.png`. La semana es una extensión de esta agenda: cinco columnas de días y tarjetas cronológicas (la altura no representa duración), con los mismos colores, tipografía, navegación y filtros. Capturas `frontend/evidence/semana-desktop.png` y `semana-mobile.png` revisadas. El contenedor admite desplazamiento horizontal indicado en el texto, mientras que «Ver día» mantiene disponible la agenda diaria móvil sin perder filtros.
+
+Pruebas verifican cálculo de semana incluso al cruzar año, filtros por tipo, exclusión de canceladas en código de ambas vistas y aviso de feriado. Las reservas provienen del estado compartido; no se crean datos de una segunda agenda. Compilación y lint correctos.
+
+Sigue pendiente aplicar estado de aula cuando se incorpore administración, además de operaciones, indicadores y revisión integral. No se declara terminado el objetivo.

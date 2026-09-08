@@ -1069,3 +1069,71 @@ body {
     display: block;
   }
 }
+.agenda-view {
+  margin-bottom: 20px;
+}
+.week-agenda {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(245px, 1fr));
+  overflow: auto;
+  gap: 14px;
+  padding: 12px 0;
+}
+.week-day {
+  background: #eeeee5;
+  border: 1px solid #d8dcd5;
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 340px;
+}
+.week-day header h2 {
+  text-transform: capitalize;
+  margin: 0;
+}
+.week-day header p {
+  font-size: 13px;
+}
+.week-booking {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  background: #fffdf9;
+  border: 1px solid #d8dcd5;
+  border-left: 3px solid #194d3a;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 14px 0;
+}
+.week-booking strong {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+}
+.week-booking span {
+  font-size: 14px;
+}
+.week-empty {
+  color: #59645d;
+  padding: 20px 0;
+  font-size: 14px;
+}
+.closed-notice {
+  padding: 14px;
+  border: 1px solid #d9c8b8;
+  background: #f4e4dc;
+  border-radius: 8px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.closed-day,
+.closed-day .room-column {
+  background: repeating-linear-gradient(
+    135deg,
+    #eeeae2 0,
+    #eeeae2 8px,
+    #f5f2ed 8px,
+    #f5f2ed 16px
+  );
+}

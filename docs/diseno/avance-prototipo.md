@@ -12,7 +12,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Catálogo y equipamiento | Implementado, validado | Cursos reutilizables con código generado, comisión/año y requisitos de recursos. 14 pruebas unitarias y 8 E2E; compilación y lint correctos. |
 | Esporádicas | Implementado, validado | Fechas independientes, aula por fecha, validaciones y confirmación completa. 16 pruebas unitarias y 9 E2E. |
 | Consulta de disponibilidad | Implementado, validado | Criterios compartidos, solo lectura para Docente y continuidad a registro para operadores. 16 pruebas unitarias y 11 E2E. |
-| Operación P-03 | Pendiente | Semana, filtros/listados definitivos, editar, cancelar, reprogramar, imprimir. Protección temporal y control de versión simulado. |
+| Listados e impresión P-03 | Implementado, validado | Día/curso, filtros por ocurrencia, 20/50/100, impresión completa. 18 pruebas unitarias y 13 de navegador. |
+| Agenda y operaciones P-03 | Siguiente | Semana, editar, cancelar, reprogramar. Protección temporal y control de versión simulado. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
@@ -66,3 +67,11 @@ Capturas `frontend/evidence/consulta-desktop.png` y `consulta-mobile.png` revisa
 E2E verifica ausencia de emails/registrador y acciones de registro para Docente. Bedel conserva modalidad, requisitos y fechas al preparar una reserva; salir y empezar otra no reutiliza esa preparación. La consulta no guarda ni ocupa aulas. Las claves de cada recorrido aíslan sus estados y los criterios transferidos se consumen al abrir el registro.
 
 Los recorridos principales de P-02 están implementados. Quedan la operación P-03, administración P-04, indicadores P-05 y la validación integral/estados P-06, además de la revisión global de fidelidad. Compilación, lint y pruebas correctos; el objetivo completo continúa activo.
+
+## Revisión visual de listados e impresión
+
+Referencia `mockups/listados-b/01-listado-diario.png`. Capturas `frontend/evidence/listado-desktop.png`, `listado-mobile.png`, `listado-impresion.png` y PDF `listado-25.pdf` reproducibles con Playwright. Se conservan colores B, panel de filtros y paginación; la tabla presenta tipo como columna con filas agrupadas en el orden y combina curso/docente. En móvil hay desplazamiento horizontal explícito y filtros apilados.
+
+La prueba de impresión carga el componente real mediante Vite SSR con 25 clases de horarios contiguos, comprueba 20 filas en pantalla y 25 en el medio print, oculta controles y genera PDF A4 horizontal. La prueba de la app comprueba filtros, cambio por curso y llamada al diálogo de impresión. El PDF se genera con Chromium; la revisión de saltos y otros navegadores forma parte de P-06.
+
+La impresión conserva fecha y filtros; nunca incluye emails. Filtrar canceladas opera sobre cada ocurrencia. Las operaciones de cancelación se incorporarán en el siguiente bloque. Compilación y lint correctos.

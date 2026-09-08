@@ -654,7 +654,9 @@ export function Wizard({
           </section>
         </div>
         <aside className="panel summary">
-          <p className="eyebrow">{queryOnly ? "CRITERIOS CONSULTADOS" : "TU RESERVA"}</p>
+          <p className="eyebrow">
+            {queryOnly ? "CRITERIOS CONSULTADOS" : "TU RESERVA"}
+          </p>
           <h2>{queryOnly ? "Tu consulta" : subject || "Nueva clase"}</h2>
           {!queryOnly && <p>{course}</p>}
           <hr />

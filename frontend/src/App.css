@@ -944,3 +944,128 @@ body {
     margin: 16px 0;
   }
 }
+.list-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.listing-table {
+  overflow: auto;
+  background: #fffdf9;
+  border: 1px solid #d8dcd5;
+  border-radius: 12px;
+}
+.listing-table table,
+.print-list table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.listing-table th,
+.listing-table td,
+.print-list th,
+.print-list td {
+  padding: 16px;
+  border-bottom: 1px solid #d8dcd5;
+}
+.listing-table th {
+  background: #ecefe6;
+  font-size: 14px;
+}
+.listing-table td {
+  font-size: 14px;
+}
+.listing-table small,
+.print-list small {
+  display: block;
+  margin-top: 8px;
+}
+.table-link {
+  color: #194d3a;
+  font-weight: 600;
+  text-align: left;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.pagination label {
+  margin-right: auto;
+  flex-direction: row;
+  align-items: center;
+}
+.pagination select {
+  width: 85px;
+}
+.print-list {
+  display: none;
+}
+@media (max-width: 800px) {
+  .list-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .list-filters label:first-child {
+    grid-column: 1/-1;
+  }
+  .listing-table table {
+    min-width: 800px;
+  }
+  .pagination {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+}
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  .topbar,
+  footer,
+  .screen-list {
+    display: none !important;
+  }
+  main {
+    padding: 0;
+    max-width: none;
+  }
+  .print-list {
+    display: block;
+  }
+  .print-list table {
+    font-size: 10pt;
+  }
+  .print-list th,
+  .print-list td {
+    padding: 8px;
+  }
+  .print-list tr {
+    break-inside: avoid;
+  }
+  .print-list thead {
+    display: table-header-group;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+}
+.table-scroll-hint {
+  display: none;
+  font-size: 13px;
+  color: #59645d;
+}
+@media (max-width: 800px) {
+  .table-scroll-hint {
+    display: block;
+  }
+}

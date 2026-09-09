@@ -22,6 +22,10 @@ export function Rooms({
   const [type, setType] = useState("");
   const [state, setState] = useState("");
   const [capacity, setCapacity] = useState(0);
+  const [order, setOrder] = useState("id");
+  const [descending, setDescending] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const shown = rooms.filter(
     (r) =>
       (state ? r.state === state : r.state !== "Baja") &&
@@ -30,6 +34,26 @@ export function Rooms({
       (!resource || r.resources?.some((value) => value === resource)) &&
       r.id.toLowerCase().includes(query.toLowerCase()) &&
       r.capacity >= capacity,
+  );
+  shown.sort((a, b) => {
+    const compare =
+      order === "capacity"
+        ? a.capacity - b.capacity
+        : order === "type"
+          ? a.type.localeCompare(b.type, "es")
+          : order === "state"
+            ? (a.state ?? "").localeCompare(b.state ?? "", "es")
+            : a.id.localeCompare(b.id, "es", { numeric: true });
+    return (
+      (descending ? -1 : 1) *
+      (compare || a.id.localeCompare(b.id, "es", { numeric: true }))
+    );
+  });
+  const pages = Math.max(1, Math.ceil(shown.length / pageSize));
+  const currentPage = Math.min(page, pages);
+  const visible = shown.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
   );
   function edit(room: Room | undefined) {
     setSelected(
@@ -91,14 +115,23 @@ export function Rooms({
           <div className="form-grid">
             <label>
               Buscar aula
-              <input value={query} onChange={(e) => setQuery(e.target.value)} />
+              <input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
+              />
             </label>
             <label>
               Tipo
               <select
                 aria-label="Tipo de inventario"
                 value={type}
-                onChange={(e) => setType(e.target.value)}
+                onChange={(e) => {
+                  setType(e.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="">Todos</option>
                 {["General", "Multimedios", "Laboratorio"].map((t) => (
@@ -111,7 +144,10 @@ export function Rooms({
               <select
                 aria-label="Estado de inventario"
                 value={state}
-                onChange={(e) => setState(e.target.value)}
+                onChange={(e) => {
+                  setState(e.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="">Operación habitual</option>
                 {["Habilitada", "Inhabilitada", "Mantenimiento", "Baja"].map(
@@ -127,7 +163,10 @@ export function Rooms({
                 type="number"
                 min="0"
                 value={capacity}
-                onChange={(e) => setCapacity(Number(e.target.value))}
+                onChange={(e) => {
+                  setCapacity(Number(e.target.value));
+                  setPage(1);
+                }}
               />
             </label>
           </div>
@@ -139,7 +178,10 @@ export function Rooms({
                 <select
                   aria-label="Recurso del inventario"
                   value={resource}
-                  onChange={(e) => setResource(e.target.value)}
+                  onChange={(e) => {
+                    setResource(e.target.value);
+                    setPage(1);
+                  }}
                 >
                   <option value="">Cualquiera</option>
                   {Object.entries(resourceLabels).map(([key, label]) => (
@@ -154,7 +196,10 @@ export function Rooms({
                 <select
                   aria-label="Pizarrón del inventario"
                   value={board}
-                  onChange={(e) => setBoard(e.target.value)}
+                  onChange={(e) => {
+                    setBoard(e.target.value);
+                    setPage(1);
+                  }}
                 >
                   <option value="">Cualquiera</option>
                   <option>Tiza</option>
@@ -163,8 +208,38 @@ export function Rooms({
               </label>
             </div>
           </details>
+          <div className="form-grid">
+            <label>
+              Ordenar aulas por
+              <select
+                value={order}
+                onChange={(e) => {
+                  setOrder(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="id">Identificador</option>
+                <option value="capacity">Capacidad</option>
+                <option value="type">Tipo</option>
+                <option value="state">Estado</option>
+              </select>
+            </label>
+            <label>
+              Sentido del orden
+              <select
+                value={descending ? "desc" : "asc"}
+                onChange={(e) => {
+                  setDescending(e.target.value === "desc");
+                  setPage(1);
+                }}
+              >
+                <option value="asc">Ascendente</option>
+                <option value="desc">Descendente</option>
+              </select>
+            </label>
+          </div>
           <div className="inventory-list">
-            {shown.map((r) => (
+            {visible.map((r) => (
               <article key={r.id}>
                 <div>
                   <strong>Aula {r.id}</strong>
@@ -182,6 +257,39 @@ export function Rooms({
               </article>
             ))}
           </div>
+          <nav className="pagination" aria-label="Paginación de aulas">
+            <label>
+              Aulas por página
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+              >
+                {[20, 50, 100].map((size) => (
+                  <option key={size}>{size}</option>
+                ))}
+              </select>
+            </label>
+            <span role="status">
+              {shown.length} aulas · Página {currentPage} de {pages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setPage(currentPage - 1)}
+            >
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              disabled={currentPage === pages}
+              onClick={() => setPage(currentPage + 1)}
+            >
+              Siguiente
+            </Button>
+          </nav>
           {!shown.length && (
             <p role="status">No hay aulas que coincidan con los filtros.</p>
           )}

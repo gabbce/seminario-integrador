@@ -203,3 +203,9 @@ Axe no detectó infracciones WCAG A/AA automáticas en ingreso y nueve páginas 
 Capturas de 768 px en `frontend/evidence/audit--*.png`; inspección visual de agenda, administración y preparación de reserva. Formularios nativos conservan el formato que determine el navegador. Las revisiones independientes identificaron pendientes concretos: ordenar/paginar aulas, conservar la fecha de ocurrencia al abrir detalle y mostrar las fechas afectadas por conflictos de confirmación. Ingreso a agenda corregido en este corte.
 
 P-06 continúa: revisar formularios abiertos y estados, zoom 200 %, impresión extensa, consistencia después de modificaciones y comparación completa con las correcciones aprobadas. No se declara terminado el prototipo.
+
+## Inventario extenso: orden y paginación
+
+Corregido el pendiente del README de administración: orden por identificador (numérico natural), capacidad, tipo o estado, ascendente/descendente, y páginas de 20/50/100. Filtrar, cambiar orden o tamaño vuelve a la primera página; si una edición reduce resultados, se muestra una página válida.
+
+E2E con 30 aulas comprueba ambas páginas, filtro desde la segunda, orden descendente, cambio de tamaño y ausencia de resultados. Capturas `frontend/evidence/aulas-paginacion-desktop.png` y `aulas-paginacion-mobile.png` inspeccionadas: controles y filas legibles, paginación adaptada sin desbordamiento móvil. Axe móvil sin infracciones automáticas; build/lint correctos. Continúan los demás pendientes de la auditoría P-06.

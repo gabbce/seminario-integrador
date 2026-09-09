@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+test('inventario extenso ordena, pagina y reinicia página al filtrar',async({page})=>{
+ await page.goto('/');await page.locator('.demo-controls summary').click();
+ await page.getByLabel('Escenario',{exact:true}).selectOption('many');await page.getByRole('button',{name:'Aplicar escenario y reiniciar'}).click();
+ await page.getByLabel('Correo electrónico').fill('bedel@demo.local');await page.getByLabel('Contraseña',{exact:true}).fill('Aulas2026');await page.getByRole('button',{name:'Ingresar',exact:true}).click();
+ await page.getByRole('link',{name:'Aulas',exact:true}).click();
+ const cards=page.locator('.inventory-list article');
+ await expect(cards).toHaveCount(20);await expect(cards.first()).toContainText('Aula D01');
+ await page.getByRole('button',{name:'Siguiente',exact:true}).click();await expect(cards).toHaveCount(10);await expect(cards.first()).toContainText('Aula D21');
+ await page.screenshot({path:'evidence/aulas-paginacion-desktop.png',fullPage:true});
+ await page.getByLabel('Buscar aula').fill('D30');await expect(cards).toHaveCount(1);await expect(page.getByRole('navigation',{name:'Paginación de aulas'})).toContainText('Página 1 de 1');
+ await page.getByLabel('Buscar aula').fill('');await expect(cards.first()).toContainText('Aula D01');
+ await page.getByLabel('Sentido del orden').selectOption('desc');await expect(cards.first()).toContainText('Aula D30');
+ await page.getByLabel('Aulas por página').selectOption('50');await expect(cards).toHaveCount(30);
+ await page.getByLabel('Aulas por página').selectOption('20');
+ await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Siguiente',exact:true}).click();await expect(cards.first()).toContainText('Aula D10');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'evidence/aulas-paginacion-mobile.png',fullPage:true});
+ expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze()).violations).toEqual([]);
+ await page.getByLabel('Buscar aula').fill('no-existe');await expect(cards).toHaveCount(0);await expect(page.getByRole('button',{name:'Siguiente',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Anterior',exact:true})).toBeDisabled();
+});

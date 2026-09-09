@@ -91,6 +91,7 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
     calendars.find((c) => c.year === selectedYear) ??
     calendars[0] ??
     initialCalendar;
+  const [agendaDate, setAgendaDate] = useState(scenario.now.slice(0, 10));
   const [inventory, setInventory] = useState(scenario.inventory);
   const [users, setUsers] = useState(initialUsers);
   const [userId, setUserId] = useState<string>();
@@ -205,6 +206,8 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
                     path="/agenda"
                     element={
                       <Agenda
+                        date={agendaDate}
+                        setDate={setAgendaDate}
                         bookings={bookings}
                         operator={role !== "Docente"}
                       />

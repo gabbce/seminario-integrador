@@ -192,3 +192,14 @@ Referencia `mockups/ingreso-movil-estados-b/04-error-consulta.png`. Capturas `fr
 Consulta reutiliza invalidación por criterios. Guardado espera 600 ms, bloquea doble envío, cancela continuidad al desmontar y revalida con los datos actuales. App verifica además conflictos y duplicados. El ID se conserva desde el comienzo de la preparación; resultado incierto consulta el registro por ese ID sin reenviar. E2E recorre consulta fallida, guardado fallido, comprobación incierta y una sola instancia en agenda. Revisiones independientes sin hallazgos; build/lint correctos.
 
 Sigue pendiente auditoría integral P-06: contraste, teclado/zoom, alcance de listados extensos, navegación y requisitos completos. Este corte no declara el objetivo terminado.
+
+
+## Auditoría inicial de navegación y accesibilidad
+
+El ingreso abre la agenda del día simulado, también después de cerrar sesión desde otra pantalla. La fecha elegida permanece al navegar y volver; una reserva inexistente ofrece una salida al listado. La grilla de escritorio admite foco y anuncia su desplazamiento, sin mostrar esa indicación en la lista móvil.
+
+Axe no detectó infracciones WCAG A/AA automáticas en ingreso y nueve páginas principales a 390, 768 y 1440 px; ninguna produjo desbordamiento del documento. Esto no certifica accesibilidad completa. Prueba de teclado verifica ingreso, foco visible, Hoy, regreso de navegación y nueva sesión. Suite: 61 unitarias y 32 E2E, con la prueba de teclado repetida satisfactoriamente tras corregir su simulación de foco. Build/lint y prueba Maven del contexto Spring Boot correctos.
+
+Capturas de 768 px en `frontend/evidence/audit--*.png`; inspección visual de agenda, administración y preparación de reserva. Formularios nativos conservan el formato que determine el navegador. Las revisiones independientes identificaron pendientes concretos: ordenar/paginar aulas, conservar la fecha de ocurrencia al abrir detalle y mostrar las fechas afectadas por conflictos de confirmación. Ingreso a agenda corregido en este corte.
+
+P-06 continúa: revisar formularios abiertos y estados, zoom 200 %, impresión extensa, consistencia después de modificaciones y comparación completa con las correcciones aprobadas. No se declara terminado el prototipo.

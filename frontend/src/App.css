@@ -1447,3 +1447,5 @@ body {
 @media print { .demo-controls { display:none !important; } }
 .daily-slot { margin-bottom:20px; }
 .daily-slot label { max-width:400px; }
+.agenda-scroll-hint { font-size:14px; color:#59665f; }
+@media(max-width:800px) { .agenda-scroll-hint { display:none; } }

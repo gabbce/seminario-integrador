@@ -12,13 +12,16 @@ import { Button } from "../components/ui/button";
 export function Agenda({
   bookings,
   operator,
+  date,
+  setDate,
 }: {
+  date: string;
+  setDate: (date: string) => void;
   bookings: Booking[];
   operator: boolean;
 }) {
   const rooms = useRooms();
   const [view, setView] = useState<"day" | "week">("day");
-  const [date, setDate] = useState("2026-09-14");
   const calendar = useCalendar(Number(date.slice(0, 4)));
   const [room, setRoom] = useState("");
   const [type, setType] = useState("");
@@ -165,7 +168,14 @@ export function Agenda({
               disponibilidad.
             </p>
           )}
+          <p className="agenda-scroll-hint">
+            Desplazá la agenda horizontalmente para ver todas las aulas y
+            verticalmente para recorrer los horarios.
+          </p>
           <div
+            role="region"
+            aria-label="Agenda diaria por aulas"
+            tabIndex={0}
             className={`agenda-desktop ${closedDay(date, calendar) ? "closed-day" : ""}`}
             ref={scrollRef}
           >

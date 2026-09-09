@@ -13,7 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { type Booking, type Role, dateLabel } from "../domain";
 import { bookingState, isFuture, type Cancellation } from "../cancellation";
-import { Pending } from "./Pending";
+
 import { Button } from "../components/ui/button";
 
 export function Detail({
@@ -37,7 +37,7 @@ export function Detail({
 }) {
   const { id } = useParams();
   const b = bookings.find((b) => b.id === id);
-  if (!b) return <Pending name="Reserva no encontrada" />;
+  if (!b) return <MissingReservation />;
   return (
     <BookingDetail
       key={b.id}
@@ -405,5 +405,16 @@ function BookingDetail({
         </form>
       )}
     </>
+  );
+}
+
+function MissingReservation() {
+  const go = useNavigate();
+  return (
+    <section className="panel">
+      <h1>Reserva no encontrada</h1>
+      <p>La reserva no está disponible en el escenario actual.</p>
+      <Button onClick={() => go("/reservas")}>Volver a reservas</Button>
+    </section>
   );
 }

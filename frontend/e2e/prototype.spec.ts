@@ -4,6 +4,7 @@ async function login(page: import('@playwright/test').Page, role = 'bedel') {
   await page.getByLabel('Correo electrónico').fill(`${role}@demo.local`)
   await page.getByLabel('Contraseña', { exact: true }).fill('Aulas2026')
   await page.getByRole('button', { name: 'Ingresar', exact: true }).click()
+  await page.getByLabel('Fecha de agenda').fill('2026-09-14')
 }
 test('reserva periódica completa y lectura desde agenda', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message))
@@ -550,6 +551,7 @@ test('escenarios reinician y comparten las métricas aprobadas con agenda', asyn
   await page.getByLabel('Correo electrónico').fill('bedel@demo.local')
   await page.getByLabel('Contraseña',{exact:true}).fill('Aulas2026')
   await page.getByRole('button',{name:'Ingresar',exact:true}).click()
+  await page.getByLabel('Fecha de agenda').fill('2026-09-14')
  }
  await scenario('daily')
  await expect(page.getByRole('button',{name:/Matemática I/})).toBeVisible()
@@ -619,6 +621,7 @@ test('versión desactualizada rechaza edición y sesión vencida conserva reserv
  await page.getByLabel('Correo electrónico').fill('bedel@demo.local')
  await page.getByLabel('Contraseña',{exact:true}).fill('Aulas2026')
  await page.getByRole('button',{name:'Ingresar',exact:true}).click()
+ await page.getByRole('button',{name:/Física I/}).click()
  await expect(page.getByRole('heading',{name:'Física I',exact:true})).toBeVisible()
  await expect(page.getByText(/36 alumnos previstos/).first()).toBeVisible()
 })

@@ -17,7 +17,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Cancelación P-03 | Implementado, validado | Selección futura, motivo, historial, liberación de aulas y cese de continuidad. 23 pruebas unitarias y 15 E2E. |
 | Cambio de aula P-03 | Implementado, validado | Futuras del patrón o fecha esporádica; comparación y disponibilidad conjunta. 27 pruebas unitarias, 16 E2E. |
 | Reprogramación P-03 | Implementado, validado | Una o varias fechas con aula conservada, revisión previa y guardado conjunto. 30 pruebas unitarias, 17 E2E. |
-| Datos compartidos P-03 | Siguiente | Edición de cabecera antes de iniciarse la reserva. |
+| Datos compartidos P-03 | Implementado, validado | Curso/docente/alumnos/requisitos antes del inicio, revalidación e historial. 33 pruebas unitarias, 18 E2E. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
@@ -107,3 +107,9 @@ Cambio conjunto del patrón y sus futuras vigentes; conserva otras clases, pasad
 Referencia `mockups/listados-b/04-reprogramar.png`, capturas `frontend/evidence/reprogramacion-desktop.png` y `reprogramacion-mobile.png`. Comparación Antes/Después, aula conservada, disponibilidad comprobada antes de revisión y nuevamente al guardar. La selección permite varias clases y separa preparación/revisión para mostrar el alcance completo; la pantalla del mockup ilustra una sola. Paneles apilados en móvil sin desbordar.
 
 Preserva fecha original en periódicas, incluso después de varias reprogramaciones, y usa esa procedencia para el cambio de aula del grupo original. Fechas dentro del período asignado, horarios de apertura, feriados, protección temporal y conflictos se verifican para todo el conjunto. La auditoría conserva fechas y horarios anteriores/nuevos. E2E mueve lunes al martes y cambia después el aula de los 12 lunes originales. Pruebas unitarias cubren repetición, restricciones, versión, rol y rechazo completo por conflicto. Datos compartidos, administración, indicadores y validación global siguen pendientes.
+
+## Revisión visual de datos compartidos
+
+Referencia de formulario `mockups/flujo-periodico-b/01-datos.png`, reutilizando CoursePicker y requisitos. Capturas `frontend/evidence/datos-reserva-desktop.png` y `datos-reserva-mobile.png`. Formulario y panel de alcance, apilados en móvil; equipamiento compacto en dos columnas de escritorio. No modifica modalidad, fechas ni períodos desde esta operación.
+
+Curso/comisión, docente/contacto, alumnos, tipo/pizarrón/recursos se actualizan juntos y quedan auditados. Todas las aulas vigentes deben seguir cumpliendo el pedido. Ninguna ocurrencia puede haber comenzado, incluidas las canceladas; además se valida versión y rol. E2E rechaza 41 alumnos en 105, permite corregir a 30 y cambia curso/docente/proyector conservando aula. Se añadieron nombres accesibles explícitos a selectores. Revisiones independientes sin hallazgos. Los recorridos principales de P-03 están implementados; falta su validación integral de escenarios P-06. Próximo bloque: administración P-04.

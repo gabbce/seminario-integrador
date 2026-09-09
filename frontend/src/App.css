@@ -1292,3 +1292,31 @@ body {
   height: 20px;
   accent-color: #194d3a;
 }
+.header-resources {
+  margin-top: 24px;
+}
+.header-resources label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.header-resources input {
+  width: 20px;
+  height: 20px;
+  accent-color: #194d3a;
+}
+.header-resources {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.header-resources legend {
+  margin-bottom: 8px;
+}
+@media (max-width: 600px) {
+  .header-resources {
+    grid-template-columns: 1fr;
+  }
+}

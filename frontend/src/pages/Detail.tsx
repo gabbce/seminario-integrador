@@ -1,3 +1,6 @@
+import { EditHeader } from "./EditHeader";
+import { headerEditable, type HeaderChange } from "../booking-header";
+import type { Course } from "../catalog";
 import { reschedule as checkReschedule } from "../reschedule";
 import { Reschedule } from "./Reschedule";
 import type { Reschedule as RescheduleRequest } from "../reschedule";
@@ -17,12 +20,18 @@ export function Detail({
   cancel,
   changeRoom,
   reschedule,
+  courses,
+  addCourse,
+  changeHeader,
 }: {
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
   changeRoom: (id: string, request: RoomChange) => string | undefined;
   reschedule: (id: string, request: RescheduleRequest) => string | undefined;
+  courses: Course[];
+  addCourse: (c: Course) => void;
+  changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
   const { id } = useParams();
   const b = bookings.find((b) => b.id === id);
@@ -33,6 +42,9 @@ export function Detail({
       booking={b}
       role={role}
       cancel={cancel}
+      courses={courses}
+      addCourse={addCourse}
+      changeHeader={changeHeader}
       reschedule={reschedule}
       changeRoom={changeRoom}
       bookings={bookings}
@@ -46,6 +58,9 @@ function BookingDetail({
   cancel,
   changeRoom,
   reschedule,
+  courses,
+  addCourse,
+  changeHeader,
 }: {
   booking: Booking;
   bookings: Booking[];
@@ -53,7 +68,11 @@ function BookingDetail({
   cancel: (id: string, request: Cancellation) => string | undefined;
   changeRoom: (id: string, request: RoomChange) => string | undefined;
   reschedule: (id: string, request: RescheduleRequest) => string | undefined;
+  courses: Course[];
+  addCourse: (c: Course) => void;
+  changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
+  const [editingHeader, setEditingHeader] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
   const [changingRoom, setChangingRoom] = useState(false);
   const go = useNavigate();
@@ -67,6 +86,21 @@ function BookingDetail({
     !o.cancelled && isFuture(o) ? [i] : [],
   );
   const operator = role !== "Docente";
+  if (editingHeader)
+    return (
+      <EditHeader
+        booking={b}
+        courses={courses}
+        addCourse={addCourse}
+        back={() => setEditingHeader(false)}
+        save={(request) => {
+          const failure = changeHeader(b.id, request);
+          if (failure) return failure;
+          setEditingHeader(false);
+          setMessage("Datos de la reserva actualizados.");
+        }}
+      />
+    );
   if (rescheduling)
     return (
       <Reschedule
@@ -119,6 +153,11 @@ function BookingDetail({
             {b.course} · {b.teacher} · {b.students} alumnos previstos
           </p>
         </div>
+        {!editing && operator && headerEditable(b) && (
+          <Button variant="outline" onClick={() => setEditingHeader(true)}>
+            Modificar datos
+          </Button>
+        )}
         {!editing && operator && future.length > 0 && (
           <Button variant="outline" onClick={() => setRescheduling(true)}>
             Reprogramar clases

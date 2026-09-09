@@ -1,3 +1,4 @@
+import { changeHeader } from "./booking-header";
 import { reschedule } from "./reschedule";
 import { changeRoom } from "./room-change";
 import { cancelClasses } from "./cancellation";
@@ -129,6 +130,29 @@ function App() {
                   <Detail
                     bookings={bookings}
                     role={role}
+                    courses={courses}
+                    addCourse={(course) =>
+                      setCourses((old) =>
+                        old.some((c) => c.id === course.id)
+                          ? old
+                          : [...old, course],
+                      )
+                    }
+                    changeHeader={(id, request) => {
+                      const current = bookings.find((b) => b.id === id);
+                      if (!current) return "Reserva no encontrada.";
+                      const result = changeHeader(
+                        current,
+                        request,
+                        courses,
+                        role,
+                      );
+                      if (result.error) return result.error;
+                      if (result.booking)
+                        setBookings((old) =>
+                          old.map((b) => (b.id === id ? result.booking : b)),
+                        );
+                    }}
                     reschedule={(id, request) => {
                       const current = bookings.find((b) => b.id === id);
                       if (!current) return "Reserva no encontrada.";

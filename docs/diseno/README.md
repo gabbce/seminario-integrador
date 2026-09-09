@@ -1,6 +1,6 @@
 # Diseño aprobado — Aulas
 
-**Estado:** dirección B — PATIO, recorridos y guía visual aprobados. Preparación documental del prototipo navegable completa; todavía no hay implementación ni pruebas de interfaz ejecutadas.
+**Estado:** dirección B — PATIO, recorridos y guía visual aprobados. Prototipo P-01 a P-06 implementado y verificado; ver la [matriz de aceptación](validacion-prototipo.md) y la [checklist de QA manual](qa-manual-prototipo.md).
 
 ## Punto de partida
 
@@ -40,9 +40,9 @@ La especificación define alcance y reglas. Esta consolidación y la guía defin
 - Calendario: Crear año disponible; descripción de fecha no lectiva, sin catálogo adicional. Revisar cierre y dependencias antes de mutar. El conflicto bloquea el cambio completo.
 - No trasladar textos accesorios sobre ausencia de correos ni erratas del generador al producto. Las confirmaciones y cancelaciones deben identificar su alcance real.
 
-## Lo que falta comprobar
+## Validación y siguiente etapa
 
-La aprobación visual no verifica navegación real, respuesta de controles, teclado, contraste, tamaños de pantalla, gráficos calculados ni integración. Esos puntos tienen criterios en el plan del prototipo. No quedan elecciones de dirección visual pendientes para comenzar esa etapa.
+La validación del prototipo cubre navegación, controles, teclado, tamaños, gráficos y escenarios según la matriz de aceptación. La checklist manual permite repetir la revisión humana y registrar nuevos hallazgos. La integración Java/Supabase y su validación corresponden a la siguiente etapa.
 
 ## Prototipo implementado
 

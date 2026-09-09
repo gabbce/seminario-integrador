@@ -33,7 +33,7 @@ El reinicio de escenario limpia también estos estados. Son simulaciones de inte
 - **Simular fallo de guardado** rechaza una reserva nueva sin guardarla. Conserva la revisión; cambiar a **Guardado normal** permite repetir.
 - **Simular respuesta de guardado incierta** guarda una reserva nueva pero oculta la confirmación. **Comprobar estado de la reserva** consulta el mismo ID y confirma sin reenviar. Todos los guardados de reserva nueva muestran una espera de 600 ms y deshabilitan el botón.
 
-La espera se cancela al salir del formulario o vencer la sesión. Antes de guardar se revalidan los datos actuales. Pendiente la revisión global de teclado, zoom, impresión, consistencia y cobertura completa de requisitos. No se declara terminada P-06.
+La espera se cancela al salir del formulario o vencer la sesión. Antes de guardar se revalidan los datos actuales. P-06 se verificó según la [matriz de aceptación](validacion-prototipo.md). Para repetir la revisión humana completa, usar la [checklist de QA manual](qa-manual-prototipo.md).
 
 ### Conflicto después de consultar
 

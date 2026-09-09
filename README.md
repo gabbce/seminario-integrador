@@ -6,6 +6,8 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 - [Leer la especificación](docs/especificacion/00-especificacion.md).
 - [Diseño B aprobado y referencias vigentes](docs/diseno/README.md).
+
+- [Checklist de QA manual: pantallas, roles y estados](docs/diseno/qa-manual-prototipo.md).
 - [Plan de entregas del prototipo navegable](docs/diseno/prototipo-navegable.md).
 - [85 decisiones acordadas](docs/especificacion/04-decisiones-acordadas.md).
 - [Índice completo y fuentes originales](docs/README.md).

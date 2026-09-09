@@ -23,6 +23,8 @@ Agenda contiene inicialmente cuatro clases. Matemática se agrega al confirmar e
 
 ## Comprobaciones
 
+Guía para evaluación humana: [QA manual del prototipo](../docs/diseno/qa-manual-prototipo.md).
+
 ```bash
 npm run build
 npm run lint

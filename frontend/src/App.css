@@ -1025,6 +1025,7 @@ body {
   }
 }
 @media print {
+  :root,
   body {
     background: white;
     color: black;
@@ -1046,7 +1047,13 @@ body {
   }
   .print-list th,
   .print-list td {
-    padding: 8px;
+    padding: 6px 8px;
+    line-height: 1.35;
+  }
+  .print-list small {
+    margin-top: 3px;
+    font-size: 9pt;
+    color: #333;
   }
   .print-list tr {
     break-inside: avoid;

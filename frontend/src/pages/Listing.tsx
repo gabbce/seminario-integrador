@@ -173,7 +173,7 @@ export function Listing({ bookings }: { bookings: Booking[] }) {
           </label>
         </section>
         <p className="muted">
-          {rows.length} resultados ·{" "}
+          {rows.length} {rows.length === 1 ? "resultado" : "resultados"} ·{" "}
           {filters.mode === "day"
             ? "Agrupados por tipo de aula"
             : "Orden cronológico"}
@@ -242,7 +242,9 @@ export function Listing({ bookings }: { bookings: Booking[] }) {
                 ? "Confirmadas"
                 : "Canceladas"}
           </p>
-          <p>{rows.length} resultados</p>
+          <p>
+            {rows.length} {rows.length === 1 ? "resultado" : "resultados"}
+          </p>
           {table(true)}
         </section>
       )}

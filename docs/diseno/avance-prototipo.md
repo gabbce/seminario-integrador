@@ -223,3 +223,11 @@ La revisión independiente detectó una ambigüedad al reprogramar hacia la fech
 La revalidación informa todas las clases afectadas con fecha, horario y aula, y devuelve la preparación al paso de asignación. No se guarda un subconjunto. Herramienta de demostración: «Ocupar Aula 203 · 14 y 21/09 · 14–16» registra una reserva de prueba si el calendario y la disponibilidad lo permiten; es idempotente y se elimina al reiniciar el escenario.
 
 E2E prepara la periódica aprobada, ocupa el aula antes de confirmar, verifica ambas fechas, conserva datos, elige otra aula y confirma 26 clases con una sola instancia en agenda. Capturas `frontend/evidence/conflicto-confirmacion-desktop.png` y `conflicto-confirmacion-mobile.png` inspeccionadas. Estado de error móvil sin infracciones automáticas de Axe. 61 unitarias, build y lint correctos. P-06 sigue pendiente de la auditoría integral ya enumerada.
+
+## Impresión extensa desde la aplicación
+
+Nueva E2E entra al escenario «Muchas aulas y listado extenso», navega a la segunda página (10 filas de 30), y genera el PDF desde la app completa: se imprimen las 30, con navegación y herramientas ocultas. También verifica filtro Aula D30 y genera su único resultado.
+
+PDFs `frontend/evidence/listado-app-30.pdf` y `listado-app-filtrado.pdf` inspeccionados hoja por hoja mediante renderizado PDFium. Extracción independiente con pypdf: 30 filas distribuidas 10/13/7 en tres hojas A4 apaisadas; encabezados de tabla repetidos, ninguna clase perdida, ningún control de demo. Filtrado: una hoja y una fila. Se corrigió el fondo beige detectado en zonas vacías y se redujo el espaciado de impresión conservando texto de tabla de 10 pt (datos secundarios 9 pt). Las filas no se dividen entre hojas. Build/lint y prueba E2E correctos.
+
+Esta evidencia amplía la prueba anterior aislada de 25 filas. Continúan teclado/zoom, estados de formularios y consistencia global de P-06; no se declara terminado el prototipo.

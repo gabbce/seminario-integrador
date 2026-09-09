@@ -1396,3 +1396,24 @@ body {
 .year-selection > .cancellation-warning {
   width: 100%;
 }
+
+.metric-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-bottom:24px; }
+.metric-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-bottom:24px; }
+.metric-card { display:flex; gap:24px; align-items:center; }
+.metric-card > svg { width:52px; height:52px; padding:12px; border-radius:50%; background:#e9ede3; color:#185340; flex-shrink:0; }
+.metric-card div { display:grid; gap:6px; }
+.metric-card strong { font:40px Georgia,serif; color:#185340; }
+.metric-card small { color:#59665f; }
+.metric-curve { margin-bottom:20px; }
+.metric-curve-heading { display:flex; justify-content:space-between; gap:24px; align-items:baseline; }
+.metric-curve-heading p { max-width:65%; font-size:14px; }
+.metric-canvas { position:relative; height:220px; }
+.metric-volume { display:flex; gap:16px; align-items:center; }
+.metric-volume strong { color:#185340; font:30px Georgia,serif; }
+.metric-note { padding:16px 0; color:#59665f; }
+.metric-values { margin-top:20px; }
+.metric-values summary { cursor:pointer; font-weight:600; }
+.metric-table { overflow-x:auto; }
+.metric-table table { width:100%; border-collapse:collapse; text-align:left; }
+.metric-table td,.metric-table th { padding:12px 8px; border-bottom:1px solid #d9ddd5; }
+@media(max-width:700px) { .metric-filters,.metric-cards { grid-template-columns:1fr; gap:14px; } .metric-curve-heading { display:block; } .metric-curve-heading p { max-width:none; } .metric-canvas { height:200px; } }

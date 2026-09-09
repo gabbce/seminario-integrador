@@ -47,7 +47,7 @@ import { Wizard } from "./pages/Wizard";
 import { Listing } from "./pages/Listing";
 import { Detail } from "./pages/Detail";
 import { Rooms } from "./pages/Rooms";
-import { Pending } from "./pages/Pending";
+import { Indicators } from "./pages/Indicators";
 
 const navigation = [
   ["/agenda", "Agenda", CalendarDays],
@@ -373,13 +373,16 @@ function App() {
                       />
                     }
                   />
-                  {["indicadores"].map((path) => (
-                    <Route
-                      key={path}
-                      path={`/${path}`}
-                      element={<Pending name={path} />}
-                    />
-                  ))}
+                  <Route
+                    path="/indicadores"
+                    element={
+                      role === "Docente" ? (
+                        <Navigate to="/agenda" replace />
+                      ) : (
+                        <Indicators bookings={bookings} />
+                      )
+                    }
+                  />
                   <Route
                     path="/administracion"
                     element={

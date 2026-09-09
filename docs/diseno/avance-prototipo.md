@@ -22,7 +22,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Cuentas P-04 | Implementado, validado | Alta/perfiles, estados, búsqueda/orden/paginación, contraseña y último Admin. 39 pruebas unitarias, 20 E2E. |
 | Calendario e impacto P-04 | Implementado, validado para 2026 | Cuatrimestres y fechas no lectivas compartidos; extensión atómica de series. 43 pruebas unitarias, 21 E2E. |
 | Ciclo de años P-04 | Implementado, validado | Alta/estados y eliminación protegida; reservas y cursos por año, traspaso desde disponibilidad. 48 pruebas unitarias y 22 E2E. |
-| Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
+| Indicadores diarios P-05 | Implementado, validado | Cálculos históricos, filtros, curvas Chart.js y tabla de 32 franjas. 54 pruebas unitarias y 23 E2E. |
+| Semana típica y rangos P-05 | Siguiente | Medias por fecha elegible, mapa y comparación diaria; estados de consulta. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
 ## Revisión visual del corte de períodos
@@ -148,3 +149,13 @@ Referencia `mockups/administracion-b/03-calendario.png`, capturas `frontend/evid
 Los años nacen en preparación; habilitar requiere ambos cuatrimestres y cerrar exige no tener clases vigentes futuras/en curso. Cerrados son de consulta; eliminación exige preparación vacía y sin dependencias. Quitar cuatrimestres conserva dependencias históricas. Reserva, consulta, cursos, agenda y reprogramación usan el calendario correspondiente, incluyendo semanas entre años. El traspaso desde disponibilidad inicializa el curso del año consultado, corregido tras revisión independiente y cubierto por E2E.
 
 Pruebas cubren crear/habilitar 2027, reservar con curso 001-A-2027, continuidad desde consulta, cierre protegido y conservación de 2026. Build y lint correctos. Revisiones de especificación y estándares sin hallazgos pendientes en este corte. Indicadores P-05 y validación integral P-06 continúan pendientes.
+
+## Revisión visual de indicadores diarios
+
+Referencia `mockups/indicadores-guia-b/01-indicadores-dia.png` y sus correcciones escritas. Capturas `frontend/evidence/indicadores-dia-desktop.png` / `indicadores-dia-mobile.png`, inspeccionadas con gráficos cargados. Tres tarjetas (sin Aulas abiertas), curvas escalonadas separadas, alumnos-hora, demanda por tipo y tabla accesible con 32 franjas. Se redujeron etiquetas del eje horizontal para evitar superposición móvil; las 32 franjas siguen disponibles. Chart.js se carga al abrir indicadores.
+
+Los valores se calculan de reservas/aulas/calendarios compartidos. El escenario inicial conserva cuatro clases y seis aulas: 6,5 h, 6,8 %, 252 alumnos-hora. La prueba unitaria independiente del ejemplo aprobado usa cinco clases/cuatro aulas y obtiene 8,5 h, 13,3 %, 312 alumnos-hora. El selector de escenarios exactos se incorpora en P-06, sin mezclar ambos conjuntos.
+
+Denominador por módulos completos e historial de aula; tipo al inicio, sin depender del estado administrativo del año ni excluir receso. Canceladas no suman; cero, sin horas y cobertura desconocida se distinguen. Eventos con mismo instante conservan el último, incluyendo continuidad. Se corrigió también el escalón temporal para no adelantar valores media hora. Revisiones independientes sin hallazgos pendientes en este corte.
+
+E2E verifica datos actuales, filtros, fechas vacías/no lectivas, tabla, móvil y bloqueo de ruta para Docente. Compilación y lint correctos. Semana típica, rangos, selección de franjas y estados simulados completos siguen pendientes; no se declara cerrado P-05 ni el objetivo.

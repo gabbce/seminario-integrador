@@ -1,4 +1,4 @@
-import { type Booking, type Role, rooms } from "./domain";
+import { type Booking, type Role, type Room, rooms } from "./domain";
 import { type Course } from "./catalog";
 import { teachers } from "./teachers";
 import { compatible, resourcesFor, type Resource } from "./equipment";
@@ -23,6 +23,7 @@ export function changeHeader(
   courses: Course[],
   role: Role,
   now = demoNow,
+  inventory: Room[] = rooms,
 ): { booking: Booking; error?: never } | { error: string; booking?: never } {
   if (role === "Docente")
     return { error: "Tu cuenta solo permite consultar reservas." };
@@ -54,7 +55,7 @@ export function changeHeader(
   const invalid = b.occurrences
     .filter((o) => !o.cancelled)
     .find((o) => {
-      const room = rooms.find((r) => r.id === o.room);
+      const room = inventory.find((r) => r.id === o.room);
       return !room || !compatible(room, request);
     });
   if (invalid)

@@ -1,3 +1,4 @@
+import { useRooms } from "../room-context";
 import { type ReservationDraft } from "../reservation-draft";
 import { SporadicDates } from "../components/SporadicDates";
 import { validateDates } from "../booking-dates";
@@ -30,7 +31,6 @@ import {
   dayNames,
   expand,
   minutes,
-  rooms,
   validateBooking,
   type Pattern,
   type Booking,
@@ -59,6 +59,7 @@ export function Wizard({
   onPrepare?: (draft: ReservationDraft) => void;
   save: (b: Booking) => void;
 }) {
+  const rooms = useRooms();
   const go = useNavigate();
   useEffect(() => {
     if (initial) onConsume?.();
@@ -178,7 +179,7 @@ export function Wizard({
       return;
     }
     if (queryOnly) return;
-    const issue = validateBooking(booking, bookings);
+    const issue = validateBooking(booking, bookings, rooms);
     if (issue) {
       setError(issue);
       return;

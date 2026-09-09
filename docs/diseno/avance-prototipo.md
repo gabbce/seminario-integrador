@@ -18,7 +18,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Cambio de aula P-03 | Implementado, validado | Futuras del patrón o fecha esporádica; comparación y disponibilidad conjunta. 27 pruebas unitarias, 16 E2E. |
 | Reprogramación P-03 | Implementado, validado | Una o varias fechas con aula conservada, revisión previa y guardado conjunto. 30 pruebas unitarias, 17 E2E. |
 | Datos compartidos P-03 | Implementado, validado | Curso/docente/alumnos/requisitos antes del inicio, revalidación e historial. 33 pruebas unitarias, 18 E2E. |
-| Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
+| Inventario de aulas P-04 | Implementado, validado | Alta, edición, baja, filtros, historial e integración de disponibilidad. 37 pruebas unitarias, 19 E2E. |
+| Cuentas y calendario P-04 | Siguiente | Usuarios, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
@@ -113,3 +114,11 @@ Preserva fecha original en periódicas, incluso después de varias reprogramacio
 Referencia de formulario `mockups/flujo-periodico-b/01-datos.png`, reutilizando CoursePicker y requisitos. Capturas `frontend/evidence/datos-reserva-desktop.png` y `datos-reserva-mobile.png`. Formulario y panel de alcance, apilados en móvil; equipamiento compacto en dos columnas de escritorio. No modifica modalidad, fechas ni períodos desde esta operación.
 
 Curso/comisión, docente/contacto, alumnos, tipo/pizarrón/recursos se actualizan juntos y quedan auditados. Todas las aulas vigentes deben seguir cumpliendo el pedido. Ninguna ocurrencia puede haber comenzado, incluidas las canceladas; además se valida versión y rol. E2E rechaza 41 alumnos en 105, permite corregir a 30 y cambia curso/docente/proyector conservando aula. Se añadieron nombres accesibles explícitos a selectores. Revisiones independientes sin hallazgos. Los recorridos principales de P-03 están implementados; falta su validación integral de escenarios P-06. Próximo bloque: administración P-04.
+
+## Revisión visual de inventario de aulas
+
+Referencia `mockups/administracion-b/01-aulas.png`; capturas `frontend/evidence/aulas-desktop.png` y `aulas-mobile.png`. Inventario y edición en dos paneles de escritorio, formulario primero en móvil. Filas compactas con botón explícito reemplazan la tabla ilustrativa. Ubicación se carga como texto y piso entero, sin ABM de edificios. Recursos y pizarrón disponibles como filtros; PC solo descriptivas del laboratorio. Los datos de edificio/piso iniciales son ficticios.
+
+Inventario compartido mediante contexto React; funciones de validación reciben el conjunto actualizado. Altas crean cobertura histórica desde el reloj de la demo; fixtures tienen cobertura conocida desde enero de 2026. Cambios de estado/tipo generan historial. Baja lógica exige confirmación, conserva identidad y no admite restaurar/reutilizar. Capacidad, estado y recursos protegen futuras/en curso. Agenda indica aulas no reservables; consultas y mutaciones respetan estado. Listados conservan el tipo solicitado de la reserva, sin reclasificar canceladas al editar inventario.
+
+E2E rechaza reducción de 105, crea S01 con piso negativo, la ofrece en disponibilidad y la retira al pasar a mantenimiento. Unitarias cubren bajas, identidad, cobertura y reservas en curso. Se corrigió reclasificación histórica detectada por revisión independiente. Cuentas, calendario, indicadores y validación global siguen pendientes.

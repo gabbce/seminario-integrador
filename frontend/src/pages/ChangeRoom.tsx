@@ -1,5 +1,6 @@
+import { useRooms } from "../room-context";
 import { useState } from "react";
-import { type Booking, dateLabel, dayNames, rooms } from "../domain";
+import { type Booking, dateLabel, dayNames } from "../domain";
 import { groupIndices, roomChangeError, type RoomChange } from "../room-change";
 import { Button } from "../components/ui/button";
 export function ChangeRoom({
@@ -13,6 +14,7 @@ export function ChangeRoom({
   save: (request: RoomChange) => string | undefined;
   back: () => void;
 }) {
+  const rooms = useRooms();
   const [snapshot] = useState(booking);
   const groups = snapshot.patterns
     ? snapshot.patterns.map((p) => ({
@@ -35,7 +37,13 @@ export function ChangeRoom({
   const choices = rooms.filter(
     (r) =>
       r.id !== original &&
-      !roomChangeError(snapshot, { ...request, room: r.id }, bookings),
+      !roomChangeError(
+        snapshot,
+        { ...request, room: r.id },
+        bookings,
+        undefined,
+        rooms,
+      ),
   );
   return (
     <>

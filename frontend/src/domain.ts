@@ -10,6 +10,12 @@ import {
 export { holidays, omittedDates } from "./calendar";
 export type Role = "Administrador" | "Bedel" | "Docente";
 export type Room = {
+  version?: number;
+  state?: "Habilitada" | "Inhabilitada" | "Mantenimiento" | "Baja";
+  location?: string;
+  floor?: number;
+  computers?: number;
+  history?: { at: string; state: string; type: string }[];
   id: string;
   capacity: number;
   type: string;
@@ -54,6 +60,11 @@ const roomFixtures: Room[] = [
 ];
 export const rooms: Room[] = roomFixtures.map((r) => ({
   ...r,
+  state: "Habilitada",
+  location: "Edificio A",
+  floor: r.id === "Lab 2" ? 0 : Number(r.id[0]),
+  computers: r.type === "Laboratorio" ? 24 : undefined,
+  history: [{ at: "2026-01-01T00:00", state: "Habilitada", type: r.type }],
   board: r.id === "108" ? "Tiza" : "Fibrón",
   resources:
     r.type === "Multimedios"
@@ -119,6 +130,7 @@ export function available(
 export function validateBooking(
   booking: Booking,
   existing: Booking[],
+  inventory: Room[] = rooms,
 ): string | null {
   if (
     !booking.subject.trim() ||
@@ -135,7 +147,9 @@ export function validateBooking(
   const invalidDates = validateDates(booking.occurrences);
   if (invalidDates) return invalidDates;
   for (const o of booking.occurrences) {
-    const room = rooms.find((r) => r.id === o.room);
+    const room = inventory.find((r) => r.id === o.room);
+    if (room?.state && room.state !== "Habilitada")
+      return "El aula ya no está habilitada para reservas.";
     if (!room || room.capacity < booking.students)
       return "El aula debe tener capacidad para todos los alumnos previstos.";
     if (booking.type && !compatible(room, { ...booking, type: booking.type }))
@@ -201,6 +215,7 @@ const bookingFixtures: Booking[] = [
 ];
 export const initialBookings: Booking[] = bookingFixtures.map((b) => ({
   ...b,
+  type: rooms.find((r) => r.id === b.occurrences[0]?.room)?.type,
   teacherEmail: teachers.find((t) => t.name === b.teacher)?.email,
   registrant: { name: "Gabriela · Bedel", email: "bedel@demo.local" },
 }));

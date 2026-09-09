@@ -1,4 +1,4 @@
-import { type Booking, type Role, overlaps, rooms } from "./domain";
+import { type Booking, type Role, type Room, overlaps, rooms } from "./domain";
 import { compatible } from "./equipment";
 import { isFuture } from "./cancellation";
 import { demoNow } from "./calendar";
@@ -24,13 +24,15 @@ export function roomChangeError(
   request: RoomChange,
   bookings: Booking[],
   now = demoNow,
+  inventory: Room[] = rooms,
 ): string | undefined {
   const indices = groupIndices(b, request.group, now);
   if (!indices.length)
     return "No quedan clases futuras vigentes en este grupo.";
-  const room = rooms.find((r) => r.id === request.room);
+  const room = inventory.find((r) => r.id === request.room);
   const originalType =
-    b.type ?? rooms.find((r) => r.id === b.occurrences[indices[0]].room)?.type;
+    b.type ??
+    inventory.find((r) => r.id === b.occurrences[indices[0]].room)?.type;
   if (!room || !originalType || !compatible(room, { ...b, type: originalType }))
     return "El aula no cumple la capacidad, el tipo o el equipamiento solicitado.";
   const proposed = indices.map((i) => ({
@@ -51,6 +53,7 @@ export function changeRoom(
   bookings: Booking[],
   role: Role,
   now = demoNow,
+  inventory: Room[] = rooms,
 ): { booking: Booking; error?: never } | { error: string; booking?: never } {
   if (role === "Docente")
     return { error: "Tu cuenta solo permite consultar reservas." };
@@ -67,7 +70,7 @@ export function changeRoom(
       error:
         "Cambió el conjunto de clases futuras. Volvé al detalle y revisá el alcance.",
     };
-  const error = roomChangeError(b, request, bookings, now);
+  const error = roomChangeError(b, request, bookings, now, inventory);
   if (error) return { error };
   const indices = groupIndices(b, request.group, now);
   return {

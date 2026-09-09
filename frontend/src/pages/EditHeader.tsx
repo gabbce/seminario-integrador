@@ -1,5 +1,6 @@
+import { useRooms } from "../room-context";
 import { useState } from "react";
-import { type Booking, rooms } from "../domain";
+import { type Booking } from "../domain";
 import { type Course } from "../catalog";
 import { type HeaderChange } from "../booking-header";
 import { CoursePicker } from "../components/CoursePicker";
@@ -19,6 +20,7 @@ export function EditHeader({
   save: (request: HeaderChange) => string | undefined;
   back: () => void;
 }) {
+  const rooms = useRooms();
   const [request, setRequest] = useState<HeaderChange>({
     version: booking.version ?? 0,
     course: booking.course,

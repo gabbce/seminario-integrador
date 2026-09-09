@@ -1,9 +1,10 @@
+import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
 import { weekDates, closedDay } from "../agenda";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { rooms, minutes, dateLabel, type Booking } from "../domain";
+import { minutes, dateLabel, type Booking } from "../domain";
 import { Button } from "../components/ui/button";
 
 export function Agenda({
@@ -13,6 +14,7 @@ export function Agenda({
   bookings: Booking[];
   operator: boolean;
 }) {
+  const rooms = useRooms();
   const [view, setView] = useState<"day" | "week">("day");
   const [date, setDate] = useState("2026-09-14");
   const [room, setRoom] = useState("");
@@ -129,6 +131,16 @@ export function Agenda({
           </select>
         </div>
       </div>
+      {shown.some((r) => r.state && r.state !== "Habilitada") && (
+        <p className="closed-notice">
+          Aulas no reservables actualmente:{" "}
+          {shown
+            .filter((r) => r.state && r.state !== "Habilitada")
+            .map((r) => `${r.id} (${r.state})`)
+            .join(", ")}
+          . Se conserva la consulta histórica.
+        </p>
+      )}
       {view === "week" ? (
         <WeekAgenda
           date={date}
@@ -174,7 +186,10 @@ export function Agenda({
                 ))}
               </div>
               {shown.map((r) => (
-                <div className="room-column" key={r.id}>
+                <div
+                  className={`room-column ${r.state && r.state !== "Habilitada" ? "unavailable-room" : ""}`}
+                  key={r.id}
+                >
                   {entries
                     .filter((x) => x.o.room === r.id)
                     .map(({ b, o }) => (

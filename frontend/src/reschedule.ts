@@ -1,4 +1,4 @@
-import { type Booking, type Role, overlaps, rooms } from "./domain";
+import { type Booking, type Role, type Room, overlaps, rooms } from "./domain";
 import { demoNow, terms } from "./calendar";
 import { isFuture } from "./cancellation";
 import { validateDates } from "./booking-dates";
@@ -13,6 +13,7 @@ export function reschedule(
   bookings: Booking[],
   role: Role,
   now = demoNow,
+  inventory: Room[] = rooms,
 ): { booking: Booking; error?: never } | { error: string; booking?: never } {
   if (role === "Docente")
     return { error: "Tu cuenta solo permite consultar reservas." };
@@ -85,7 +86,7 @@ export function reschedule(
     };
   if (
     proposed.some((o) => {
-      const room = rooms.find((r) => r.id === o.room);
+      const room = inventory.find((r) => r.id === o.room);
       return !room || !compatible(room, { ...b, type: b.type ?? room.type });
     })
   )

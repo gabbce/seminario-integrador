@@ -42,3 +42,28 @@ it("mantiene todos los resultados para impresión y agrupa por tipo", () => {
     ),
   ).toBe(true);
 });
+
+it("conserva el tipo registrado cuando cambia el inventario", () => {
+  const booking = {
+    ...initialBookings[3],
+    type: "Laboratorio",
+    occurrences: initialBookings[3].occurrences.map((o) => ({
+      ...o,
+      cancelled: true,
+    })),
+  };
+  const rows = listingRows(
+    [booking],
+    {
+      mode: "day",
+      date: "2026-09-14",
+      course: "",
+      room: "",
+      type: "Laboratorio",
+      status: "cancelled",
+    },
+    [{ id: "Lab 2", type: "General", capacity: 24 }],
+  );
+  expect(rows).toHaveLength(1);
+  expect(rows[0].type).toBe("Laboratorio");
+});

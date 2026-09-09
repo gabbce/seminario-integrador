@@ -18,6 +18,7 @@ export type Requirements = {
 };
 export function compatible(
   room: {
+    state?: string;
     type: string;
     capacity: number;
     resources?: Resource[];
@@ -26,6 +27,7 @@ export function compatible(
   requirements: Requirements,
 ) {
   return (
+    (!room.state || room.state === "Habilitada") &&
     room.type === requirements.type &&
     room.capacity >= requirements.students &&
     (!requirements.board || room.board === requirements.board) &&

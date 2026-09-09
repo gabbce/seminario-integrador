@@ -1320,3 +1320,32 @@ body {
     grid-template-columns: 1fr;
   }
 }
+.inventory-list article {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid #d8dcd5;
+}
+.inventory-list article p {
+  margin: 8px 0;
+}
+.inventory-list article > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.unavailable-room {
+  background: repeating-linear-gradient(
+    135deg,
+    #f1ebe0,
+    #f1ebe0 8px,
+    #e7e1d7 8px,
+    #e7e1d7 9px
+  );
+}
+@media (max-width: 800px) {
+  .inventory-layout > form {
+    grid-row: 1;
+  }
+}

@@ -1,4 +1,4 @@
-import { rooms, type Booking } from "./domain";
+import { rooms, type Booking, type Room } from "./domain";
 export type ListFilters = {
   mode: "day" | "course";
   date: string;
@@ -7,15 +7,19 @@ export type ListFilters = {
   type: string;
   status: "active" | "cancelled" | "all";
 };
-export function listingRows(bookings: Booking[], filters: ListFilters) {
+export function listingRows(
+  bookings: Booking[],
+  filters: ListFilters,
+  inventory: Room[] = rooms,
+) {
   return bookings
     .flatMap((booking) =>
       booking.occurrences.map((occurrence) => ({
         booking,
         occurrence,
         type:
-          rooms.find((r) => r.id === occurrence.room)?.type ??
           booking.type ??
+          inventory.find((r) => r.id === occurrence.room)?.type ??
           "Sin tipo",
       })),
     )

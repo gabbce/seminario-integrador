@@ -1,3 +1,4 @@
+import { useRooms } from "../room-context";
 import { EditHeader } from "./EditHeader";
 import { headerEditable, type HeaderChange } from "../booking-header";
 import type { Course } from "../catalog";
@@ -72,6 +73,7 @@ function BookingDetail({
   addCourse: (c: Course) => void;
   changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
+  const inventory = useRooms();
   const [editingHeader, setEditingHeader] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
   const [changingRoom, setChangingRoom] = useState(false);
@@ -104,7 +106,10 @@ function BookingDetail({
   if (rescheduling)
     return (
       <Reschedule
-        check={(request) => checkReschedule(b, request, bookings, role).error}
+        check={(request) =>
+          checkReschedule(b, request, bookings, role, undefined, inventory)
+            .error
+        }
         booking={b}
         back={() => setRescheduling(false)}
         save={(request) => {

@@ -1,10 +1,12 @@
+import { useRooms } from "../room-context";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Printer } from "lucide-react";
-import { type Booking, rooms, dateLabel } from "../domain";
+import { type Booking, dateLabel } from "../domain";
 import { listingRows, type ListFilters } from "../listing";
 import { Button } from "../components/ui/button";
 export function Listing({ bookings }: { bookings: Booking[] }) {
+  const rooms = useRooms();
   const go = useNavigate();
   const [filters, setFilters] = useState<ListFilters>({
     mode: "day",
@@ -16,7 +18,7 @@ export function Listing({ bookings }: { bookings: Booking[] }) {
   });
   const [size, setSize] = useState(20),
     [page, setPage] = useState(0);
-  const rows = listingRows(bookings, filters);
+  const rows = listingRows(bookings, filters, rooms);
   const pages = Math.max(1, Math.ceil(rows.length / size));
   const current = Math.min(page, pages - 1);
   function change(patch: Partial<ListFilters>) {

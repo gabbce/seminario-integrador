@@ -1,3 +1,4 @@
+import { FormError } from "../components/FormError";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { EditHeader } from "./EditHeader";
@@ -421,9 +422,7 @@ function BookingDetail({
                 una clase cancelada.
               </p>
               {error && (
-                <p role="alert" className="error">
-                  {error}
-                </p>
+                <FormError message={error} />
               )}
               <Button
                 type="submit"

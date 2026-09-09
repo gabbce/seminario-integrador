@@ -259,3 +259,11 @@ Estos pendientes siguen abiertos. Tras corregirlos corresponde ejecutar la suite
 Matemática en los escenarios incorpora proyector según el recorrido aprobado. Prueba de compatibilidad confirma rechazo de 204 y aceptación de 301; las pruebas de calendario y reprogramación de la serie siguen pasando. Cuentas permite 20/50/100, vuelve a página 1 al cambiar tamaño y conserva filtros. E2E crea 22 cuentas más las 3 iniciales, comprueba segunda página, tamaños mayores y filtro conservado. Capturas `frontend/evidence/cuentas-paginacion-desktop.png` y `cuentas-paginacion-mobile.png` inspeccionadas sin desbordamiento.
 
 62 unitarias, las E2E del corte, build y lint correctos. Corregida una advertencia del fixture de zoom utilizando el fixture Playwright explícito. De los tres pendientes de la revisión final resta recuperación de errores personalizados con foco y asociación a campos; después corresponde verificación completa y matriz de cierre.
+
+## Recuperación de validaciones
+
+Resumen de error enfocable compartido por ingreso, reserva, administración, calendario y operaciones. Al fallar una validación recibe foco visible y, cuando está dentro de un formulario, permite volver a sus controles. Los errores específicos de correo duplicado, confirmación de contraseña, identificador duplicado y cantidad de alumnos vinculan el resumen al campo; muestran mensaje adyacente con descripción accesible y estado inválido. Los conflictos del conjunto conservan su explicación contextual. La validación HTML nativa sigue atendiendo obligatoriedad, formato y límites simples.
+
+E2E recorre ingreso fallido, contraseñas distintas y aula duplicada, vuelve desde el resumen al campo usando Tab/Enter, corrige y guarda conservando los datos. Capturas `frontend/evidence/error-campo-desktop.png` y `error-campo-mobile.png` inspeccionadas. Axe móvil sin infracciones automáticas. Se corrigieron etiquetas accesibles para que el texto del error no cambie el nombre del control.
+
+Build/lint, 62 unitarias y 42 E2E comprobadas: 41 pasaron en la ejecución conjunta y la de inventario pasó al repetirla tras corregir un selector ambiguo entre aviso y contador de paginación. Backend en ejecución responde `UP` en `/api/health`. Antes del cierre definitivo resta revisar este corte y consolidar la matriz final contra los criterios del plan.

@@ -1,3 +1,4 @@
+import { FormError, FieldError } from "../components/FormError";
 import { DemoQueryContext, useDemoQuery } from "../demo-query";
 import { useCalendar, useCalendars } from "../calendar-context";
 import { useRooms } from "../room-context";
@@ -476,11 +477,25 @@ export function Wizard({
                   <label>
                     Cantidad de alumnos prevista
                     <input
+                      id="booking-students"
+                      aria-label="Cantidad de alumnos prevista"
+                      aria-invalid={
+                        error.includes("Indicá alumnos") || undefined
+                      }
+                      aria-describedby={
+                        error.includes("Indicá alumnos")
+                          ? "booking-students-error"
+                          : undefined
+                      }
                       type="number"
                       min="1"
                       required
                       value={students}
                       onChange={(e) => setStudents(Number(e.target.value))}
+                    />
+                    <FieldError
+                      id="booking-students-error"
+                      message={error.includes("Indicá alumnos") ? error : ""}
                     />
                   </label>
                   <label>
@@ -770,9 +785,14 @@ export function Wizard({
               </>
             )}
             {error && (
-              <p className="error" role="alert">
-                {error}
-              </p>
+              <FormError
+                message={error}
+                fields={[
+                  ...(error.includes("Indicá alumnos")
+                    ? [{ id: "booking-students", label: "cantidad de alumnos" }]
+                    : []),
+                ]}
+              />
             )}
             <div className="form-actions">
               {step > 1 && (

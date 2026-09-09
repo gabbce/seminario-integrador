@@ -1,3 +1,4 @@
+import { FormError } from "../components/FormError";
 import { useState } from "react";
 import { createCourse, type Course } from "../catalog";
 import { Button } from "./ui/button";
@@ -84,9 +85,7 @@ export function CoursePicker({
           </label>
           <p>Año lectivo: {year}</p>
           {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
+            <FormError message={error} />
           )}
           <Button type="button" onClick={create}>
             Guardar curso y seleccionar

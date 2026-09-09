@@ -353,7 +353,7 @@ test('inventario protege reservas e integra nuevas aulas a disponibilidad', asyn
   await page.screenshot({ path: 'evidence/aulas-mobile.png', fullPage: true, animations: 'disabled' })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Guardar aula' }).click()
-  await expect(page.getByRole('status')).toContainText('Aula guardada')
+  await expect(page.getByRole('status').filter({hasText:'Aula guardada'})).toBeVisible()
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.getByRole('link', { name: 'Agenda', exact: true }).click()
   await page.getByRole('button', { name: 'Nueva reserva' }).click()

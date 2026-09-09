@@ -1,3 +1,4 @@
+import { FormError } from "../components/FormError";
 import { useState } from "react";
 import { type Booking, dateLabel, minutes } from "../domain";
 import { isFuture } from "../cancellation";
@@ -209,9 +210,7 @@ export function Reschedule({
           )}
         </section>
         {error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
+          <FormError message={error} />
         )}
         <div className="change-room-actions">
           <Button

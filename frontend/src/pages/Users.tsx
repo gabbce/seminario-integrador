@@ -1,3 +1,4 @@
+import { FormError, FieldError } from "../components/FormError";
 import { AdminNav } from "../components/AdminNav";
 import { useState } from "react";
 import type { User } from "../users";
@@ -254,12 +255,26 @@ export function Users({
                 <label>
                   Correo de acceso
                   <input
+                    id="account-email"
+                    aria-label="Correo de acceso"
+                    aria-invalid={
+                      error.includes("correo ya pertenece") || undefined
+                    }
+                    aria-describedby={
+                      error.includes("correo ya pertenece")
+                        ? "account-email-error"
+                        : undefined
+                    }
                     required
                     type="email"
                     value={selected.email}
                     onChange={(e) =>
                       setSelected({ ...selected, email: e.target.value })
                     }
+                  />
+                  <FieldError
+                    id="account-email-error"
+                    message={error.includes("correo ya pertenece") ? error : ""}
                   />
                 </label>
                 <label>
@@ -336,19 +351,48 @@ export function Users({
                 <label>
                   Confirmar contraseña
                   <input
+                    id="account-confirmation"
+                    aria-label="Confirmar contraseña"
+                    aria-invalid={
+                      error.includes("contraseñas no coinciden") || undefined
+                    }
+                    aria-describedby={
+                      error.includes("contraseñas no coinciden")
+                        ? "account-confirmation-error"
+                        : undefined
+                    }
                     type="password"
                     autoComplete="new-password"
                     required
                     value={confirmation}
                     onChange={(e) => setConfirmation(e.target.value)}
                   />
+                  <FieldError
+                    id="account-confirmation-error"
+                    message={
+                      error.includes("contraseñas no coinciden") ? error : ""
+                    }
+                  />
                 </label>
               </>
             )}
             {error && (
-              <p role="alert" className="error">
-                {error}
-              </p>
+              <FormError
+                message={error}
+                fields={[
+                  ...(error.includes("correo ya pertenece")
+                    ? [{ id: "account-email", label: "correo" }]
+                    : []),
+                  ...(error.includes("contraseñas no coinciden")
+                    ? [
+                        {
+                          id: "account-confirmation",
+                          label: "confirmación de contraseña",
+                        },
+                      ]
+                    : []),
+                ]}
+              />
             )}
             <div className="change-room-actions">
               <Button

@@ -1,3 +1,4 @@
+import { FormError } from "../components/FormError";
 import { useRooms } from "../room-context";
 import { useState } from "react";
 import { type Booking, dateLabel, dayNames } from "../domain";
@@ -143,9 +144,7 @@ export function ChangeRoom({
         </div>
       </section>
       {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
+        <FormError message={error} />
       )}
       <div className="change-room-actions">
         <Button variant="outline" onClick={back}>

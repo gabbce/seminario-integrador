@@ -1,3 +1,4 @@
+import { FormError, FieldError } from "../components/FormError";
 import { useState } from "react";
 import { type Room, type Role } from "../domain";
 import { useRooms } from "../room-context";
@@ -310,10 +311,29 @@ export function Rooms({
                 <label>
                   Identificador
                   <input
+                    id="room-id"
+                    aria-label="Identificador"
+                    aria-invalid={
+                      error.includes("identificador debe ser único") ||
+                      undefined
+                    }
+                    aria-describedby={
+                      error.includes("identificador debe ser único")
+                        ? "room-id-error"
+                        : undefined
+                    }
                     required
                     readOnly={!!originalId}
                     value={selected.id}
                     onChange={(e) => patch({ id: e.target.value })}
+                  />
+                  <FieldError
+                    id="room-id-error"
+                    message={
+                      error.includes("identificador debe ser único")
+                        ? error
+                        : ""
+                    }
                   />
                 </label>
                 <label>
@@ -432,9 +452,14 @@ export function Rooms({
               </fieldset>
             </fieldset>
             {error && (
-              <p className="error" role="alert">
-                {error}
-              </p>
+              <FormError
+                message={error}
+                fields={[
+                  ...(error.includes("identificador debe ser único")
+                    ? [{ id: "room-id", label: "identificador" }]
+                    : []),
+                ]}
+              />
             )}
             {selected.history && (
               <details>

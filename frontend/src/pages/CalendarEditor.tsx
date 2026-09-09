@@ -1,3 +1,4 @@
+import { FormError } from "../components/FormError";
 import { useState } from "react";
 import { type CalendarConfig } from "../calendar";
 import { type CalendarImpact } from "../calendar-management";
@@ -299,9 +300,7 @@ export function CalendarEditor({
             </section>
           </div>
           {error && (
-            <p role="alert" className="error">
-              {error}
-            </p>
+            <FormError message={error} />
           )}
           {review && (
             <section className="panel calendar-impact">

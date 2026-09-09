@@ -1,3 +1,4 @@
+import { FormError } from "../components/FormError";
 import { useNavigate } from "react-router-dom";
 import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
@@ -55,9 +56,7 @@ export function Login({
           </div>
         </label>
         {error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
+          <FormError message={error} />
         )}
         <Button type="submit">
           Ingresar <ArrowRight />

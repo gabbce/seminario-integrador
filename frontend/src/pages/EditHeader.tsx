@@ -1,3 +1,4 @@
+import { FormError, FieldError } from "../components/FormError";
 import { useRooms } from "../room-context";
 import { useState } from "react";
 import { type Booking } from "../domain";
@@ -87,12 +88,28 @@ export function EditHeader({
               <label>
                 Alumnos previstos
                 <input
+                  id="header-students"
+                  aria-label="Alumnos previstos"
+                  aria-invalid={
+                    error.includes("cantidad entera positiva") || undefined
+                  }
+                  aria-describedby={
+                    error.includes("cantidad entera positiva")
+                      ? "header-students-error"
+                      : undefined
+                  }
                   type="number"
                   min="1"
                   step="1"
                   required
                   value={request.students}
                   onChange={(e) => patch({ students: Number(e.target.value) })}
+                />
+                <FieldError
+                  id="header-students-error"
+                  message={
+                    error.includes("cantidad entera positiva") ? error : ""
+                  }
                 />
               </label>
             </div>
@@ -169,9 +186,14 @@ export function EditHeader({
               preservar el historial.
             </p>
             {error && (
-              <p className="error" role="alert">
-                {error}
-              </p>
+              <FormError
+                message={error}
+                fields={[
+                  ...(error.includes("cantidad entera positiva")
+                    ? [{ id: "header-students", label: "alumnos previstos" }]
+                    : []),
+                ]}
+              />
             )}
           </aside>
         </div>

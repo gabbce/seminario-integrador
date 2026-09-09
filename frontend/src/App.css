@@ -1464,3 +1464,8 @@ body {
 .consulted-summary { margin-bottom: 24px; }
 .consulted-summary a { text-decoration: underline; text-underline-offset: 3px; }
 .booking-occurrences .consulted-occurrence small { display: block; margin-bottom: 4px; }
+.form-error:focus { outline: 3px solid #ad563b; outline-offset: 3px; }
+.form-error p { margin: 0 0 8px; }
+.error-field-link { background: transparent; border: 0; color: inherit; padding: 4px 0; margin-right: 16px; text-decoration: underline; text-underline-offset: 3px; }
+.field-error { display: block; color: #b42318; font-size: 14px; line-height: 1.5; margin-top: 6px; font-weight: normal; }
+[aria-invalid="true"] { border-color: #b42318; }

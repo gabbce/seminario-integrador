@@ -1,3 +1,6 @@
+import { reschedule as checkReschedule } from "../reschedule";
+import { Reschedule } from "./Reschedule";
+import type { Reschedule as RescheduleRequest } from "../reschedule";
 import { ChangeRoom } from "./ChangeRoom";
 import type { RoomChange } from "../room-change";
 import { useState } from "react";
@@ -13,11 +16,13 @@ export function Detail({
   role,
   cancel,
   changeRoom,
+  reschedule,
 }: {
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
   changeRoom: (id: string, request: RoomChange) => string | undefined;
+  reschedule: (id: string, request: RescheduleRequest) => string | undefined;
 }) {
   const { id } = useParams();
   const b = bookings.find((b) => b.id === id);
@@ -28,6 +33,7 @@ export function Detail({
       booking={b}
       role={role}
       cancel={cancel}
+      reschedule={reschedule}
       changeRoom={changeRoom}
       bookings={bookings}
     />
@@ -39,13 +45,16 @@ function BookingDetail({
   role,
   cancel,
   changeRoom,
+  reschedule,
 }: {
   booking: Booking;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
   changeRoom: (id: string, request: RoomChange) => string | undefined;
+  reschedule: (id: string, request: RescheduleRequest) => string | undefined;
 }) {
+  const [rescheduling, setRescheduling] = useState(false);
   const [changingRoom, setChangingRoom] = useState(false);
   const go = useNavigate();
   const [editing, setEditing] = useState(false);
@@ -58,6 +67,22 @@ function BookingDetail({
     !o.cancelled && isFuture(o) ? [i] : [],
   );
   const operator = role !== "Docente";
+  if (rescheduling)
+    return (
+      <Reschedule
+        check={(request) => checkReschedule(b, request, bookings, role).error}
+        booking={b}
+        back={() => setRescheduling(false)}
+        save={(request) => {
+          const error = reschedule(b.id, request);
+          if (error) return error;
+          setRescheduling(false);
+          setMessage(
+            "Reprogramación guardada. Se actualizaron las fechas y los horarios.",
+          );
+        }}
+      />
+    );
   if (changingRoom)
     return (
       <ChangeRoom
@@ -94,6 +119,11 @@ function BookingDetail({
             {b.course} · {b.teacher} · {b.students} alumnos previstos
           </p>
         </div>
+        {!editing && operator && future.length > 0 && (
+          <Button variant="outline" onClick={() => setRescheduling(true)}>
+            Reprogramar clases
+          </Button>
+        )}
         {!editing && operator && future.length > 0 && (
           <Button variant="outline" onClick={() => setChangingRoom(true)}>
             Cambiar aula

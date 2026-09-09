@@ -17,6 +17,7 @@ export type Room = {
   board?: string;
 };
 export type Occurrence = {
+  originalDate?: string;
   date: string;
   start: string;
   end: string;

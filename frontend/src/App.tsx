@@ -1,3 +1,4 @@
+import { reschedule } from "./reschedule";
 import { changeRoom } from "./room-change";
 import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
@@ -128,6 +129,21 @@ function App() {
                   <Detail
                     bookings={bookings}
                     role={role}
+                    reschedule={(id, request) => {
+                      const current = bookings.find((b) => b.id === id);
+                      if (!current) return "Reserva no encontrada.";
+                      const result = reschedule(
+                        current,
+                        request,
+                        bookings,
+                        role,
+                      );
+                      if (result.error) return result.error;
+                      if (result.booking)
+                        setBookings((old) =>
+                          old.map((b) => (b.id === id ? result.booking : b)),
+                        );
+                    }}
                     changeRoom={(id, request) => {
                       const current = bookings.find((b) => b.id === id);
                       if (!current) return "Reserva no encontrada.";

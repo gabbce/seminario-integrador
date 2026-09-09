@@ -13,7 +13,7 @@ export function groupIndices(b: Booking, group: number, now = demoNow) {
     !o.cancelled &&
     isFuture(o, now) &&
     (b.patterns
-      ? new Date(`${o.date}T12:00:00Z`).getUTCDay() === group
+      ? new Date(`${o.originalDate ?? o.date}T12:00:00Z`).getUTCDay() === group
       : i === group)
       ? [i]
       : [],

@@ -1271,3 +1271,24 @@ body {
   margin-top: 24px;
   flex-wrap: wrap;
 }
+.reschedule-row {
+  padding: 20px 0;
+  border-bottom: 1px solid #d8dcd5;
+  margin-top: 20px;
+}
+.reschedule-row legend {
+  font-weight: bold;
+  padding-top: 20px;
+}
+.reschedule-select {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.reschedule-select input {
+  width: 20px;
+  height: 20px;
+  accent-color: #194d3a;
+}

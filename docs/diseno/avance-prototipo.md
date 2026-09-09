@@ -16,7 +16,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Agenda semanal P-03 | Implementado, validado | Semana con filtros, días cerrados diferenciados y acceso diario móvil. 20 pruebas unitarias y 14 E2E. |
 | Cancelación P-03 | Implementado, validado | Selección futura, motivo, historial, liberación de aulas y cese de continuidad. 23 pruebas unitarias y 15 E2E. |
 | Cambio de aula P-03 | Implementado, validado | Futuras del patrón o fecha esporádica; comparación y disponibilidad conjunta. 27 pruebas unitarias, 16 E2E. |
-| Datos compartidos y reprogramación P-03 | Siguiente | Edición de cabecera y fecha/horario con protección temporal y control de versión. |
+| Reprogramación P-03 | Implementado, validado | Una o varias fechas con aula conservada, revisión previa y guardado conjunto. 30 pruebas unitarias, 17 E2E. |
+| Datos compartidos P-03 | Siguiente | Edición de cabecera antes de iniciarse la reserva. |
 | Administración P-04 | Pendiente | Aulas, cuentas, calendario e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
@@ -100,3 +101,9 @@ Revisiones independientes de especificación y estándares sin hallazgos. Build,
 Referencia `mockups/operacion-diaria-b/03-modificar.png`; capturas `frontend/evidence/cambio-aula-desktop.png` y `cambio-aula-mobile.png`. Conserva grupos semanales, comparación actual/nueva aula, candidatas válidas para todas las fechas, desplegable de fechas y acciones de guardar/descartar. Móvil apila comparación y opciones sin desbordar. Cabecera compacta conforme al resto del prototipo; no se inventan edificios/pisos ausentes en los datos actuales.
 
 Cambio conjunto del patrón y sus futuras vigentes; conserva otras clases, pasado y canceladas. Esporádicas operan por fecha. Al guardar se revalidan versión, permiso, alcance temporal, requisitos y ocupación. Queda historial del cambio visible a operadores. E2E cambia 12 lunes a 301, conserva 14 miércoles en 105 y cancela luego sin duplicar historial. Se corrigió una duplicación del historial detectada por ambas revisiones independientes. Reprogramaciones y edición de datos compartidos siguen pendientes; todavía no se declara cerrado P-03.
+
+## Revisión visual de reprogramación
+
+Referencia `mockups/listados-b/04-reprogramar.png`, capturas `frontend/evidence/reprogramacion-desktop.png` y `reprogramacion-mobile.png`. Comparación Antes/Después, aula conservada, disponibilidad comprobada antes de revisión y nuevamente al guardar. La selección permite varias clases y separa preparación/revisión para mostrar el alcance completo; la pantalla del mockup ilustra una sola. Paneles apilados en móvil sin desbordar.
+
+Preserva fecha original en periódicas, incluso después de varias reprogramaciones, y usa esa procedencia para el cambio de aula del grupo original. Fechas dentro del período asignado, horarios de apertura, feriados, protección temporal y conflictos se verifican para todo el conjunto. La auditoría conserva fechas y horarios anteriores/nuevos. E2E mueve lunes al martes y cambia después el aula de los 12 lunes originales. Pruebas unitarias cubren repetición, restricciones, versión, rol y rechazo completo por conflicto. Datos compartidos, administración, indicadores y validación global siguen pendientes.

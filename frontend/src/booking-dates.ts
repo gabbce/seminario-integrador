@@ -1,6 +1,9 @@
 import { demoNow, holidays } from "./calendar";
 import { minutes, type Occurrence } from "./domain";
-export function validateDates(dates: Occurrence[]): string | null {
+export function validateDates(
+  dates: Occurrence[],
+  now = demoNow,
+): string | null {
   if (!dates.length) return "Agregá al menos una fecha.";
   if (new Set(dates.map((o) => o.date)).size !== dates.length)
     return "Cada fecha debe aparecer una sola vez.";
@@ -15,7 +18,7 @@ export function validateDates(dates: Occurrence[]): string | null {
     if ([0, 6].includes(d.getUTCDay()))
       return "Solo se puede reservar de lunes a viernes.";
     if (holidays.includes(o.date)) return `${o.date} es una fecha no lectiva.`;
-    if (`${o.date}T${o.start}` <= demoNow)
+    if (`${o.date}T${o.start}` <= now)
       return "El inicio debe ser posterior al momento actual de la institución.";
     if (
       !/^\d{2}:(00|30)$/.test(o.start) ||

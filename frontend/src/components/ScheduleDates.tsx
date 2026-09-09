@@ -10,7 +10,7 @@ export function ScheduleDates({
   schedule: Schedule;
   change: (schedule: Schedule) => void;
 }) {
-  const calendar = useCalendar();
+  const calendar = useCalendar(schedule.year);
   const eligible = expand(patterns, { ...schedule, excluded: [] }, calendar);
   const omitted = omittedDates(patterns, schedule, calendar);
   return (

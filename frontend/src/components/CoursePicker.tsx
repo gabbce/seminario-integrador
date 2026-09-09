@@ -3,11 +3,13 @@ import { createCourse, type Course } from "../catalog";
 import { Button } from "./ui/button";
 export function CoursePicker({
   courses,
+  year = 2026,
   selected,
   choose,
   add,
 }: {
   courses: Course[];
+  year?: number;
   selected: string;
   choose: (course: Course) => void;
   add: (course: Course) => void;
@@ -18,7 +20,7 @@ export function CoursePicker({
     [error, setError] = useState("");
   function create() {
     try {
-      const course = createCourse(courses, subject, commission, 2026);
+      const course = createCourse(courses, subject, commission, year);
       add(course);
       choose(course);
       setEditing(false);
@@ -39,11 +41,13 @@ export function CoursePicker({
             if (course) choose(course);
           }}
         >
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.subject} · {c.id}
-            </option>
-          ))}
+          {courses
+            .filter((c) => c.year === year)
+            .map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.subject} · {c.id}
+              </option>
+            ))}
         </select>
       </label>
       <Button
@@ -78,7 +82,7 @@ export function CoursePicker({
               onChange={(e) => setCommission(e.target.value)}
             />
           </label>
-          <p>Año lectivo: 2026</p>
+          <p>Año lectivo: {year}</p>
           {error && (
             <p className="error" role="alert">
               {error}

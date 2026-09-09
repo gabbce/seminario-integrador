@@ -12,7 +12,8 @@ export function closedDay(
   date: string,
   calendar: CalendarConfig = initialCalendar,
 ): string | null {
-  if (!date.startsWith("2026-")) return "Año no habilitado para reservas";
+  if (!date.startsWith(`${calendar.year}-`) || calendar.state !== "Habilitado")
+    return "Año no habilitado para reservas";
   if ([0, 6].includes(new Date(`${date}T12:00:00Z`).getUTCDay()))
     return "Fuera de los días de apertura";
   if (calendar.holidays.includes(date)) return "Fecha no lectiva";

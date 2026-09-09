@@ -24,24 +24,67 @@ export function changeCalendar(
   | { error: string; impact?: never } {
   if (role !== "Administrador")
     return { error: "Solo Administración puede modificar el calendario." };
+  if (
+    before.year !== proposal.year ||
+    !Number.isInteger(proposal.year) ||
+    proposal.year < 1900 ||
+    proposal.year > 9999
+  )
+    return { error: "El año debe ser válido y no se modifica." };
+  if (before.state === "Cerrado")
+    return { error: "El año cerrado es de solo consulta." };
+  if (!["En preparación", "Habilitado", "Cerrado"].includes(proposal.state))
+    return { error: "Estado de año inválido." };
+  const related = bookings.filter((b) =>
+    b.occurrences.some((o) => o.date.startsWith(`${before.year}-`)),
+  );
+  if (
+    proposal.state !== "Habilitado" &&
+    related.some((b) =>
+      b.occurrences.some((o) => !o.cancelled && `${o.date}T${o.end}` > now),
+    )
+  )
+    return {
+      error:
+        "No se puede cerrar o volver a preparación con clases futuras o en curso.",
+    };
+  for (const period of ["first", "second"] as const) {
+    if (
+      before.terms[period].some(Boolean) &&
+      proposal.terms[period].every((d) => !d) &&
+      related.some(
+        (b) =>
+          b.patterns &&
+          (b.schedule?.period === period || b.schedule?.period === "annual"),
+      )
+    )
+      return {
+        error:
+          "No se puede eliminar un cuatrimestre con reservas asociadas, incluso históricas o canceladas.",
+      };
+  }
   if (before.version !== proposal.version)
     return {
       error:
         "El calendario cambió. Volvé a abrirlo para revisar la versión actual.",
     };
   const valid = (date: string) =>
-    /^2026-\d{2}-\d{2}$/.test(date) &&
+    new RegExp(`^${proposal.year}-\\d{2}-\\d{2}$`).test(date) &&
     !Number.isNaN(new Date(`${date}T12:00:00Z`).getTime()) &&
     new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10) === date;
   if (
-    Object.values(proposal.terms).some(
-      ([from, to]) => !valid(from) || !valid(to) || from > to,
+    Object.values(proposal.terms).some(([from, to]) =>
+      proposal.state !== "Habilitado" && !from && !to
+        ? false
+        : !valid(from) || !valid(to) || from > to,
     ) ||
-    proposal.terms.first[1] >= proposal.terms.second[0]
+    (!!proposal.terms.first[1] &&
+      !!proposal.terms.second[0] &&
+      proposal.terms.first[1] >= proposal.terms.second[0])
   )
     return {
       error:
-        "Completá ambos cuatrimestres con fechas válidas de 2026, sin superposición.",
+        "Completá ambos cuatrimestres con fechas válidas del año, sin superposición.",
     };
   if (
     new Set(proposal.holidays).size !== proposal.holidays.length ||
@@ -61,7 +104,7 @@ export function changeCalendar(
     return {
       error: "No se pueden agregar ni quitar fechas no lectivas pasadas.",
     };
-  for (const b of bookings) {
+  for (const b of related) {
     for (const o of b.occurrences) {
       if (
         !o.cancelled &&
@@ -86,6 +129,8 @@ export function changeCalendar(
   const added: CalendarImpact["added"] = [];
   const next: Booking[] = bookings.map((b) => {
     if (
+      !related.includes(b) ||
+      proposal.state !== "Habilitado" ||
       !b.patterns ||
       !b.schedule ||
       b.continuityCancelledAt ||

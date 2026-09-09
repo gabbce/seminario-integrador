@@ -145,7 +145,7 @@ export function validateBooking(
 ): string | null {
   if (
     !booking.subject.trim() ||
-    !/^\d{3,}-.+-2026$/.test(booking.course) ||
+    !new RegExp(`^\\d{3,}-.+-${calendar.year}$`).test(booking.course) ||
     !booking.teacher
   )
     return "Completá la materia, el curso y el docente.";

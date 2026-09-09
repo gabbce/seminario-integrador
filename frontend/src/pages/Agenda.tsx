@@ -15,10 +15,10 @@ export function Agenda({
   bookings: Booking[];
   operator: boolean;
 }) {
-  const calendar = useCalendar();
   const rooms = useRooms();
   const [view, setView] = useState<"day" | "week">("day");
   const [date, setDate] = useState("2026-09-14");
+  const calendar = useCalendar(Number(date.slice(0, 4)));
   const [room, setRoom] = useState("");
   const [type, setType] = useState("");
   const go = useNavigate();

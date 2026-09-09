@@ -1,6 +1,6 @@
 import type { Pattern } from "./domain";
 export type Period = "first" | "second" | "annual";
-export type Schedule = { period: Period; excluded: string[] };
+export type Schedule = { year?: number; period: Period; excluded: string[] };
 export const demoNow = "2026-09-08T10:00";
 export const holidays = ["2026-10-12", "2026-11-23"];
 export const defaultSchedule: Schedule = { period: "second", excluded: [] };
@@ -9,6 +9,8 @@ export const terms = {
   second: ["2026-09-14", "2026-12-18"],
 } as const;
 export type CalendarConfig = {
+  year: number;
+  state: "En preparación" | "Habilitado" | "Cerrado";
   version: number;
   terms: {
     first: readonly [string, string];
@@ -18,6 +20,8 @@ export type CalendarConfig = {
   descriptions: Record<string, string>;
 };
 export const initialCalendar: CalendarConfig = {
+  year: 2026,
+  state: "Habilitado",
   version: 0,
   terms,
   holidays,
@@ -75,4 +79,15 @@ export function omittedDates(
       }),
     )
     .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function emptyCalendar(year: number): CalendarConfig {
+  return {
+    year,
+    state: "En preparación",
+    version: 0,
+    terms: { first: ["", ""], second: ["", ""] },
+    holidays: [],
+    descriptions: {},
+  };
 }

@@ -1,4 +1,5 @@
-import { useCalendar } from "../calendar-context";
+import { emptyCalendar } from "../calendar";
+import { useCalendars } from "../calendar-context";
 import { useNavigate } from "react-router-dom";
 import { type Booking, type Room, dateLabel } from "../domain";
 import { weekDates, closedDay } from "../agenda";
@@ -14,7 +15,7 @@ export function WeekAgenda({
   bookings: Booking[];
   openDay: (date: string) => void;
 }) {
-  const calendar = useCalendar();
+  const calendars = useCalendars();
   const go = useNavigate();
   return (
     <>
@@ -29,6 +30,9 @@ export function WeekAgenda({
         aria-label="Agenda semanal"
       >
         {weekDates(date).map((day) => {
+          const year = Number(day.slice(0, 4));
+          const calendar =
+            calendars.find((c) => c.year === year) ?? emptyCalendar(year);
           const entries = bookings
             .flatMap((b) =>
               b.occurrences

@@ -114,8 +114,8 @@ export function Reschedule({
                         <input
                           type="date"
                           required
-                          min="2026-01-01"
-                          max="2026-12-31"
+                          min={`${snapshot.occurrences[0].date.slice(0, 4)}-01-01`}
+                          max={`${snapshot.occurrences[0].date.slice(0, 4)}-12-31`}
                           value={selected.date}
                           onChange={(e) =>
                             update(index, { date: e.target.value })

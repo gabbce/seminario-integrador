@@ -1382,3 +1382,17 @@ body {
     flex-direction: column;
   }
 }
+.year-selection {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.year-selection > label {
+  flex: 1;
+  min-width: 180px;
+}
+.year-selection > .cancellation-warning {
+  width: 100%;
+}

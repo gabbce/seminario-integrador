@@ -74,7 +74,9 @@ function BookingDetail({
   addCourse: (c: Course) => void;
   changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
-  const calendar = useCalendar();
+  const calendar = useCalendar(
+    b.schedule?.year ?? Number(b.occurrences[0]?.date.slice(0, 4)),
+  );
   const inventory = useRooms();
   const [editingHeader, setEditingHeader] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
@@ -167,36 +169,48 @@ function BookingDetail({
             {b.course} · {b.teacher} · {b.students} alumnos previstos
           </p>
         </div>
-        {!editing && operator && headerEditable(b) && (
-          <Button variant="outline" onClick={() => setEditingHeader(true)}>
-            Modificar datos
-          </Button>
-        )}
-        {!editing && operator && future.length > 0 && (
-          <Button variant="outline" onClick={() => setRescheduling(true)}>
-            Reprogramar clases
-          </Button>
-        )}
-        {!editing && operator && future.length > 0 && (
-          <Button variant="outline" onClick={() => setChangingRoom(true)}>
-            Cambiar aula
-          </Button>
-        )}
-        {!editing && operator && future.length > 0 && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              setEditing(true);
-              setVersion(b.version ?? 0);
-              setIndices([]);
-              setReason("");
-              setError("");
-              setMessage("");
-            }}
-          >
-            Cancelar clases
-          </Button>
-        )}
+        {!editing &&
+          operator &&
+          calendar.state === "Habilitado" &&
+          headerEditable(b) && (
+            <Button variant="outline" onClick={() => setEditingHeader(true)}>
+              Modificar datos
+            </Button>
+          )}
+        {!editing &&
+          operator &&
+          calendar.state === "Habilitado" &&
+          future.length > 0 && (
+            <Button variant="outline" onClick={() => setRescheduling(true)}>
+              Reprogramar clases
+            </Button>
+          )}
+        {!editing &&
+          operator &&
+          calendar.state === "Habilitado" &&
+          future.length > 0 && (
+            <Button variant="outline" onClick={() => setChangingRoom(true)}>
+              Cambiar aula
+            </Button>
+          )}
+        {!editing &&
+          operator &&
+          calendar.state === "Habilitado" &&
+          future.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditing(true);
+                setVersion(b.version ?? 0);
+                setIndices([]);
+                setReason("");
+                setError("");
+                setMessage("");
+              }}
+            >
+              Cancelar clases
+            </Button>
+          )}
       </div>
       {message && (
         <p className="notice" role="status">

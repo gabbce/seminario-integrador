@@ -63,6 +63,7 @@ export function EditHeader({
           <section className="panel">
             <h2>Curso y docente</h2>
             <CoursePicker
+              year={Number(booking.occurrences[0]?.date.slice(0, 4))}
               courses={courses}
               selected={request.course}
               choose={(c) => patch({ course: c.id })}

@@ -2,9 +2,11 @@ import { Button } from "./ui/button";
 import { minutes, type Occurrence } from "../domain";
 export function SporadicDates({
   dates,
+  year = 2026,
   change,
 }: {
   dates: Occurrence[];
+  year?: number;
   change: (dates: Occurrence[]) => void;
 }) {
   function update(index: number, patch: Partial<Occurrence>) {
@@ -27,8 +29,8 @@ export function SporadicDates({
               Fecha
               <input
                 type="date"
-                min="2026-01-01"
-                max="2026-12-31"
+                min={`${year}-01-01`}
+                max={`${year}-12-31`}
                 required
                 value={o.date}
                 onChange={(e) => update(index, { date: e.target.value })}

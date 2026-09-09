@@ -5,17 +5,19 @@ export function validateDates(
   now = demoNow,
   calendar: CalendarConfig = initialCalendar,
 ): string | null {
+  if (calendar.state !== "Habilitado")
+    return "El año no está habilitado para reservas.";
   if (!dates.length) return "Agregá al menos una fecha.";
   if (new Set(dates.map((o) => o.date)).size !== dates.length)
     return "Cada fecha debe aparecer una sola vez.";
   for (const o of dates) {
     const d = new Date(`${o.date}T12:00:00Z`);
     if (
-      !/^2026-\d{2}-\d{2}$/.test(o.date) ||
+      !new RegExp(`^${calendar.year}-\\d{2}-\\d{2}$`).test(o.date) ||
       Number.isNaN(d.getTime()) ||
       d.toISOString().slice(0, 10) !== o.date
     )
-      return "Elegí fechas válidas del año habilitado 2026.";
+      return "Elegí fechas válidas del año habilitado seleccionado.";
     if ([0, 6].includes(d.getUTCDay()))
       return "Solo se puede reservar de lunes a viernes.";
     if (calendar.holidays.includes(o.date))

@@ -1,3 +1,9 @@
+import {
+  addYear,
+  deleteYear,
+  bookingYear,
+  yearMutationError,
+} from "./academic-years";
 import { CalendarContext } from "./calendar-context";
 import { initialCalendar } from "./calendar";
 import { changeCalendar } from "./calendar-management";
@@ -70,7 +76,12 @@ function attributeChange(
   };
 }
 function App() {
-  const [calendar, setCalendar] = useState(initialCalendar);
+  const [calendars, setCalendars] = useState([initialCalendar]);
+  const [selectedYear, setSelectedYear] = useState(2026);
+  const calendar =
+    calendars.find((c) => c.year === selectedYear) ??
+    calendars[0] ??
+    initialCalendar;
   const [inventory, setInventory] = useState(rooms);
   const [users, setUsers] = useState(initialUsers);
   const [userId, setUserId] = useState<string>();
@@ -81,7 +92,7 @@ function App() {
   const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
   return (
-    <CalendarContext value={calendar}>
+    <CalendarContext value={calendars}>
       <RoomContext value={inventory}>
         <BrowserRouter>
           {!role ? (
@@ -207,6 +218,11 @@ function App() {
                         changeHeader={(id, request) => {
                           const current = bookings.find((b) => b.id === id);
                           if (!current) return "Reserva no encontrada.";
+                          const yearError = yearMutationError(
+                            current,
+                            calendars,
+                          );
+                          if (yearError) return yearError;
                           const result = changeHeader(
                             current,
                             request,
@@ -232,6 +248,11 @@ function App() {
                         reschedule={(id, request) => {
                           const current = bookings.find((b) => b.id === id);
                           if (!current) return "Reserva no encontrada.";
+                          const yearError = yearMutationError(
+                            current,
+                            calendars,
+                          );
+                          if (yearError) return yearError;
                           const result = reschedule(
                             current,
                             request,
@@ -239,7 +260,9 @@ function App() {
                             role,
                             undefined,
                             inventory,
-                            calendar,
+                            calendars.find(
+                              (c) => c.year === bookingYear(current),
+                            ),
                           );
                           if (result.error) return result.error;
                           if (result.booking)
@@ -258,6 +281,11 @@ function App() {
                         changeRoom={(id, request) => {
                           const current = bookings.find((b) => b.id === id);
                           if (!current) return "Reserva no encontrada.";
+                          const yearError = yearMutationError(
+                            current,
+                            calendars,
+                          );
+                          if (yearError) return yearError;
                           const result = changeRoom(
                             current,
                             request,
@@ -284,6 +312,11 @@ function App() {
                           const current = bookings.find((b) => b.id === id);
                           if (!current)
                             return "La reserva ya no está disponible.";
+                          const yearError = yearMutationError(
+                            current,
+                            calendars,
+                          );
+                          if (yearError) return yearError;
                           const result = cancelClasses(current, request, role);
                           if (result.error) return result.error;
                           if (result.booking)
@@ -416,7 +449,34 @@ function App() {
                     element={
                       role === "Administrador" ? (
                         <CalendarEditor
+                          key={calendar.year}
                           calendar={calendar}
+                          calendars={calendars}
+                          selectYear={setSelectedYear}
+                          addYear={(year) => {
+                            const result = addYear(calendars, year, role);
+                            if (result.error) return result.error;
+                            if (result.calendars) {
+                              setCalendars(result.calendars);
+                              setSelectedYear(year);
+                            }
+                          }}
+                          deleteYear={() => {
+                            const result = deleteYear(
+                              calendars,
+                              calendar.year,
+                              bookings,
+                              courses,
+                              role,
+                            );
+                            if (result.error) return result.error;
+                            if (result.calendars) {
+                              setCalendars(result.calendars);
+                              setSelectedYear(
+                                result.calendars[0]?.year ?? 2026,
+                              );
+                            }
+                          }}
                           preview={(proposal) => ({
                             ...changeCalendar(
                               calendar,
@@ -446,7 +506,13 @@ function App() {
                             );
                             if (result.error) return result.error;
                             if (result.impact) {
-                              setCalendar(result.impact.calendar);
+                              setCalendars((old) =>
+                                old.map((c) =>
+                                  c.year === result.impact.calendar.year
+                                    ? result.impact.calendar
+                                    : c,
+                                ),
+                              );
                               setBookings(result.impact.bookings);
                             }
                           }}

@@ -1,4 +1,4 @@
-import { useCalendar } from "../calendar-context";
+import { useCalendar, useCalendars } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { type ReservationDraft } from "../reservation-draft";
 import { SporadicDates } from "../components/SporadicDates";
@@ -18,7 +18,7 @@ import { ScheduleDates } from "../components/ScheduleDates";
 import {
   defaultSchedule,
   omittedDates,
-  periodLabels,
+  periodLabels as defaultPeriodLabels,
   type Period,
   type Schedule,
 } from "../calendar";
@@ -59,8 +59,16 @@ export function Wizard({
   onPrepare?: (draft: ReservationDraft) => void;
   save: (b: Booking) => void;
 }) {
-  const calendar = useCalendar();
+  const [year, setYear] = useState(initial?.schedule.year ?? 2026);
+  const calendars = useCalendars();
+  const calendar = useCalendar(year);
   const terms = calendar.terms;
+  const periodLabels = Object.fromEntries(
+    Object.entries(defaultPeriodLabels).map(([key, label]) => [
+      key,
+      label.replace("2026", String(year)),
+    ]),
+  ) as typeof defaultPeriodLabels;
   const rooms = useRooms();
   const go = useNavigate();
   useEffect(() => {
@@ -76,8 +84,12 @@ export function Wizard({
       { date: "2026-09-21", start: "16:00", end: "17:30", room: "" },
     ],
   );
-  const [subject, setSubject] = useState("Matemática I");
-  const [course, setCourse] = useState("001-A-2026");
+  const [subject, setSubject] = useState(
+    courses.find((c) => c.year === year)?.subject ?? "",
+  );
+  const [course, setCourse] = useState(
+    courses.find((c) => c.year === year)?.id ?? "",
+  );
   const [teacher, setTeacher] = useState("Laura Gómez");
   const [students, setStudents] = useState(initial?.students ?? 30);
   const [type, setType] = useState(initial?.type ?? "Multimedios");
@@ -95,7 +107,7 @@ export function Wizard({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<Booking | null>(null);
   const [schedule, setSchedule] = useState<Schedule>(
-    initial?.schedule ?? defaultSchedule,
+    initial?.schedule ?? { ...defaultSchedule, year },
   );
   const occurrences =
     mode === "periodic" ? expand(patterns, schedule, calendar) : dates;
@@ -149,6 +161,10 @@ export function Wizard({
       setError(
         "Cada día semanal seleccionado debe tener al menos una clase futura. Ajustá el período, los días o las exclusiones.",
       );
+      return;
+    }
+    if (calendar.state !== "Habilitado") {
+      setError("El año no está habilitado para reservas.");
       return;
     }
     const invalidDates = validateDates(occurrences, undefined, calendar);
@@ -303,9 +319,43 @@ export function Wizard({
                     Esporádica
                   </Button>
                 </div>
+                <label>
+                  Año lectivo
+                  <select
+                    aria-label="Año de la reserva"
+                    value={year}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setYear(next);
+                      setSchedule({ ...defaultSchedule, year: next });
+                      setPatterns((old) =>
+                        old.map((p) => ({ ...p, room: "" })),
+                      );
+                      setDates([
+                        {
+                          date: `${next}-09-14`,
+                          start: "14:00",
+                          end: "16:00",
+                          room: "",
+                        },
+                      ]);
+                      const c = courses.find((c) => c.year === next);
+                      setCourse(c?.id ?? "");
+                      setSubject(c?.subject ?? "");
+                      setError("");
+                    }}
+                  >
+                    {calendars.map((c) => (
+                      <option key={c.year} value={c.year}>
+                        {c.year} · {c.state}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <div className="form-grid">
                   {!queryOnly && (
                     <CoursePicker
+                      year={year}
                       courses={courses}
                       selected={course}
                       choose={(c) => {
@@ -412,14 +462,14 @@ export function Wizard({
                   </div>
                 </fieldset>
                 {mode === "sporadic" ? (
-                  <SporadicDates dates={dates} change={setDates} />
+                  <SporadicDates year={year} dates={dates} change={setDates} />
                 ) : (
                   <div className="section-divider">
                     <h2>Días y horarios</h2>
                     <p className="muted">
                       {schedule.period === "annual"
                         ? "Ambos cuatrimestres, sin clases en el receso"
-                        : `${dateLabel(terms[schedule.period][0])} al ${dateLabel(terms[schedule.period][1])}`}
+                        : `${terms[schedule.period][0] ? dateLabel(terms[schedule.period][0]) : "Sin inicio"} al ${terms[schedule.period][1] ? dateLabel(terms[schedule.period][1]) : "Sin fin"}`}
                     </p>
                     <div className="weekdays">
                       {[1, 2, 3, 4, 5].map((day) => (
@@ -685,7 +735,7 @@ export function Wizard({
           <p>
             {mode === "periodic"
               ? periodLabels[schedule.period]
-              : "Fechas independientes · 2026"}
+              : `Fechas independientes · ${year}`}
           </p>
           <p className="muted">
             {omitted.filter((o) => o.reason === "Exclusión manual").length}{" "}

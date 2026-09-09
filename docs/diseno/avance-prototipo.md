@@ -21,7 +21,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Inventario de aulas P-04 | Implementado, validado | Alta, edición, baja, filtros, historial e integración de disponibilidad. 37 pruebas unitarias, 19 E2E. |
 | Cuentas P-04 | Implementado, validado | Alta/perfiles, estados, búsqueda/orden/paginación, contraseña y último Admin. 39 pruebas unitarias, 20 E2E. |
 | Calendario e impacto P-04 | Implementado, validado para 2026 | Cuatrimestres y fechas no lectivas compartidos; extensión atómica de series. 43 pruebas unitarias, 21 E2E. |
-| Ciclo de años P-04 | Siguiente | Alta/estados y eliminación protegida de años/cuatrimestres; selección de otros años al reservar. |
+| Ciclo de años P-04 | Implementado, validado | Alta/estados y eliminación protegida; reservas y cursos por año, traspaso desde disponibilidad. 48 pruebas unitarias y 22 E2E. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
@@ -140,3 +140,11 @@ Referencias `mockups/administracion-b/03-calendario.png` y `04-impacto.png`; cap
 Calendario compartido entre registro, exclusiones, agenda y reprogramación. Cambiar cuatrimestres, agregar/describir/quitar fechas exige revisión y confirmación; fechas pasadas protegidas y recortes no dejan clases registradas fuera. Ampliaciones y feriados eliminados generan solo nuevas fechas futuras, preservando exclusiones, canceladas, excepciones reprogramadas y cese de continuidad. Verificación de aula, recursos y conflictos antes de devolver calendario/reservas juntos. La confirmación revalida versiones del calendario y reservas.
 
 E2E bloquea fecha no lectiva con clases, quita octubre y amplía segundo cuatrimestre hasta 23/12: agrega tres y conserva la serie de 29. Unitarias cubren límites y rechazo íntegro por conflicto. Revisiones independientes sin hallazgos. Todavía faltan ciclo de años, indicadores y validación global P-06; no se declara cerrado P-04.
+
+## Revisión visual del ciclo de años
+
+Referencia `mockups/administracion-b/03-calendario.png`, capturas `frontend/evidence/anios-desktop.png` y `anios-mobile.png` inspeccionadas. Selector de año y alta en un panel, estado explícito y edición de cuatrimestres/fechas en los paneles existentes. Móvil apila los controles sin desbordamiento; se mantiene el lenguaje B con formularios en lugar de la tabla ilustrativa.
+
+Los años nacen en preparación; habilitar requiere ambos cuatrimestres y cerrar exige no tener clases vigentes futuras/en curso. Cerrados son de consulta; eliminación exige preparación vacía y sin dependencias. Quitar cuatrimestres conserva dependencias históricas. Reserva, consulta, cursos, agenda y reprogramación usan el calendario correspondiente, incluyendo semanas entre años. El traspaso desde disponibilidad inicializa el curso del año consultado, corregido tras revisión independiente y cubierto por E2E.
+
+Pruebas cubren crear/habilitar 2027, reservar con curso 001-A-2027, continuidad desde consulta, cierre protegido y conservación de 2026. Build y lint correctos. Revisiones de especificación y estándares sin hallazgos pendientes en este corte. Indicadores P-05 y validación integral P-06 continúan pendientes.

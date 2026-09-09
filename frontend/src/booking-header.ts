@@ -37,7 +37,9 @@ export function changeHeader(
         "Los datos compartidos quedan fijos al iniciarse la reserva. Para otras necesidades, cancelá las futuras afectadas y registrá una nueva reserva.",
     };
   const course = courses.find(
-    (c) => c.id === request.course && c.year === 2026,
+    (c) =>
+      c.id === request.course &&
+      c.year === Number(b.occurrences[0]?.date.slice(0, 4)),
   );
   const teacher = teachers.find((t) => t.name === request.teacher);
   if (!course || !teacher)

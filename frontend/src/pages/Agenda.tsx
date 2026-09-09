@@ -1,3 +1,4 @@
+import { demoNow } from "../calendar";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
@@ -93,7 +94,10 @@ export function Agenda({
           >
             <ChevronLeft />
           </Button>
-          <Button variant="outline" onClick={() => setDate("2026-09-08")}>
+          <Button
+            variant="outline"
+            onClick={() => setDate(demoNow.slice(0, 10))}
+          >
             Hoy
           </Button>
           <Button

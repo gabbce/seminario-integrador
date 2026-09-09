@@ -1440,3 +1440,8 @@ body {
 .weekly-comparison .metric-table table { min-width:640px; }
 @media(max-width:700px) { .volume-bars > div { grid-template-columns:75px minmax(0,1fr); gap:8px; } .volume-bars strong { grid-column:2; } }
 .heat-scroll { position:relative; }
+.demo-controls { max-width:1472px; margin:0 auto 32px; padding:24px 32px; border-top:1px dashed #9da89e; color:#59665f; font-size:14px; }
+.demo-controls summary { cursor:pointer; font-weight:600; }
+.demo-controls label { max-width:560px; }
+@media(max-width:700px) { .demo-controls { padding:20px 16px; } }
+@media print { .demo-controls { display:none !important; } }

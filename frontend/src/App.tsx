@@ -5,6 +5,10 @@ import {
   yearMutationError,
 } from "./academic-years";
 import { CalendarContext } from "./calendar-context";
+import { createScenario, type ScenarioId } from "./demo-scenarios";
+import { DemoControls } from "./components/DemoControls";
+import { resetDemoCredentials } from "./mock-auth";
+import { setDemoNow } from "./calendar";
 import { initialCalendar } from "./calendar";
 import { changeCalendar } from "./calendar-management";
 import { CalendarEditor } from "./pages/CalendarEditor";
@@ -13,7 +17,7 @@ import { initialUsers, saveUser, type User } from "./users";
 import { authenticate, passwordError, setCredential } from "./mock-auth";
 import { saveRoom } from "./room-management";
 import { RoomContext } from "./room-context";
-import { rooms } from "./domain";
+
 import { changeHeader } from "./booking-header";
 import { reschedule } from "./reschedule";
 import { changeRoom } from "./room-change";
@@ -39,7 +43,7 @@ import {
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Brand } from "./components/Brand";
-import { initialBookings, type Booking } from "./domain";
+import { type Booking } from "./domain";
 import "./App.css";
 import { Login } from "./pages/Login";
 import { Agenda } from "./pages/Agenda";
@@ -75,19 +79,19 @@ function attributeChange(
     ),
   };
 }
-function App() {
-  const [calendars, setCalendars] = useState([initialCalendar]);
+function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
+  const [calendars, setCalendars] = useState([scenario.calendar]);
   const [selectedYear, setSelectedYear] = useState(2026);
   const calendar =
     calendars.find((c) => c.year === selectedYear) ??
     calendars[0] ??
     initialCalendar;
-  const [inventory, setInventory] = useState(rooms);
+  const [inventory, setInventory] = useState(scenario.inventory);
   const [users, setUsers] = useState(initialUsers);
   const [userId, setUserId] = useState<string>();
   const currentUser = users.find((u) => u.id === userId && u.active);
   const role = currentUser?.role;
-  const [bookings, setBookings] = useState(initialBookings);
+  const [bookings, setBookings] = useState(scenario.bookings);
   const [courses, setCourses] = useState(initialCourses);
   const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
@@ -539,4 +543,26 @@ function App() {
     </CalendarContext>
   );
 }
-export default App;
+export default function DemoApp() {
+  const [id, setId] = useState<ScenarioId>("base");
+  const [scenario, setScenario] = useState(() => createScenario("base"));
+  const [revision, setRevision] = useState(0);
+  return (
+    <>
+      <App key={revision} scenario={scenario} />
+      <DemoControls
+        current={id}
+        now={scenario.now}
+        apply={(next) => {
+          const state = createScenario(next);
+          setDemoNow(state.now);
+          resetDemoCredentials();
+          window.history.replaceState(null, "", "/agenda");
+          setId(next);
+          setScenario(state);
+          setRevision((value) => value + 1);
+        }}
+      />
+    </>
+  );
+}

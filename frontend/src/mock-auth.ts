@@ -41,3 +41,9 @@ export function setCredential(
   if (error) return error;
   credentials.set(targetId, password);
 }
+
+export function resetDemoCredentials() {
+  credentials.clear();
+  for (const id of ["admin", "bedel", "docente"])
+    credentials.set(id, "Aulas2026");
+}

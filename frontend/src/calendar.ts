@@ -1,7 +1,11 @@
 import type { Pattern } from "./domain";
 export type Period = "first" | "second" | "annual";
 export type Schedule = { year?: number; period: Period; excluded: string[] };
-export const demoNow = "2026-09-08T10:00";
+export let demoNow = "2026-09-08T10:00";
+// El selector de escenarios cambia el reloj y remonta toda la demo.
+export function setDemoNow(now: string) {
+  demoNow = now;
+}
 export const holidays = ["2026-10-12", "2026-11-23"];
 export const defaultSchedule: Schedule = { period: "second", excluded: [] };
 export const terms = {

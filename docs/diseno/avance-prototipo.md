@@ -24,6 +24,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Ciclo de años P-04 | Implementado, validado | Alta/estados y eliminación protegida; reservas y cursos por año, traspaso desde disponibilidad. 48 pruebas unitarias y 22 E2E. |
 | Indicadores diarios P-05 | Implementado, validado | Cálculos históricos, filtros, curvas Chart.js y tabla de 32 franjas. 54 pruebas unitarias y 23 E2E. |
 | Semana típica y rangos P-05 | Implementado, validado | Medias por fecha elegible, mapa seleccionable, comparación y filtros. 59 pruebas unitarias y 24 E2E. |
+| Escenarios P-06 | Implementado, validado | Selector/reinicio, ejemplos exactos diario/semanal, histórico, vacíos y muchas aulas. 61 pruebas unitarias y 25 E2E. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
 ## Revisión visual del corte de períodos
@@ -167,3 +168,9 @@ Referencia `mockups/indicadores-guia-b/02-semana-tipica.png` con correcciones es
 Período rápido por cuatrimestre/año o rango personalizado, conservando filtros. Las medias incluyen días elegibles con cero clases y sin aulas; feriados excluidos, estado de año ignorado. Se distingue pico de curva promedio y máximo de una fecha. Totales dividen sumas de horas. Rangos inválidos retiran los resultados; rangos sin calendarios señalan cobertura desconocida y no recorren años sin datos. Prueba del límite 9999 evita desbordamiento de fecha/bucle.
 
 El ejemplo semanal independiente obtiene 108 horas, 54 clases, 4.352 horas habilitadas y 2,5 %. Doce lunes y catorce de los demás días; medias de alumnos-hora 60/72/60/72/0. La app sigue mostrando su estado compartido, no esos valores fijos. Selector de escenarios, selección de franja diaria, fallos/carga y auditoría completa siguen pendientes de P-06. Compilación/lint y revisiones independientes correctas; objetivo activo.
+
+## Escenarios reproducibles
+
+Selector al pie, fuera de navegación operativa y oculto en impresión. Reinicia estado completo, credenciales y sesión mediante remontaje; no persiste. [Instrucciones y recorridos](escenarios-demo.md). Capturas `frontend/evidence/escenario-diario.png`, `escenario-semanal.png` y `escenarios-mobile.png`, inspeccionadas junto a los mockups ya referenciados. Los gráficos muestran ahora también los ejemplos exactos aprobados desde el estado compartido.
+
+E2E cambia escenarios sin recargar, verifica agenda/métricas y entra a la serie con reloj adelantado. Se corrigió Hoy para usar el reloj institucional simulado. Unitarias comprueban aislamiento de datos y protección temporal. Build y lint correctos. Las revisiones independientes detectaron únicamente el literal de Hoy, corregido y cubierto. Todavía faltan simulación de errores/concurrencia/sesión, selección diaria de franja y validación global de P-06; objetivo activo.

@@ -6,9 +6,13 @@ export function DemoControls({
   now,
   apply,
   queryMode,
+  saveMode,
+  simulateSave,
   simulateQuery,
   simulateAction,
 }: {
+  saveMode: "normal" | "error" | "uncertain";
+  simulateSave: (mode: "normal" | "error" | "uncertain") => void;
   queryMode: "normal" | "error" | "slow";
   simulateQuery: (mode: "normal" | "error" | "slow") => void;
   simulateAction: (kind: "expire" | "version") => void;
@@ -87,6 +91,24 @@ export function DemoControls({
           </Button>
           <Button variant="outline" onClick={() => simulateAction("version")}>
             Simular otra versión de reserva
+          </Button>
+        </div>
+        <p>
+          Guardado de reserva nueva: {saveMode}. El resultado incierto se
+          registra en memoria, pero exige comprobarlo antes de mostrar éxito.
+        </p>
+        <div className="metric-toggle">
+          <Button variant="outline" onClick={() => simulateQuery("error")}>
+            Simular error de disponibilidad
+          </Button>
+          <Button variant="outline" onClick={() => simulateSave("error")}>
+            Simular fallo de guardado
+          </Button>
+          <Button variant="outline" onClick={() => simulateSave("uncertain")}>
+            Simular respuesta de guardado incierta
+          </Button>
+          <Button variant="outline" onClick={() => simulateSave("normal")}>
+            Guardado normal
           </Button>
         </div>
       </details>

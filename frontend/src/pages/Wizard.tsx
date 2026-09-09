@@ -1,3 +1,4 @@
+import { DemoQueryContext, useDemoQuery } from "../demo-query";
 import { useCalendar, useCalendars } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { type ReservationDraft } from "../reservation-draft";
@@ -22,7 +23,7 @@ import {
   type Period,
   type Schedule,
 } from "../calendar";
-import { useEffect, useState, type FormEvent } from "react";
+import { useContext, useRef, useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import {
@@ -57,8 +58,22 @@ export function Wizard({
   onConsume?: () => void;
   initial?: ReservationDraft;
   onPrepare?: (draft: ReservationDraft) => void;
-  save: (b: Booking) => void;
+  save: (b: Booking) => string | undefined | void;
 }) {
+  const { saveMode } = useContext(DemoQueryContext);
+  const [saving, setSaving] = useState(false),
+    [uncertain, setUncertain] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const [reservationId] = useState(
+    () =>
+      `R-${String(Math.max(0, ...bookings.map((b) => (/^R-\d+$/.test(b.id) ? Number(b.id.slice(2)) : 0))) + 1).padStart(3, "0")}`,
+  );
   const [year, setYear] = useState(initial?.schedule.year ?? 2026);
   const calendars = useCalendars();
   const calendar = useCalendar(year);
@@ -118,7 +133,7 @@ export function Wizard({
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   };
   const booking = {
-    id: `R-${String(bookings.length + 1).padStart(3, "0")}`,
+    id: reservationId,
     subject,
     course,
     teacher,
@@ -131,11 +146,33 @@ export function Wizard({
     occurrences,
     ...(mode === "periodic" ? { schedule, patterns } : {}),
   };
+  const response = useDemoQuery(
+    JSON.stringify([
+      step,
+      mode,
+      students,
+      type,
+      resources,
+      board,
+      schedule,
+      patterns.map(({ day, start, end }) => ({ day, start, end })),
+      dates.map(({ date, start, end }) => ({ date, start, end })),
+      bookings,
+      rooms,
+      calendar,
+    ]),
+  );
+  const latest = useRef({ save, booking, bookings, rooms, calendar });
+  useEffect(() => {
+    latest.current = { save, booking, bookings, rooms, calendar };
+  });
   function update(day: number, patch: Partial<Pattern>) {
     setPatterns((p) => p.map((x) => (x.day === day ? { ...x, ...patch } : x)));
   }
-  function next(e: FormEvent) {
+  async function next(e: FormEvent) {
     e.preventDefault();
+    if (saving || uncertain || (step === 2 && response.status !== "ready"))
+      return;
     setError("");
     if (
       mode === "periodic" &&
@@ -208,10 +245,67 @@ export function Wizard({
     }
     if (step === 2) setStep(3);
     else {
-      save(booking);
-      setSaved(booking);
+      setSaving(true);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      if (!mounted.current) return;
+      const current = latest.current;
+      const invalid = validateBooking(
+        current.booking,
+        current.bookings,
+        current.rooms,
+        current.calendar,
+      );
+      if (invalid) {
+        setSaving(false);
+        setError(invalid);
+        setStep(2);
+        return;
+      }
+      if (saveMode === "error") {
+        setSaving(false);
+        setError(
+          "No se guardó la reserva. Conservamos la preparación; podés volver a intentarlo.",
+        );
+        return;
+      }
+      const failure = current.save(current.booking);
+      setSaving(false);
+      if (failure) {
+        setError(failure);
+        return;
+      }
+      if (saveMode === "uncertain") {
+        setUncertain(true);
+        return;
+      }
+      setSaved(current.booking);
     }
   }
+  if (uncertain)
+    return (
+      <section className="panel">
+        <h1>No pudimos confirmar el resultado</h1>
+        <p>
+          La respuesta del guardado no llegó. Comprobá el estado de la reserva{" "}
+          {reservationId} antes de intentar registrarla otra vez.
+        </p>
+        <Button
+          onClick={() => {
+            const confirmed = bookings.find((b) => b.id === reservationId);
+            if (confirmed) {
+              setSaved(confirmed);
+              setUncertain(false);
+            } else
+              setError(
+                "Todavía no pudimos verificar el resultado. No vuelvas a enviar la reserva; consultá el listado.",
+              );
+          }}
+        >
+          Comprobar estado de la reserva
+        </Button>
+        {error && <p role="alert">{error}</p>}
+      </section>
+    );
   if (saved)
     return (
       <section className="success panel">
@@ -561,6 +655,23 @@ export function Wizard({
                   </div>
                 )}
               </>
+            ) : step === 2 && response.status !== "ready" ? (
+              <section
+                className="panel"
+                role={response.status === "error" ? "alert" : "status"}
+              >
+                <h2>
+                  {response.status === "error"
+                    ? "No pudimos consultar la disponibilidad"
+                    : "Consultando disponibilidad…"}
+                </h2>
+                <p>La preparación se conserva en esta pantalla.</p>
+                {response.status === "error" && (
+                  <Button type="button" onClick={response.retry}>
+                    Reintentar consulta
+                  </Button>
+                )}
+              </section>
             ) : step === 2 ? (
               mode === "sporadic" ? (
                 dates.map((o, index) => (
@@ -667,6 +778,7 @@ export function Wizard({
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={saving}
                   onClick={() => {
                     setError("");
                     setStep(step - 1);
@@ -679,6 +791,7 @@ export function Wizard({
                 role !== "Docente" && (
                   <Button
                     type="button"
+                    disabled={response.status !== "ready"}
                     onClick={() => {
                       onPrepare?.({
                         mode,
@@ -699,13 +812,20 @@ export function Wizard({
               ) : (
                 <Button
                   type="submit"
-                  disabled={step === 2 && occurrences.some((p) => !p.room)}
+                  disabled={
+                    saving ||
+                    (step === 2 &&
+                      (response.status !== "ready" ||
+                        occurrences.some((p) => !p.room)))
+                  }
                 >
-                  {step === 3
-                    ? "Confirmar reserva"
-                    : step === 2
-                      ? "Revisar reserva"
-                      : "Buscar aulas"}
+                  {saving
+                    ? "Guardando reserva…"
+                    : step === 3
+                      ? "Confirmar reserva"
+                      : step === 2
+                        ? "Revisar reserva"
+                        : "Buscar aulas"}
                   <ArrowRight />
                 </Button>
               )}

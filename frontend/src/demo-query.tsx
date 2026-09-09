@@ -1,12 +1,18 @@
 import { createContext, useContext, useEffect, useState } from "react";
+export type DemoSaveMode = "normal" | "error" | "uncertain";
 export type DemoQueryFault = {
   mode: "normal" | "error" | "slow";
   revision: number;
 };
 export const DemoQueryContext = createContext<{
+  saveMode: DemoSaveMode;
   fault: DemoQueryFault;
   retry: () => void;
-}>({ fault: { mode: "normal", revision: 0 }, retry: () => {} });
+}>({
+  saveMode: "normal",
+  fault: { mode: "normal", revision: 0 },
+  retry: () => {},
+});
 // Simula la entrega de una respuesta; no sustituye una consulta HTTP.
 export function useDemoQuery(criteria: string) {
   const { fault, retry } = useContext(DemoQueryContext);

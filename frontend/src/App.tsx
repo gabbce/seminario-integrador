@@ -24,7 +24,11 @@ import { changeRoom } from "./room-change";
 import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
 import { initialCourses } from "./catalog";
-import { DemoQueryContext, type DemoQueryFault } from "./demo-query";
+import {
+  DemoQueryContext,
+  type DemoSaveMode,
+  type DemoQueryFault,
+} from "./demo-query";
 import { useState, useEffect } from "react";
 import {
   BrowserRouter,
@@ -44,7 +48,7 @@ import {
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Brand } from "./components/Brand";
-import { type Booking } from "./domain";
+import { validateBooking, type Booking } from "./domain";
 import "./App.css";
 import { Login } from "./pages/Login";
 import { Agenda } from "./pages/Agenda";
@@ -226,7 +230,20 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
                           }
                           role={role}
                           bookings={bookings}
-                          save={(b) =>
+                          save={(b) => {
+                            if (
+                              bookings.some((existing) => existing.id === b.id)
+                            )
+                              return "Esta reserva ya está registrada. Consultá su detalle antes de volver a enviarla.";
+                            const failure = validateBooking(
+                              b,
+                              bookings,
+                              inventory,
+                              calendars.find(
+                                (c) => c.year === bookingYear(b),
+                              ) ?? initialCalendar,
+                            );
+                            if (failure) return failure;
                             setBookings((old) => [
                               ...old,
                               {
@@ -237,8 +254,8 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
                                   userId: currentUser?.id,
                                 },
                               },
-                            ])
-                          }
+                            ]);
+                          }}
                         />
                       )
                     }
@@ -590,6 +607,7 @@ export default function DemoApp() {
   const [id, setId] = useState<ScenarioId>("base");
   const [scenario, setScenario] = useState(() => createScenario("base"));
   const [revision, setRevision] = useState(0);
+  const [saveMode, setSaveMode] = useState<DemoSaveMode>("normal");
   const [fault, setFault] = useState<DemoQueryFault>({
     mode: "normal",
     revision: 0,
@@ -599,6 +617,7 @@ export default function DemoApp() {
       <DemoQueryContext
         value={{
           fault,
+          saveMode,
           retry: () =>
             setFault((f) => ({ mode: "normal", revision: f.revision + 1 })),
         }}
@@ -609,6 +628,8 @@ export default function DemoApp() {
         current={id}
         now={scenario.now}
         queryMode={fault.mode}
+        saveMode={saveMode}
+        simulateSave={setSaveMode}
         simulateQuery={(mode) =>
           setFault((f) => ({ mode, revision: f.revision + 1 }))
         }
@@ -619,6 +640,7 @@ export default function DemoApp() {
         }
         apply={(next) => {
           setFault({ mode: "normal", revision: 0 });
+          setSaveMode("normal");
           const state = createScenario(next);
           setDemoNow(state.now);
           resetDemoCredentials();

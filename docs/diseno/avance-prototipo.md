@@ -26,6 +26,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Semana típica y rangos P-05 | Implementado, validado | Medias por fecha elegible, mapa seleccionable, comparación y filtros. 59 pruebas unitarias y 24 E2E. |
 | Escenarios P-06 | Implementado, validado | Selector/reinicio, ejemplos exactos diario/semanal, histórico, vacíos y muchas aulas. 61 pruebas unitarias y 25 E2E. |
 | Recuperación de consultas y sesión P-06 | Implementado, validado | Error/reintento/demora de indicadores, expiración y versión de reserva. 61 unitarias y 27 E2E. |
+| Recuperación de reserva P-06 | Implementado, validado | Consulta/error, espera de guardado, fallo y comprobación de resultado incierto. 61 unitarias y 28 E2E. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
 ## Revisión visual del corte de períodos
@@ -183,3 +184,11 @@ Patrón visual `mockups/ingreso-movil-estados-b/04-error-consulta.png`, adaptado
 Temporizador cancelable por criterios y revisión de simulación; respuestas anteriores no se muestran para otro filtro. E2E verifica reintento sobre Lab 2, cambio a día sin clases durante demora, expiración con reserva conservada y rechazo de cabecera con versión vieja. No se simulan garantías de red. Revisiones independientes sin hallazgos. Selección diaria de franja incorporada con clic/toque en curvas y selector accesible: el ejemplo de 14:00 muestra 126 alumnos y 3 clases, cubierto por E2E.
 
 Build/lint y pruebas correctos. Continúan pendientes consulta/guardado de Wizard, respuesta incierta, auditoría integral de UX y accesibilidad/impresión. El objetivo sigue activo.
+
+## Recuperación de consulta y guardado de reserva
+
+Referencia `mockups/ingreso-movil-estados-b/04-error-consulta.png`. Capturas `frontend/evidence/disponibilidad-fallida.png`, `guardado-incierto-desktop.png` y `guardado-incierto-mobile.png` inspeccionadas. Se conserva resumen lateral y preparación; error en el área de resultados y avance deshabilitado. Resultado incierto usa un panel con ID y comprobación explícita. Móvil mantiene acciones legibles sin desbordamiento.
+
+Consulta reutiliza invalidación por criterios. Guardado espera 600 ms, bloquea doble envío, cancela continuidad al desmontar y revalida con los datos actuales. App verifica además conflictos y duplicados. El ID se conserva desde el comienzo de la preparación; resultado incierto consulta el registro por ese ID sin reenviar. E2E recorre consulta fallida, guardado fallido, comprobación incierta y una sola instancia en agenda. Revisiones independientes sin hallazgos; build/lint correctos.
+
+Sigue pendiente auditoría integral P-06: contraste, teclado/zoom, alcance de listados extensos, navegación y requisitos completos. Este corte no declara el objetivo terminado.

@@ -215,3 +215,5 @@ E2E con 30 aulas comprueba ambas páginas, filtro desde la segunda, orden descen
 Agenda diaria (grilla y lista móvil) y semanal llevan fecha/horario al detalle mediante la URL. El detalle identifica la clase consultada, enlaza a su fila y conserva todas las clases de la serie. Los parámetros solo identifican ocurrencias existentes; no alteran el alcance de operaciones.
 
 E2E comprueba las tres entradas y la selección de una fecha posterior dentro de una serie de 26 clases. Capturas `frontend/evidence/detalle-fecha-desktop.png` y `detalle-fecha-mobile.png` inspeccionadas; se corrigió la separación del rótulo y la fecha tras la primera inspección. Build/lint correctos. Continúan pendientes conflictos de confirmación con fechas y la validación integral P-06.
+
+La revisión independiente detectó una ambigüedad al reprogramar hacia la fecha/hora de una clase cancelada. El detalle prioriza la coincidencia vigente que muestra la agenda; E2E reproduce cancelación del 14/09 y traslado del 21/09 al mismo horario para verificarlo.

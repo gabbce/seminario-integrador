@@ -20,4 +20,10 @@ test('agenda diaria, semanal y móvil identifican la clase consultada',async({pa
  await expect(consulted).toContainText('21 de septiembre de 2026');await expect(page.locator('#clase-consultada')).toHaveCount(1);await expect(page.locator('.booking-occurrences article')).toHaveCount(26);
  await consulted.getByRole('link').click();await expect(page.locator('#clase-consultada')).toBeInViewport();
 
+ await page.getByRole('button',{name:'Cancelar clases',exact:true}).click();
+ await page.getByRole('checkbox',{name:'Cancelar 14 de septiembre de 2026',exact:true}).check();await page.getByLabel('Motivo de cancelación').fill('Cambio de fecha de la clase siguiente');await page.getByRole('button',{name:'Confirmar cancelación'}).click();
+ await page.getByRole('button',{name:'Reprogramar clases',exact:true}).click();
+ await page.getByRole('group',{name:/^21 de septiembre de 2026/}).getByRole('checkbox').check();await page.getByLabel('Nueva fecha',{exact:true}).fill('2026-09-14');await page.getByRole('button',{name:'Revisar reprogramación'}).click();await page.getByRole('button',{name:'Guardar reprogramación'}).click();
+ await page.getByRole('button',{name:'Menú',exact:true}).click();await page.getByRole('link',{name:'Agenda',exact:true}).click();await page.getByLabel('Fecha de agenda').fill('2026-09-14');await page.locator('.mobile-booking').filter({hasText:'Matemática I'}).click();
+ await expect(consulted).toContainText('Confirmada');await expect(page.locator('#clase-consultada')).not.toHaveClass(/cancelled-occurrence/);
 });

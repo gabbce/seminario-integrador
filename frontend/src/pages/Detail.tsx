@@ -81,10 +81,12 @@ function BookingDetail({
   addCourse: (c: Course) => void;
   changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
-  const consulted = b.occurrences.find(
+  const matchingOccurrences = b.occurrences.filter(
     (o) =>
       o.date === consultedDate && (!consultedTime || o.start === consultedTime),
   );
+  const consulted =
+    matchingOccurrences.find((o) => !o.cancelled) ?? matchingOccurrences[0];
   const calendar = useCalendar(
     b.schedule?.year ?? Number(b.occurrences[0]?.date.slice(0, 4)),
   );

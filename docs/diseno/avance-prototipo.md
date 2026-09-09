@@ -239,3 +239,17 @@ Nueva prueba con Chromium aislado y extensión exclusiva de E2E que aplica `chro
 A 200 %: ingreso, nueve páginas principales, altas de aula/cuenta y pasos de asignación/revisión/éxito sin desbordamiento del documento ni infracciones automáticas Axe A/AA. Se completa una reserva de 26 clases y se guarda un aula. Capturas `frontend/evidence/zoom-200-*.png` tomadas directamente con CDP para evitar recorte de Playwright al capturar una página con zoom; inspeccionadas preparación, asignación, revisión, éxito, indicadores y ambos formularios de alta.
 
 Prueba separada recorre ingreso → nueva periódica → selección de aulas → revisión → confirmación → detalle usando únicamente Tab, Space, Enter y escritura de credenciales, comprobando foco visible de acciones. Ambas E2E correctas. Esto no certifica accesibilidad total: sigue pendiente consolidar la auditoría de todos los estados, consistencia tras modificaciones y correcciones escritas del diseño aprobado.
+
+## Consistencia entre vistas y calendario atómico
+
+Dos E2E adicionales comprueban recorridos que atraviesan módulos. Cambiar alumnos/aula y reprogramar Física actualiza detalle, agenda, listado e indicadores: 243 alumnos-hora tras editar; al trasladar, 198 en el día original y 45 en el nuevo. Cancelar retira sus horas y clases de métricas/agenda, conservándola en el listado de canceladas. Captura `frontend/evidence/consistencia-cancelacion.png` inspeccionada: valores cero y curvas vacías correctos, sin confundirlos con un fallo de consulta.
+
+En el escenario de calendario, extender al 23/12 con R-BLOCK vigente se rechaza sin cambiar el fin 18/12 ni las 26 clases. Cancelar la bloqueante por su operación normal y revisar de nuevo permite guardar exactamente dos clases: 21/12 en 203 y 23/12 en 105. Detalle pasa a 28; agenda e indicadores del 23/12 muestran únicamente la clase vigente, 2 horas y 60 alumnos-hora. Ambas E2E correctas.
+
+### Pendientes encontrados al contrastar todos los README vigentes
+
+- Serie registrada: incorporar proyector a los requisitos de Matemática de los datos de demostración para impedir reasignarla a 204.
+- Cuentas: completar selector 20/50/100, además de la paginación existente.
+- Validación personalizada: foco y acceso al campo desde los errores; comprobar recuperación por teclado, no solo recorrido exitoso.
+
+Estos pendientes siguen abiertos. Tras corregirlos corresponde ejecutar la suite completa actualizada y cerrar la matriz de aceptación; el objetivo permanece activo.

@@ -1,9 +1,10 @@
 import {test,expect,chromium} from '@playwright/test';
 import {resolve} from 'node:path';
-import {writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 test('zoom nativo 200% conserva pantallas y formularios operables',async({},info)=>{
  test.setTimeout(90000);
+ mkdirSync('evidence',{recursive:true});
  const extension=resolve('e2e/fixtures/zoom-extension');
  const context=await chromium.launchPersistentContext('',{channel:'chromium',headless:true,viewport:null,locale:'es-AR',args:['--window-size=1440,1000',`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
  try {

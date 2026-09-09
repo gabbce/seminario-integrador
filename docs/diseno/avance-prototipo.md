@@ -231,3 +231,11 @@ Nueva E2E entra al escenario «Muchas aulas y listado extenso», navega a la seg
 PDFs `frontend/evidence/listado-app-30.pdf` y `listado-app-filtrado.pdf` inspeccionados hoja por hoja mediante renderizado PDFium. Extracción independiente con pypdf: 30 filas distribuidas 10/13/7 en tres hojas A4 apaisadas; encabezados de tabla repetidos, ninguna clase perdida, ningún control de demo. Filtrado: una hoja y una fila. Se corrigió el fondo beige detectado en zonas vacías y se redujo el espaciado de impresión conservando texto de tabla de 10 pt (datos secundarios 9 pt). Las filas no se dividen entre hojas. Build/lint y prueba E2E correctos.
 
 Esta evidencia amplía la prueba anterior aislada de 25 filas. Continúan teclado/zoom, estados de formularios y consistencia global de P-06; no se declara terminado el prototipo.
+
+## Zoom nativo y recorrido por teclado
+
+Nueva prueba con Chromium aislado y extensión exclusiva de E2E que aplica `chrome.tabs.setZoom(2)`. Se verifica el factor devuelto, duplicación del devicePixelRatio y reducción del ancho CSS a la mitad; no se sustituye el zoom por CSS o un viewport pequeño. El contexto temporal se cierra al finalizar. Referencias del mecanismo: [Playwright](https://playwright.dev/docs/chrome-extensions) y [Chrome tabs](https://developer.chrome.com/docs/extensions/reference/api/tabs).
+
+A 200 %: ingreso, nueve páginas principales, altas de aula/cuenta y pasos de asignación/revisión/éxito sin desbordamiento del documento ni infracciones automáticas Axe A/AA. Se completa una reserva de 26 clases y se guarda un aula. Capturas `frontend/evidence/zoom-200-*.png` tomadas directamente con CDP para evitar recorte de Playwright al capturar una página con zoom; inspeccionadas preparación, asignación, revisión, éxito, indicadores y ambos formularios de alta.
+
+Prueba separada recorre ingreso → nueva periódica → selección de aulas → revisión → confirmación → detalle usando únicamente Tab, Space, Enter y escritura de credenciales, comprobando foco visible de acciones. Ambas E2E correctas. Esto no certifica accesibilidad total: sigue pendiente consolidar la auditoría de todos los estados, consistencia tras modificaciones y correcciones escritas del diseño aprobado.

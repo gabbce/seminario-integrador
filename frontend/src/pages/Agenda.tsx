@@ -1,3 +1,4 @@
+import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
 import { weekDates, closedDay } from "../agenda";
@@ -14,6 +15,7 @@ export function Agenda({
   bookings: Booking[];
   operator: boolean;
 }) {
+  const calendar = useCalendar();
   const rooms = useRooms();
   const [view, setView] = useState<"day" | "week">("day");
   const [date, setDate] = useState("2026-09-14");
@@ -153,14 +155,14 @@ export function Agenda({
         />
       ) : (
         <>
-          {closedDay(date) && (
+          {closedDay(date, calendar) && (
             <p className="closed-notice" role="status">
-              {closedDay(date)}. La ausencia de clases no implica
+              {closedDay(date, calendar)}. La ausencia de clases no implica
               disponibilidad.
             </p>
           )}
           <div
-            className={`agenda-desktop ${closedDay(date) ? "closed-day" : ""}`}
+            className={`agenda-desktop ${closedDay(date, calendar) ? "closed-day" : ""}`}
             ref={scrollRef}
           >
             <div

@@ -1,3 +1,4 @@
+import { useCalendar } from "../calendar-context";
 import { expand, dateLabel, type Pattern } from "../domain";
 import { omittedDates, type Schedule } from "../calendar";
 export function ScheduleDates({
@@ -9,8 +10,9 @@ export function ScheduleDates({
   schedule: Schedule;
   change: (schedule: Schedule) => void;
 }) {
-  const eligible = expand(patterns, { ...schedule, excluded: [] });
-  const omitted = omittedDates(patterns, schedule);
+  const calendar = useCalendar();
+  const eligible = expand(patterns, { ...schedule, excluded: [] }, calendar);
+  const omitted = omittedDates(patterns, schedule, calendar);
   return (
     <details className="schedule-dates">
       <summary>Revisar fechas y exclusiones</summary>

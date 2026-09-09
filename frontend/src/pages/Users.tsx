@@ -1,3 +1,4 @@
+import { AdminNav } from "../components/AdminNav";
 import { useState } from "react";
 import type { User } from "../users";
 import { Button } from "../components/ui/button";
@@ -62,6 +63,7 @@ export function Users({
   const creating = selected && !users.some((u) => u.id === selected.id);
   return (
     <>
+      <AdminNav />
       <div className="page-heading">
         <div>
           <p className="eyebrow">Administración</p>

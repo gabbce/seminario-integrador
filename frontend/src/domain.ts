@@ -2,6 +2,8 @@ import { validateDates } from "./booking-dates";
 import { compatible, type Resource } from "./equipment";
 import { teachers } from "./teachers";
 import {
+  initialCalendar,
+  type CalendarConfig,
   candidateDates,
   omission,
   defaultSchedule,
@@ -92,18 +94,20 @@ export function datesFor(
   day: number,
   schedule: Schedule = defaultSchedule,
   start = "14:00",
+  calendar: CalendarConfig = initialCalendar,
 ): string[] {
-  return candidateDates(day, schedule.period).filter(
-    (date) => !omission(date, start, schedule),
+  return candidateDates(day, schedule.period, calendar).filter(
+    (date) => !omission(date, start, schedule, calendar),
   );
 }
 export function expand(
   patterns: Pattern[],
   schedule: Schedule = defaultSchedule,
+  calendar: CalendarConfig = initialCalendar,
 ): Occurrence[] {
   return patterns
     .flatMap((p) =>
-      datesFor(p.day, schedule, p.start).map((date) => ({
+      datesFor(p.day, schedule, p.start, calendar).map((date) => ({
         date,
         start: p.start,
         end: p.end,
@@ -125,8 +129,9 @@ export function available(
   room: string,
   bookings: Booking[],
   schedule: Schedule = defaultSchedule,
+  calendar: CalendarConfig = initialCalendar,
 ) {
-  return !expand([{ ...pattern, room }], schedule).some((a) =>
+  return !expand([{ ...pattern, room }], schedule, calendar).some((a) =>
     bookings.some((b) =>
       b.occurrences.some((o) => !o.cancelled && overlaps(a, o)),
     ),
@@ -136,6 +141,7 @@ export function validateBooking(
   booking: Booking,
   existing: Booking[],
   inventory: Room[] = rooms,
+  calendar: CalendarConfig = initialCalendar,
 ): string | null {
   if (
     !booking.subject.trim() ||
@@ -149,7 +155,7 @@ export function validateBooking(
     !booking.occurrences.length
   )
     return "Indicá alumnos y al menos un día de clase.";
-  const invalidDates = validateDates(booking.occurrences);
+  const invalidDates = validateDates(booking.occurrences, undefined, calendar);
   if (invalidDates) return invalidDates;
   for (const o of booking.occurrences) {
     const room = inventory.find((r) => r.id === o.room);

@@ -1,3 +1,4 @@
+import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { EditHeader } from "./EditHeader";
 import { headerEditable, type HeaderChange } from "../booking-header";
@@ -73,6 +74,7 @@ function BookingDetail({
   addCourse: (c: Course) => void;
   changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
+  const calendar = useCalendar();
   const inventory = useRooms();
   const [editingHeader, setEditingHeader] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
@@ -107,8 +109,15 @@ function BookingDetail({
     return (
       <Reschedule
         check={(request) =>
-          checkReschedule(b, request, bookings, role, undefined, inventory)
-            .error
+          checkReschedule(
+            b,
+            request,
+            bookings,
+            role,
+            undefined,
+            inventory,
+            calendar,
+          ).error
         }
         booking={b}
         back={() => setRescheduling(false)}

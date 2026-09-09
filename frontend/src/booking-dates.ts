@@ -1,8 +1,9 @@
-import { demoNow, holidays } from "./calendar";
+import { demoNow, initialCalendar, type CalendarConfig } from "./calendar";
 import { minutes, type Occurrence } from "./domain";
 export function validateDates(
   dates: Occurrence[],
   now = demoNow,
+  calendar: CalendarConfig = initialCalendar,
 ): string | null {
   if (!dates.length) return "Agregá al menos una fecha.";
   if (new Set(dates.map((o) => o.date)).size !== dates.length)
@@ -17,7 +18,8 @@ export function validateDates(
       return "Elegí fechas válidas del año habilitado 2026.";
     if ([0, 6].includes(d.getUTCDay()))
       return "Solo se puede reservar de lunes a viernes.";
-    if (holidays.includes(o.date)) return `${o.date} es una fecha no lectiva.`;
+    if (calendar.holidays.includes(o.date))
+      return `${o.date} es una fecha no lectiva.`;
     if (`${o.date}T${o.start}` <= now)
       return "El inicio debe ser posterior al momento actual de la institución.";
     if (

@@ -1349,3 +1349,36 @@ body {
     grid-row: 1;
   }
 }
+.admin-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #d8dcd5;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.admin-tabs a {
+  padding: 12px 0;
+}
+.admin-tabs a.active {
+  border-bottom: 3px solid #194d3a;
+  font-weight: bold;
+}
+.holiday-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+.holiday-row > div {
+  min-width: 0;
+}
+.calendar-impact {
+  margin-top: 24px;
+}
+@media (max-width: 600px) {
+  .holiday-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

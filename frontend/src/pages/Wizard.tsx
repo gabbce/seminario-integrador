@@ -1,3 +1,4 @@
+import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { type ReservationDraft } from "../reservation-draft";
 import { SporadicDates } from "../components/SporadicDates";
@@ -18,7 +19,6 @@ import {
   defaultSchedule,
   omittedDates,
   periodLabels,
-  terms,
   type Period,
   type Schedule,
 } from "../calendar";
@@ -59,6 +59,8 @@ export function Wizard({
   onPrepare?: (draft: ReservationDraft) => void;
   save: (b: Booking) => void;
 }) {
+  const calendar = useCalendar();
+  const terms = calendar.terms;
   const rooms = useRooms();
   const go = useNavigate();
   useEffect(() => {
@@ -95,8 +97,10 @@ export function Wizard({
   const [schedule, setSchedule] = useState<Schedule>(
     initial?.schedule ?? defaultSchedule,
   );
-  const occurrences = mode === "periodic" ? expand(patterns, schedule) : dates;
-  const omitted = mode === "periodic" ? omittedDates(patterns, schedule) : [];
+  const occurrences =
+    mode === "periodic" ? expand(patterns, schedule, calendar) : dates;
+  const omitted =
+    mode === "periodic" ? omittedDates(patterns, schedule, calendar) : [];
   const endTime = (start: string, duration: number) => {
     const total = minutes(start) + duration;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
@@ -138,14 +142,16 @@ export function Wizard({
     }
     if (
       mode === "periodic" &&
-      patterns.some((p) => datesFor(p.day, schedule, p.start).length === 0)
+      patterns.some(
+        (p) => datesFor(p.day, schedule, p.start, calendar).length === 0,
+      )
     ) {
       setError(
         "Cada día semanal seleccionado debe tener al menos una clase futura. Ajustá el período, los días o las exclusiones.",
       );
       return;
     }
-    const invalidDates = validateDates(occurrences);
+    const invalidDates = validateDates(occurrences, undefined, calendar);
     if (invalidDates) {
       setError(invalidDates);
       return;
@@ -170,7 +176,7 @@ export function Wizard({
           const room = rooms.find((candidate) => candidate.id === pattern.room);
           return room &&
             compatible(room, requirements) &&
-            available(pattern, room.id, bookings, schedule)
+            available(pattern, room.id, bookings, schedule, calendar)
             ? pattern
             : { ...pattern, room: "" };
         }),
@@ -179,7 +185,7 @@ export function Wizard({
       return;
     }
     if (queryOnly) return;
-    const issue = validateBooking(booking, bookings, rooms);
+    const issue = validateBooking(booking, bookings, rooms, calendar);
     if (issue) {
       setError(issue);
       return;
@@ -539,13 +545,14 @@ export function Wizard({
                     <legend>
                       {dayNames[p.day]} · {p.start}–{p.end}{" "}
                       <small>
-                        {datesFor(p.day, schedule, p.start).length} clases
+                        {datesFor(p.day, schedule, p.start, calendar).length}{" "}
+                        clases
                       </small>
                     </legend>
                     <RoomChoices
                       readOnly={queryOnly}
                       privateContacts={role !== "Docente"}
-                      request={expand([p], schedule)}
+                      request={expand([p], schedule, calendar)}
                       candidates={rooms.filter((r) =>
                         compatible(r, requirements),
                       )}
@@ -571,7 +578,8 @@ export function Wizard({
                       <p key={p.day}>
                         <strong>{dayNames[p.day]}</strong> · {p.start}–{p.end} ·
                         Aula {p.room} ·{" "}
-                        {datesFor(p.day, schedule, p.start).length} clases
+                        {datesFor(p.day, schedule, p.start, calendar).length}{" "}
+                        clases
                       </p>
                     ))}
                 </div>

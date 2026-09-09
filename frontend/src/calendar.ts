@@ -8,12 +8,35 @@ export const terms = {
   first: ["2026-03-09", "2026-07-03"],
   second: ["2026-09-14", "2026-12-18"],
 } as const;
+export type CalendarConfig = {
+  version: number;
+  terms: {
+    first: readonly [string, string];
+    second: readonly [string, string];
+  };
+  holidays: string[];
+  descriptions: Record<string, string>;
+};
+export const initialCalendar: CalendarConfig = {
+  version: 0,
+  terms,
+  holidays,
+  descriptions: {
+    "2026-10-12": "Fecha no lectiva",
+    "2026-11-23": "Fecha no lectiva",
+  },
+};
 export const periodLabels = {
   first: "1.º cuatrimestre · 2026",
   second: "2.º cuatrimestre · 2026",
   annual: "Anual · 2026",
 };
-export function candidateDates(day: number, period: Period): string[] {
+export function candidateDates(
+  day: number,
+  period: Period,
+  calendar: CalendarConfig = initialCalendar,
+): string[] {
+  const terms = calendar.terms;
   const ranges =
     period === "annual" ? [terms.first, terms.second] : [terms[period]];
   return ranges.flatMap(([from, to]) => {
@@ -32,17 +55,22 @@ export function omission(
   date: string,
   start: string,
   schedule: Schedule,
+  calendar: CalendarConfig = initialCalendar,
 ): string | null {
   if (`${date}T${start}` <= demoNow) return "Ya iniciada";
-  if (holidays.includes(date)) return "Fecha no lectiva";
+  if (calendar.holidays.includes(date)) return "Fecha no lectiva";
   if (schedule.excluded.includes(date)) return "Exclusión manual";
   return null;
 }
-export function omittedDates(patterns: Pattern[], schedule: Schedule) {
+export function omittedDates(
+  patterns: Pattern[],
+  schedule: Schedule,
+  calendar: CalendarConfig = initialCalendar,
+) {
   return patterns
     .flatMap((p) =>
-      candidateDates(p.day, schedule.period).flatMap((date) => {
-        const reason = omission(date, p.start, schedule);
+      candidateDates(p.day, schedule.period, calendar).flatMap((date) => {
+        const reason = omission(date, p.start, schedule, calendar);
         return reason ? [{ date, reason }] : [];
       }),
     )

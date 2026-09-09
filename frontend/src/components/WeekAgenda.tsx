@@ -1,3 +1,4 @@
+import { useCalendar } from "../calendar-context";
 import { useNavigate } from "react-router-dom";
 import { type Booking, type Room, dateLabel } from "../domain";
 import { weekDates, closedDay } from "../agenda";
@@ -13,6 +14,7 @@ export function WeekAgenda({
   bookings: Booking[];
   openDay: (date: string) => void;
 }) {
+  const calendar = useCalendar();
   const go = useNavigate();
   return (
     <>
@@ -45,7 +47,9 @@ export function WeekAgenda({
             );
           return (
             <section
-              className={closedDay(day) ? "week-day closed-day" : "week-day"}
+              className={
+                closedDay(day, calendar) ? "week-day closed-day" : "week-day"
+              }
               key={day}
             >
               <header>
@@ -60,8 +64,8 @@ export function WeekAgenda({
                   Ver día
                 </Button>
               </header>
-              {closedDay(day) && (
-                <p className="closed-notice">{closedDay(day)}</p>
+              {closedDay(day, calendar) && (
+                <p className="closed-notice">{closedDay(day, calendar)}</p>
               )}
               {entries.map(({ b, o }) => (
                 <button
@@ -70,7 +74,8 @@ export function WeekAgenda({
                   onClick={() => go(`/reservas/${b.id}`)}
                 >
                   <small>
-                    {o.start}–{o.end} · {o.room.startsWith("Lab") ? o.room : `Aula ${o.room}`}
+                    {o.start}–{o.end} ·{" "}
+                    {o.room.startsWith("Lab") ? o.room : `Aula ${o.room}`}
                   </small>
                   <strong>{b.subject}</strong>
                   <span>{b.course}</span>

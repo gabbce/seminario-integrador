@@ -1,5 +1,5 @@
 import { type Booking, type Role, type Room, overlaps, rooms } from "./domain";
-import { demoNow, terms } from "./calendar";
+import { demoNow, initialCalendar, type CalendarConfig } from "./calendar";
 import { isFuture } from "./cancellation";
 import { validateDates } from "./booking-dates";
 import { compatible } from "./equipment";
@@ -14,6 +14,7 @@ export function reschedule(
   role: Role,
   now = demoNow,
   inventory: Room[] = rooms,
+  calendar: CalendarConfig = initialCalendar,
 ): { booking: Booking; error?: never } | { error: string; booking?: never } {
   if (role === "Docente")
     return { error: "Tu cuenta solo permite consultar reservas." };
@@ -46,11 +47,12 @@ export function reschedule(
       ? (b.occurrences[d.index].originalDate ?? b.occurrences[d.index].date)
       : undefined,
   }));
-  const invalid = validateDates(proposed, now);
+  const invalid = validateDates(proposed, now, calendar);
   if (invalid) return { error: invalid };
   if (b.patterns) {
     if (!b.schedule)
       return { error: "La reserva no tiene períodos asignados." };
+    const terms = calendar.terms;
     const ranges =
       b.schedule.period === "annual"
         ? [terms.first, terms.second]

@@ -9,7 +9,7 @@ import type { Reschedule as RescheduleRequest } from "../reschedule";
 import { ChangeRoom } from "./ChangeRoom";
 import type { RoomChange } from "../room-change";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { type Booking, type Role, dateLabel } from "../domain";
 import { bookingState, isFuture, type Cancellation } from "../cancellation";
@@ -36,12 +36,15 @@ export function Detail({
   changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
   const { id } = useParams();
+  const [search] = useSearchParams();
   const b = bookings.find((b) => b.id === id);
   if (!b) return <MissingReservation />;
   return (
     <BookingDetail
       key={b.id}
       booking={b}
+      consultedDate={search.get("fecha")}
+      consultedTime={search.get("hora")}
       role={role}
       cancel={cancel}
       courses={courses}
@@ -55,6 +58,8 @@ export function Detail({
 }
 function BookingDetail({
   booking: b,
+  consultedDate,
+  consultedTime,
   bookings,
   role,
   cancel,
@@ -65,6 +70,8 @@ function BookingDetail({
   changeHeader,
 }: {
   booking: Booking;
+  consultedDate: string | null;
+  consultedTime: string | null;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -74,6 +81,10 @@ function BookingDetail({
   addCourse: (c: Course) => void;
   changeHeader: (id: string, request: HeaderChange) => string | undefined;
 }) {
+  const consulted = b.occurrences.find(
+    (o) =>
+      o.date === consultedDate && (!consultedTime || o.start === consultedTime),
+  );
   const calendar = useCalendar(
     b.schedule?.year ?? Number(b.occurrences[0]?.date.slice(0, 4)),
   );
@@ -219,6 +230,27 @@ function BookingDetail({
       )}
       {!editing && (
         <>
+          {consulted && (
+            <section
+              className="panel consulted-summary"
+              aria-label="Clase consultada"
+            >
+              <strong>Clase consultada · {dateLabel(consulted.date)}</strong>
+              <p>
+                {consulted.start}–{consulted.end} ·{" "}
+                {consulted.room.startsWith("Lab")
+                  ? consulted.room
+                  : `Aula ${consulted.room}`}{" "}
+                ·{" "}
+                {consulted.cancelled
+                  ? "Cancelada"
+                  : isFuture(consulted)
+                    ? "Confirmada"
+                    : "Iniciada / pasada"}
+              </p>
+              <a href="#clase-consultada">Ver en las clases registradas</a>
+            </section>
+          )}
           {operator && b.changes?.length && (
             <section className="panel booking-contacts">
               <h2>Historial de cambios</h2>
@@ -252,9 +284,14 @@ function BookingDetail({
               {b.occurrences.map((o, i) => (
                 <article
                   key={i}
-                  className={o.cancelled ? "cancelled-occurrence" : ""}
+                  id={o === consulted ? "clase-consultada" : undefined}
+                  className={[
+                    o.cancelled ? "cancelled-occurrence" : "",
+                    o === consulted ? "consulted-occurrence" : "",
+                  ].join(" ")}
                 >
                   <div>
+                    {o === consulted && <small>Clase consultada</small>}
                     <strong>{dateLabel(o.date)}</strong>
                     <span>
                       {o.start}–{o.end} ·{" "}

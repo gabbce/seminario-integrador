@@ -209,3 +209,9 @@ P-06 continúa: revisar formularios abiertos y estados, zoom 200 %, impresión e
 Corregido el pendiente del README de administración: orden por identificador (numérico natural), capacidad, tipo o estado, ascendente/descendente, y páginas de 20/50/100. Filtrar, cambiar orden o tamaño vuelve a la primera página; si una edición reduce resultados, se muestra una página válida.
 
 E2E con 30 aulas comprueba ambas páginas, filtro desde la segunda, orden descendente, cambio de tamaño y ausencia de resultados. Capturas `frontend/evidence/aulas-paginacion-desktop.png` y `aulas-paginacion-mobile.png` inspeccionadas: controles y filas legibles, paginación adaptada sin desbordamiento móvil. Axe móvil sin infracciones automáticas; build/lint correctos. Continúan los demás pendientes de la auditoría P-06.
+
+## Fecha consultada desde agenda
+
+Agenda diaria (grilla y lista móvil) y semanal llevan fecha/horario al detalle mediante la URL. El detalle identifica la clase consultada, enlaza a su fila y conserva todas las clases de la serie. Los parámetros solo identifican ocurrencias existentes; no alteran el alcance de operaciones.
+
+E2E comprueba las tres entradas y la selección de una fecha posterior dentro de una serie de 26 clases. Capturas `frontend/evidence/detalle-fecha-desktop.png` y `detalle-fecha-mobile.png` inspeccionadas; se corrigió la separación del rótulo y la fecha tras la primera inspección. Build/lint correctos. Continúan pendientes conflictos de confirmación con fechas y la validación integral P-06.

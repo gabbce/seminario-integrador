@@ -216,7 +216,11 @@ export function Agenda({
                           top: (minutes(o.start) - 420) * 2,
                           height: (minutes(o.end) - minutes(o.start)) * 2,
                         }}
-                        onClick={() => go(`/reservas/${b.id}`)}
+                        onClick={() =>
+                          go(
+                            `/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`,
+                          )
+                        }
                       >
                         <span>
                           {o.start}–{o.end}
@@ -237,7 +241,9 @@ export function Agenda({
                 <button
                   className="mobile-booking"
                   key={`${b.id}-${o.date}`}
-                  onClick={() => go(`/reservas/${b.id}`)}
+                  onClick={() =>
+                    go(`/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`)
+                  }
                 >
                   <span className="eyebrow">
                     {o.start} — {o.end} ·{" "}

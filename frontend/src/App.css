@@ -1449,3 +1449,11 @@ body {
 .daily-slot label { max-width:400px; }
 .agenda-scroll-hint { font-size:14px; color:#59665f; }
 @media(max-width:800px) { .agenda-scroll-hint { display:none; } }
+.booking-occurrences .consulted-occurrence {
+  border-left: 4px solid var(--primary);
+  padding-left: 16px;
+  scroll-margin-top: 24px;
+}
+.consulted-summary { margin-bottom: 24px; }
+.consulted-summary a { text-decoration: underline; text-underline-offset: 3px; }
+.booking-occurrences .consulted-occurrence small { display: block; margin-bottom: 4px; }

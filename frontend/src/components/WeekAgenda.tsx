@@ -75,7 +75,9 @@ export function WeekAgenda({
                 <button
                   className="week-booking"
                   key={`${b.id}-${o.date}`}
-                  onClick={() => go(`/reservas/${b.id}`)}
+                  onClick={() =>
+                    go(`/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`)
+                  }
                 >
                   <small>
                     {o.start}–{o.end} ·{" "}

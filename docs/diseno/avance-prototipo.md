@@ -253,3 +253,9 @@ En el escenario de calendario, extender al 23/12 con R-BLOCK vigente se rechaza 
 - Validación personalizada: foco y acceso al campo desde los errores; comprobar recuperación por teclado, no solo recorrido exitoso.
 
 Estos pendientes siguen abiertos. Tras corregirlos corresponde ejecutar la suite completa actualizada y cerrar la matriz de aceptación; el objetivo permanece activo.
+
+## Requisitos de serie y páginas de cuentas
+
+Matemática en los escenarios incorpora proyector según el recorrido aprobado. Prueba de compatibilidad confirma rechazo de 204 y aceptación de 301; las pruebas de calendario y reprogramación de la serie siguen pasando. Cuentas permite 20/50/100, vuelve a página 1 al cambiar tamaño y conserva filtros. E2E crea 22 cuentas más las 3 iniciales, comprueba segunda página, tamaños mayores y filtro conservado. Capturas `frontend/evidence/cuentas-paginacion-desktop.png` y `cuentas-paginacion-mobile.png` inspeccionadas sin desbordamiento.
+
+62 unitarias, las E2E del corte, build y lint correctos. Corregida una advertencia del fixture de zoom utilizando el fixture Playwright explícito. De los tres pendientes de la revisión final resta recuperación de errores personalizados con foco y asociación a campos; después corresponde verificación completa y matriz de cierre.

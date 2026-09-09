@@ -25,6 +25,7 @@ export function Users({
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [sort, setSort] = useState("name");
   const filtered = users
     .filter(
@@ -40,7 +41,7 @@ export function Users({
         ? a.email.localeCompare(b.email)
         : `${a.surname} ${a.name}`.localeCompare(`${b.surname} ${b.name}`),
     );
-  const pages = Math.max(1, Math.ceil(filtered.length / 20));
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const current = Math.min(page, pages);
   function edit(user?: User) {
     setSelected(
@@ -134,35 +135,52 @@ export function Users({
             </label>
           </div>
           <div className="inventory-list">
-            {filtered.slice((current - 1) * 20, current * 20).map((u) => (
-              <article key={u.id}>
-                <div>
-                  <strong>
-                    {u.name} {u.surname}
-                  </strong>
-                  <p>{u.email}</p>
-                  <small>
-                    {u.role} · {u.active ? "Activa" : "Deshabilitada"}
-                  </small>
-                  {u.active &&
-                    u.role === "Administrador" &&
-                    users.filter((x) => x.active && x.role === "Administrador")
-                      .length === 1 && (
-                      <p className="eyebrow">Último administrador activo</p>
-                    )}
-                </div>
-                <Button
-                  variant="outline"
-                  aria-label={`Editar ${u.email}`}
-                  onClick={() => edit(u)}
-                >
-                  Editar
-                </Button>
-              </article>
-            ))}
+            {filtered
+              .slice((current - 1) * pageSize, current * pageSize)
+              .map((u) => (
+                <article key={u.id}>
+                  <div>
+                    <strong>
+                      {u.name} {u.surname}
+                    </strong>
+                    <p>{u.email}</p>
+                    <small>
+                      {u.role} · {u.active ? "Activa" : "Deshabilitada"}
+                    </small>
+                    {u.active &&
+                      u.role === "Administrador" &&
+                      users.filter(
+                        (x) => x.active && x.role === "Administrador",
+                      ).length === 1 && (
+                        <p className="eyebrow">Último administrador activo</p>
+                      )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    aria-label={`Editar ${u.email}`}
+                    onClick={() => edit(u)}
+                  >
+                    Editar
+                  </Button>
+                </article>
+              ))}
           </div>
           {!filtered.length && <p>No hay cuentas coincidentes.</p>}
-          <div className="change-room-actions">
+          <div className="pagination">
+            <label>
+              Cuentas por página
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+              >
+                {[20, 50, 100].map((size) => (
+                  <option key={size}>{size}</option>
+                ))}
+              </select>
+            </label>
             <Button
               variant="outline"
               disabled={current === 1}

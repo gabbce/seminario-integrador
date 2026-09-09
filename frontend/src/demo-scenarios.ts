@@ -63,6 +63,7 @@ function math(): Booking {
     teacherEmail: teachers.find((t) => t.name === "Laura Gómez")?.email,
     students: 30,
     type: "Multimedios",
+    resources: ["projector"],
     registrant: initialBookings[0].registrant,
     occurrences: [],
     schedule: { year: 2026, period: "second", excluded: [] },

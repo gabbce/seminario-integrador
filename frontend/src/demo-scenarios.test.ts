@@ -1,3 +1,4 @@
+import { compatible } from "./equipment";
 import { it, expect } from "vitest";
 import { createScenario } from "./demo-scenarios";
 import { dayMetrics, rangeMetrics } from "./metrics";
@@ -26,4 +27,29 @@ it("escenarios son independientes y el histórico protege iniciadas sin afectar 
   s.inventory[0].history = [];
   expect(createScenario("started").bookings[0].students).toBe(60);
   expect(createScenario("base").inventory[0].history).not.toEqual([]);
+});
+
+it("serie registrada conserva proyector y rechaza aulas sin ese recurso", () => {
+  const scenario = createScenario("series");
+  const series = scenario.bookings.find((b) => b.id === "R-MAT")!;
+  expect(
+    compatible(
+      scenario.inventory.find((r) => r.id === "204")!,
+      {
+        students: series.students,
+        type: series.type!,
+        resources: series.resources,
+      },
+    ),
+  ).toBe(false);
+  expect(
+    compatible(
+      scenario.inventory.find((r) => r.id === "301")!,
+      {
+        students: series.students,
+        type: series.type!,
+        resources: series.resources,
+      },
+    ),
+  ).toBe(true);
 });

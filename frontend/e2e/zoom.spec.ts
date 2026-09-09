@@ -1,12 +1,12 @@
-import {test,expect,chromium} from '@playwright/test';
+import {test,expect} from '@playwright/test';
 import {resolve} from 'node:path';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
-test('zoom nativo 200% conserva pantallas y formularios operables',async({},info)=>{
+test('zoom nativo 200% conserva pantallas y formularios operables',async({playwright},info)=>{
  test.setTimeout(90000);
  mkdirSync('evidence',{recursive:true});
  const extension=resolve('e2e/fixtures/zoom-extension');
- const context=await chromium.launchPersistentContext('',{channel:'chromium',headless:true,viewport:null,locale:'es-AR',args:['--window-size=1440,1000',`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
+ const context=await playwright.chromium.launchPersistentContext('',{channel:'chromium',headless:true,viewport:null,locale:'es-AR',args:['--window-size=1440,1000',`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
  try {
  const page=await context.newPage();await page.goto('http://127.0.0.1:5173');
  const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');

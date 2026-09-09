@@ -2,7 +2,7 @@
 
 Aplicación para una institución educativa, destinada a una demostración académica con datos ficticios, ejecutable localmente o en la web con Supabase remoto.
 
-El repositorio contiene la **especificación funcional y técnica v1.0**, final y aprobada por el usuario. La implementación comenzó con un primer corte navegable en React y un esqueleto ejecutable Java/Spring Boot.
+El repositorio contiene la **especificación funcional y técnica v1.0**, final y aprobada por el usuario. El prototipo navegable P-01 a P-06 está implementado y verificado en React, con datos en memoria y un esqueleto ejecutable Java/Spring Boot.
 
 - [Leer la especificación](docs/especificacion/00-especificacion.md).
 - [Diseño B aprobado y referencias vigentes](docs/diseno/README.md).
@@ -13,7 +13,7 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.
 
-## Ejecutar el primer corte
+## Ejecutar el prototipo
 
 En dos terminales, desde la raíz:
 
@@ -32,4 +32,4 @@ Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local` / `Aulas2026`. 
 
 - [Instrucciones, recorridos y límites del frontend](frontend/README.md).
 - [Arranque y comprobación del backend](backend/README.md).
-- [Estado y validación de la primera entrega](docs/diseno/entrega-01.md).
+- [Validación completa, criterios y límites del prototipo](docs/diseno/validacion-prototipo.md).

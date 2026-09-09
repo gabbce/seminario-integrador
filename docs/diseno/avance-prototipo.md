@@ -1,6 +1,6 @@
 # Avance del prototipo navegable
 
-Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.md), manteniendo datos simulados y esqueleto Java/Spring Boot. Cada subcorte se revisa visualmente, se prueba y se guarda en un commit antes de continuar. No integrar todavía Supabase ni desplegar.
+Objetivo completado: P-01 a P-06 del [plan aprobado](prototipo-navegable.md), manteniendo datos simulados y esqueleto Java/Spring Boot. Los subcortes se revisaron visualmente, se probaron y se guardaron en commits. Ver la [matriz final de aceptación](validacion-prototipo.md). Supabase y despliegue quedan para la integración posterior.
 
 ## Cortes
 
@@ -27,7 +27,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Escenarios P-06 | Implementado, validado | Selector/reinicio, ejemplos exactos diario/semanal, histórico, vacíos y muchas aulas. 61 pruebas unitarias y 25 E2E. |
 | Recuperación de consultas y sesión P-06 | Implementado, validado | Error/reintento/demora de indicadores, expiración y versión de reserva. 61 unitarias y 27 E2E. |
 | Recuperación de reserva P-06 | Implementado, validado | Consulta/error, espera de guardado, fallo y comprobación de resultado incierto. 61 unitarias y 28 E2E. |
-| Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
+| Validación P-06 | Completada | Estados, escenarios, impresión extensa, teclado/zoom/móvil y consistencia. Matriz final: 62 unitarias y 44 E2E aprobadas. |
 
 ## Revisión visual del corte de períodos
 
@@ -252,7 +252,7 @@ En el escenario de calendario, extender al 23/12 con R-BLOCK vigente se rechaza 
 - Cuentas: completar selector 20/50/100, además de la paginación existente.
 - Validación personalizada: foco y acceso al campo desde los errores; comprobar recuperación por teclado, no solo recorrido exitoso.
 
-Estos pendientes siguen abiertos. Tras corregirlos corresponde ejecutar la suite completa actualizada y cerrar la matriz de aceptación; el objetivo permanece activo.
+Estos hallazgos se corrigieron en los cortes siguientes. La matriz de cierre enlazada al comienzo recoge el estado final.
 
 ## Requisitos de serie y páginas de cuentas
 
@@ -269,3 +269,9 @@ E2E recorre ingreso fallido, contraseñas distintas y aula duplicada, vuelve des
 Build/lint, 62 unitarias y 42 E2E comprobadas: 41 pasaron en la ejecución conjunta y la de inventario pasó al repetirla tras corregir un selector ambiguo entre aviso y contador de paginación. Backend en ejecución responde `UP` en `/api/health`. Antes del cierre definitivo resta revisar este corte y consolidar la matriz final contra los criterios del plan.
 
 La revisión del corte confirmó el cierre del hallazgo de recuperación. Se amplió el control de foco a intentos repetidos mediante botones sin envío de formulario (crear curso y cambio de aula), y el curso enlaza directamente sus propios campos. Prueba adicional repite el mismo error de curso y comprueba foco y retorno a materia. Build/lint y ambas E2E de recuperación correctos.
+
+## Cierre de P-01 a P-06
+
+Agenda con 30 aulas comprobada con desplazamiento por teclado, encabezado de D30 visible y lectura de las 30 clases en móvil; la semana conserva las 30 y permite desplazamiento. Capturas `agenda-30-aulas-desktop.png`, `agenda-30-aulas-semana.png` y `agenda-30-aulas-mobile.png` inspeccionadas. Sin cambios adicionales de diseño necesarios.
+
+Ejecución conjunta final: build y lint correctos, 62 unitarias, 44 E2E y una prueba de contexto Java aprobadas. La [matriz de aceptación](validacion-prototipo.md) consolida criterios, escenarios, evidencia y límites. El prototipo está completo para esta etapa; autenticación, persistencia y API de dominio reales requieren la integración posterior.

@@ -43,3 +43,7 @@ La especificación define alcance y reglas. Esta consolidación y la guía defin
 ## Lo que falta comprobar
 
 La aprobación visual no verifica navegación real, respuesta de controles, teclado, contraste, tamaños de pantalla, gráficos calculados ni integración. Esos puntos tienen criterios en el plan del prototipo. No quedan elecciones de dirección visual pendientes para comenzar esa etapa.
+
+## Prototipo implementado
+
+P-01 a P-06 completados como simulación navegable. Ver la [matriz de aceptación, resultados y límites](validacion-prototipo.md) y los [escenarios para recorrerlo](escenarios-demo.md).

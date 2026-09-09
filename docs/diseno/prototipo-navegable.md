@@ -1,6 +1,6 @@
 # Plan de preparación del prototipo navegable
 
-**En implementación por subcortes.** Diseño aprobado consolidado en el [índice](README.md). Consultar el [avance por cortes](avance-prototipo.md) y la [primera entrega](entrega-01.md). Este plan describe el alcance completo pendiente, no lo declara implementado.
+**P-01 a P-06 completados y verificados como prototipo en memoria.** Consultar la [matriz de aceptación y límites](validacion-prototipo.md), el [avance por cortes](avance-prototipo.md) y el [diseño aprobado](README.md). La [primera entrega](entrega-01.md) conserva el registro del corte inicial.
 
 ## Objetivo y límite de esta etapa
 

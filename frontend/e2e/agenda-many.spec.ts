@@ -1,0 +1,34 @@
+import {test,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+test('treinta aulas conservan encabezados, desplazamiento y alternativa diaria móvil',async({page})=>{
+ await page.goto('/');await page.locator('.demo-controls summary').click();
+ await page.getByLabel('Escenario',{exact:true}).selectOption('many');await page.getByRole('button',{name:'Aplicar escenario y reiniciar'}).click();
+ await page.getByLabel('Correo electrónico').fill('bedel@demo.local');await page.getByLabel('Contraseña',{exact:true}).fill('Aulas2026');await page.getByRole('button',{name:'Ingresar',exact:true}).click();
+ await page.getByLabel('Fecha de agenda').fill('2026-09-14');
+ const grid=page.getByRole('region',{name:'Agenda diaria por aulas'});
+ await expect(grid.locator('.booking')).toHaveCount(30);
+ await grid.focus();await page.keyboard.press('ArrowRight');
+ await expect.poll(()=>grid.evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);
+ await grid.locator('.booking').last().focus();
+ await expect(grid.locator('.room-head').last()).toBeInViewport();
+ await expect(grid.locator('.room-head').last()).toContainText('Aula D30');
+ await page.screenshot({path:'evidence/agenda-30-aulas-desktop.png',fullPage:true});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.getByRole('button',{name:'Semana',exact:true}).click();
+ await expect(page.locator('.week-booking')).toHaveCount(30);
+ await page.screenshot({path:'evidence/agenda-30-aulas-semana.png'});
+ await page.setViewportSize({width:390,height:844});
+ const week=page.getByRole('region',{name:'Agenda semanal'});
+ await week.focus();await page.keyboard.press('ArrowRight');
+ await expect.poll(()=>week.evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);
+ await page.getByRole('button',{name:'Día',exact:true}).click();
+ await expect(page.locator('.mobile-booking')).toHaveCount(30);
+ await page.locator('.mobile-booking').last().scrollIntoViewIfNeeded();
+ await expect(page.locator('.mobile-booking').last()).toContainText('Aula D30');
+ await page.screenshot({path:'evidence/agenda-30-aulas-mobile.png'});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze()).violations).toEqual([]);
+ await page.locator('.mobile-booking').last().click();
+ await expect(page.getByRole('region',{name:'Clase consultada'})).toContainText('Aula D30');
+});

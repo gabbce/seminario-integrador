@@ -5,7 +5,13 @@ export function DemoControls({
   current,
   now,
   apply,
+  queryMode,
+  simulateQuery,
+  simulateAction,
 }: {
+  queryMode: "normal" | "error" | "slow";
+  simulateQuery: (mode: "normal" | "error" | "slow") => void;
+  simulateAction: (kind: "expire" | "version") => void;
   current: ScenarioId;
   now: string;
   apply: (id: ScenarioId) => void;
@@ -60,6 +66,29 @@ export function DemoControls({
           Acceso de prueba: admin@demo.local, bedel@demo.local o
           docente@demo.local · Contraseña: Aulas2026.
         </p>
+        <h3>Pruebas de recuperación</h3>
+        <p>
+          Consulta de indicadores: {queryMode}. Cambiar filtros durante una
+          respuesta lenta conserva únicamente la consulta actual. Estas pruebas
+          no envían solicitudes reales.
+        </p>
+        <div className="metric-toggle">
+          <Button variant="outline" onClick={() => simulateQuery("error")}>
+            Simular error de indicadores
+          </Button>
+          <Button variant="outline" onClick={() => simulateQuery("slow")}>
+            Simular respuesta lenta
+          </Button>
+          <Button variant="outline" onClick={() => simulateQuery("normal")}>
+            Respuesta normal
+          </Button>
+          <Button variant="outline" onClick={() => simulateAction("expire")}>
+            Simular sesión vencida
+          </Button>
+          <Button variant="outline" onClick={() => simulateAction("version")}>
+            Simular otra versión de reserva
+          </Button>
+        </div>
       </details>
     </aside>
   );

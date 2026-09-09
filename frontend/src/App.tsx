@@ -24,7 +24,8 @@ import { changeRoom } from "./room-change";
 import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
 import { initialCourses } from "./catalog";
-import { useState } from "react";
+import { DemoQueryContext, type DemoQueryFault } from "./demo-query";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -95,15 +96,52 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
   const [courses, setCourses] = useState(initialCourses);
   const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
+  const [sessionNotice, setSessionNotice] = useState("");
+  const [simulationNotice, setSimulationNotice] = useState("");
+  useEffect(() => {
+    function onAction(event: Event) {
+      const kind = (event as CustomEvent<string>).detail;
+      if (kind === "expire") {
+        setUserId(undefined);
+        setDraft(undefined);
+        setSessionNotice(
+          "Tu sesión venció. Volvé a ingresar. Las reservas guardadas se conservan; la preparación sin guardar se descartó.",
+        );
+        return;
+      }
+      if (kind !== "version") return;
+      const id = decodeURIComponent(
+        window.location.pathname.split("/")[2] ?? "",
+      );
+      if (!id || id === "nueva") {
+        setSimulationNotice(
+          "Abrí una reserva y prepará una modificación antes de simular otra versión.",
+        );
+        return;
+      }
+      setBookings((old) =>
+        old.map((b) =>
+          b.id === id ? { ...b, version: (b.version ?? 0) + 1 } : b,
+        ),
+      );
+      setSimulationNotice(
+        `Simulación: ${id} recibió otra versión. Intentá guardar la edición que habías preparado.`,
+      );
+    }
+    window.addEventListener("aulas:demo-action", onAction);
+    return () => window.removeEventListener("aulas:demo-action", onAction);
+  }, []);
   return (
     <CalendarContext value={calendars}>
       <RoomContext value={inventory}>
         <BrowserRouter>
           {!role ? (
             <Login
+              notice={sessionNotice}
               onLogin={(email, password) => {
                 const result = authenticate(users, email, password);
                 if (result.error) return result.error;
+                setSessionNotice("");
                 setUserId(result.id);
               }}
             />
@@ -532,6 +570,11 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
                   <Route path="*" element={<Navigate to="/agenda" replace />} />
                 </Routes>
               </main>
+              {simulationNotice && (
+                <p className="demo-controls" role="status">
+                  {simulationNotice}
+                </p>
+              )}
               <footer>
                 Demostración académica · Datos ficticios · Los cambios se
                 reinician al recargar
@@ -547,13 +590,35 @@ export default function DemoApp() {
   const [id, setId] = useState<ScenarioId>("base");
   const [scenario, setScenario] = useState(() => createScenario("base"));
   const [revision, setRevision] = useState(0);
+  const [fault, setFault] = useState<DemoQueryFault>({
+    mode: "normal",
+    revision: 0,
+  });
   return (
     <>
-      <App key={revision} scenario={scenario} />
+      <DemoQueryContext
+        value={{
+          fault,
+          retry: () =>
+            setFault((f) => ({ mode: "normal", revision: f.revision + 1 })),
+        }}
+      >
+        <App key={revision} scenario={scenario} />
+      </DemoQueryContext>
       <DemoControls
         current={id}
         now={scenario.now}
+        queryMode={fault.mode}
+        simulateQuery={(mode) =>
+          setFault((f) => ({ mode, revision: f.revision + 1 }))
+        }
+        simulateAction={(kind) =>
+          window.dispatchEvent(
+            new CustomEvent("aulas:demo-action", { detail: kind }),
+          )
+        }
         apply={(next) => {
+          setFault({ mode: "normal", revision: 0 });
           const state = createScenario(next);
           setDemoNow(state.now);
           resetDemoCredentials();

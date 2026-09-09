@@ -25,6 +25,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Indicadores diarios P-05 | Implementado, validado | Cálculos históricos, filtros, curvas Chart.js y tabla de 32 franjas. 54 pruebas unitarias y 23 E2E. |
 | Semana típica y rangos P-05 | Implementado, validado | Medias por fecha elegible, mapa seleccionable, comparación y filtros. 59 pruebas unitarias y 24 E2E. |
 | Escenarios P-06 | Implementado, validado | Selector/reinicio, ejemplos exactos diario/semanal, histórico, vacíos y muchas aulas. 61 pruebas unitarias y 25 E2E. |
+| Recuperación de consultas y sesión P-06 | Implementado, validado | Error/reintento/demora de indicadores, expiración y versión de reserva. 61 unitarias y 27 E2E. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
 ## Revisión visual del corte de períodos
@@ -174,3 +175,11 @@ El ejemplo semanal independiente obtiene 108 horas, 54 clases, 4.352 horas habil
 Selector al pie, fuera de navegación operativa y oculto en impresión. Reinicia estado completo, credenciales y sesión mediante remontaje; no persiste. [Instrucciones y recorridos](escenarios-demo.md). Capturas `frontend/evidence/escenario-diario.png`, `escenario-semanal.png` y `escenarios-mobile.png`, inspeccionadas junto a los mockups ya referenciados. Los gráficos muestran ahora también los ejemplos exactos aprobados desde el estado compartido.
 
 E2E cambia escenarios sin recargar, verifica agenda/métricas y entra a la serie con reloj adelantado. Se corrigió Hoy para usar el reloj institucional simulado. Unitarias comprueban aislamiento de datos y protección temporal. Build y lint correctos. Las revisiones independientes detectaron únicamente el literal de Hoy, corregido y cubierto. Todavía faltan simulación de errores/concurrencia/sesión, selección diaria de franja y validación global de P-06; objetivo activo.
+
+## Recuperación de consultas, sesión y versión
+
+Patrón visual `mockups/ingreso-movil-estados-b/04-error-consulta.png`, adaptado al área de indicadores. Capturas `frontend/evidence/error-consulta-desktop.png`, `error-consulta-mobile.png` y `sesion-vencida.png` inspeccionadas. Panel con mensaje y reintento conserva filtros; se omite la ilustración de nube. Login reutiliza el formulario con aviso de expiración.
+
+Temporizador cancelable por criterios y revisión de simulación; respuestas anteriores no se muestran para otro filtro. E2E verifica reintento sobre Lab 2, cambio a día sin clases durante demora, expiración con reserva conservada y rechazo de cabecera con versión vieja. No se simulan garantías de red. Revisiones independientes sin hallazgos. Selección diaria de franja incorporada con clic/toque en curvas y selector accesible: el ejemplo de 14:00 muestra 126 alumnos y 3 clases, cubierto por E2E.
+
+Build/lint y pruebas correctos. Continúan pendientes consulta/guardado de Wizard, respuesta incierta, auditoría integral de UX y accesibilidad/impresión. El objetivo sigue activo.

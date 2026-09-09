@@ -1,3 +1,4 @@
+import { useDemoQuery } from "../demo-query";
 import { useState, lazy, Suspense } from "react";
 import { Clock3, ChartPie, CalendarDays, Users } from "lucide-react";
 import type { Booking } from "../domain";
@@ -14,6 +15,7 @@ const number = (n: number) =>
 export function Indicators({ bookings }: { bookings: Booking[] }) {
   const rooms = useRooms(),
     calendars = useCalendars();
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [date, setDate] = useState("2026-09-14"),
     [room, setRoom] = useState(""),
     [type, setType] = useState("");
@@ -36,6 +38,19 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
       ? rangeMetrics(from, to, bookings, rooms, calendars, { room, type })
       : null;
   const m = daily ?? weekly;
+  const response = useDemoQuery(
+    JSON.stringify([
+      mode,
+      date,
+      from,
+      to,
+      room,
+      type,
+      bookings,
+      rooms,
+      calendars,
+    ]),
+  );
   const types = [
     ...new Set(rooms.flatMap((r) => (r.history ?? []).map((h) => h.type))),
   ].sort();
@@ -145,7 +160,18 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
           </select>
         </label>
       </section>
-      {!m ? (
+      {response.status === "loading" ? (
+        <section className="panel" role="status">
+          <h2>Consultando indicadores…</h2>
+          <p>Estamos preparando los resultados del filtro actual.</p>
+        </section>
+      ) : response.status === "error" ? (
+        <section className="panel" role="alert">
+          <h2>No pudimos consultar los indicadores</h2>
+          <p>Los filtros se conservan. Intentá nuevamente.</p>
+          <Button onClick={response.retry}>Reintentar consulta</Button>
+        </section>
+      ) : !m ? (
         <p role="alert">
           Elegí una fecha o rango válido para consultar (inicio anterior o igual
           al fin).
@@ -212,15 +238,53 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
             <Suspense fallback={<p role="status">Cargando gráficos…</p>}>
               <MetricCurve
                 slots={daily.slots}
+                onSelect={setSelectedSlot}
                 metric="students"
                 title="Alumnos previstos"
               />
               <MetricCurve
                 slots={daily.slots}
+                onSelect={setSelectedSlot}
                 metric="classes"
                 title="Clases simultáneas"
               />
             </Suspense>
+          )}
+          {daily && (
+            <section className="panel daily-slot">
+              <label>
+                Franja del día
+                <select
+                  aria-label="Franja del día"
+                  value={selectedSlot ?? ""}
+                  onChange={(e) =>
+                    setSelectedSlot(
+                      e.target.value === "" ? null : Number(e.target.value),
+                    )
+                  }
+                >
+                  <option value="">Elegí una franja</option>
+                  {daily.slots.map((s, i) => (
+                    <option key={s.start} value={i}>
+                      {s.start}–{s.end}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p>
+                Elegí en el gráfico con clic o toque, o usá este selector con
+                teclado.
+              </p>
+              {selectedSlot !== null && (
+                <p role="status">
+                  {daily.slots[selectedSlot].start}–
+                  {daily.slots[selectedSlot].end} ·{" "}
+                  {daily.slots[selectedSlot].students} alumnos previstos ·{" "}
+                  {daily.slots[selectedSlot].classes} clases simultáneas · 1
+                  fecha aportante.
+                </p>
+              )}
+            </section>
           )}
           <div className="panel metric-volume">
             <Users />

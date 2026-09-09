@@ -19,4 +19,15 @@ Estos controles pertenecen a la demostración, no al producto final, y no se imp
 
 Salvo Protección temporal, el reloj es 08/09/2026 a las 10:00, zona institucional America/Argentina/Cordoba. El escenario histórico usa un reloj simulado, no el reloj del equipo. Ningún escenario se guarda fuera de la memoria del navegador.
 
-Pendientes de la siguiente validación: controles de fallo/respuesta tardía, sesión vencida y versión desactualizada, además de la auditoría integral de teclado, zoom, impresión y consistencia. Estos escenarios disponibles no constituyen por sí solos la aprobación final P-06.
+## Pruebas de recuperación
+
+Dentro de Herramientas de demostración:
+
+- **Simular error de indicadores** retira resultados y ofrece reintento, conservando filtros. Abrir Indicadores antes de activar la prueba.
+- **Simular respuesta lenta** demora 1,5 segundos cada consulta de indicadores. Cambiar fecha o filtro durante la espera invalida la anterior. **Respuesta normal** desactiva la demora.
+- **Simular otra versión de reserva** se usa con una reserva abierta y una modificación preparada. Incrementa la versión sin cambiar sus datos; guardar la edición anterior debe rechazarse. Volver al detalle y abrir de nuevo permite usar la versión actual.
+- **Simular sesión vencida** termina la sesión, descarta preparación sin guardar y conserva reservas. Volver a ingresar con una cuenta de demo.
+
+El reinicio de escenario limpia también estos estados. Son simulaciones de interfaz; no prueban un proveedor, red ni concurrencia real.
+
+Pendientes: estados de consulta/guardado del registro de reservas, fallo incierto y revisión global de teclado, zoom, impresión y consistencia. No se declara terminada P-06.

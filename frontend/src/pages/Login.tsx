@@ -6,7 +6,9 @@ import { Button } from "../components/ui/button";
 
 export function Login({
   onLogin,
+  notice,
 }: {
+  notice?: string;
   onLogin: (email: string, password: string) => string | undefined;
 }) {
   const [error, setError] = useState("");
@@ -26,6 +28,7 @@ export function Login({
       <form className="login-panel" onSubmit={submit}>
         <p className="eyebrow">GESTIÓN ACADÉMICA</p>
         <h1>Ingresar</h1>
+        {notice && <p role="alert">{notice}</p>}
         <p className="muted">Tu espacio para organizar los espacios.</p>
         <label>
           Correo electrónico

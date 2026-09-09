@@ -23,10 +23,12 @@ export function MetricCurve({
   slots,
   metric,
   title,
+  onSelect,
 }: {
   slots: ReturnType<typeof dayMetrics>["slots"];
   metric: "students" | "classes";
   title: string;
+  onSelect?: (index: number) => void;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -50,6 +52,10 @@ export function MetricCurve({
         ],
       },
       options: {
+        onClick: (_event, elements) => {
+          const index = elements[0]?.index;
+          if (index !== undefined && index < slots.length) onSelect?.(index);
+        },
         responsive: true,
         maintainAspectRatio: false,
         animation: false,
@@ -81,7 +87,7 @@ export function MetricCurve({
       },
     });
     return () => chart.destroy();
-  }, [slots, metric, title]);
+  }, [slots, metric, title, onSelect]);
   const max = Math.max(...slots.map((s) => s[metric]));
   return (
     <section className="panel metric-curve">

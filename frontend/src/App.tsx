@@ -114,6 +114,39 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
         );
         return;
       }
+      if (kind === "occupy") {
+        const blocker: Booking = {
+          id: "R-SIM-CONFLICT",
+          subject: "Actividad de prueba",
+          course: "001-A-2026",
+          teacher: "Laura Gómez",
+          students: 30,
+          teacherEmail: "laura@example.test",
+          registrant: {
+            name: "Operador de prueba",
+            email: "operador@example.test",
+          },
+          occurrences: ["2026-09-14", "2026-09-21"].map((date) => ({
+            date,
+            start: "14:00",
+            end: "16:00",
+            room: "203",
+          })),
+        };
+        if (bookings.some((b) => b.id === blocker.id)) return;
+        const failure = validateBooking(blocker, bookings, inventory, calendar);
+        if (failure) {
+          setSimulationNotice(
+            `No se aplicó la ocupación de prueba: ${failure}`,
+          );
+          return;
+        }
+        setBookings((old) => [...old, blocker]);
+        setSimulationNotice(
+          "Simulación: otra reserva ocupó Aula 203 el 14 y 21/09 de 14 a 16. Confirmá la preparación para comprobar la revalidación.",
+        );
+        return;
+      }
       if (kind !== "version") return;
       const id = decodeURIComponent(
         window.location.pathname.split("/")[2] ?? "",
@@ -135,7 +168,7 @@ function App({ scenario }: { scenario: ReturnType<typeof createScenario> }) {
     }
     window.addEventListener("aulas:demo-action", onAction);
     return () => window.removeEventListener("aulas:demo-action", onAction);
-  }, []);
+  }, [bookings, inventory, calendar]);
   return (
     <CalendarContext value={calendars}>
       <RoomContext value={inventory}>

@@ -34,3 +34,7 @@ El reinicio de escenario limpia también estos estados. Son simulaciones de inte
 - **Simular respuesta de guardado incierta** guarda una reserva nueva pero oculta la confirmación. **Comprobar estado de la reserva** consulta el mismo ID y confirma sin reenviar. Todos los guardados de reserva nueva muestran una espera de 600 ms y deshabilitan el botón.
 
 La espera se cancela al salir del formulario o vencer la sesión. Antes de guardar se revalidan los datos actuales. Pendiente la revisión global de teclado, zoom, impresión, consistencia y cobertura completa de requisitos. No se declara terminada P-06.
+
+### Conflicto después de consultar
+
+En «Reserva nueva», preparar Matemática lunes Aula 203 / miércoles Aula 105 y llegar a revisión. Abrir herramientas y pulsar «Ocupar Aula 203 · 14 y 21/09 · 14–16». Confirmar: se identifican ambas fechas y se vuelve a asignación sin guardar clases. Elegir otra aula compatible para lunes y volver a confirmar. La ocupación de prueba permanece hasta reiniciar; el control no duplica su reserva si se pulsa nuevamente.

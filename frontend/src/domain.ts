@@ -173,12 +173,21 @@ export function validateBooking(
       minutes(o.end) % 30
     )
       return "Usá horarios de 07:00 a 23:00, en intervalos de 30 minutos.";
-    if (
-      existing.some((b) =>
-        b.occurrences.some((other) => !other.cancelled && overlaps(o, other)),
-      )
-    )
-      return "La disponibilidad cambió. Volvé a elegir las aulas; no se guardó ninguna clase.";
+  }
+  const conflicts = booking.occurrences.filter((o) =>
+    existing.some((b) =>
+      b.occurrences.some((other) => !other.cancelled && overlaps(o, other)),
+    ),
+  );
+  if (conflicts.length) {
+    const affected = [
+      ...new Set(
+        conflicts.map(
+          (o) => `${dateLabel(o.date)} (${o.start}–${o.end}, aula ${o.room})`,
+        ),
+      ),
+    ];
+    return `La disponibilidad cambió. Clases afectadas: ${affected.join("; ")}. Volvé a elegir las aulas; no se guardó ninguna clase.`;
   }
   return null;
 }

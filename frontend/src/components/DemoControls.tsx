@@ -15,7 +15,7 @@ export function DemoControls({
   simulateSave: (mode: "normal" | "error" | "uncertain") => void;
   queryMode: "normal" | "error" | "slow";
   simulateQuery: (mode: "normal" | "error" | "slow") => void;
-  simulateAction: (kind: "expire" | "version") => void;
+  simulateAction: (kind: "expire" | "version" | "occupy") => void;
   current: ScenarioId;
   now: string;
   apply: (id: ScenarioId) => void;
@@ -100,6 +100,9 @@ export function DemoControls({
         <div className="metric-toggle">
           <Button variant="outline" onClick={() => simulateQuery("error")}>
             Simular error de disponibilidad
+          </Button>
+          <Button variant="outline" onClick={() => simulateAction("occupy")}>
+            Ocupar Aula 203 · 14 y 21/09 · 14–16
           </Button>
           <Button variant="outline" onClick={() => simulateSave("error")}>
             Simular fallo de guardado

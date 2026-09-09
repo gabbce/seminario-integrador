@@ -217,3 +217,9 @@ Agenda diaria (grilla y lista móvil) y semanal llevan fecha/horario al detalle 
 E2E comprueba las tres entradas y la selección de una fecha posterior dentro de una serie de 26 clases. Capturas `frontend/evidence/detalle-fecha-desktop.png` y `detalle-fecha-mobile.png` inspeccionadas; se corrigió la separación del rótulo y la fecha tras la primera inspección. Build/lint correctos. Continúan pendientes conflictos de confirmación con fechas y la validación integral P-06.
 
 La revisión independiente detectó una ambigüedad al reprogramar hacia la fecha/hora de una clase cancelada. El detalle prioriza la coincidencia vigente que muestra la agenda; E2E reproduce cancelación del 14/09 y traslado del 21/09 al mismo horario para verificarlo.
+
+## Conflictos al confirmar
+
+La revalidación informa todas las clases afectadas con fecha, horario y aula, y devuelve la preparación al paso de asignación. No se guarda un subconjunto. Herramienta de demostración: «Ocupar Aula 203 · 14 y 21/09 · 14–16» registra una reserva de prueba si el calendario y la disponibilidad lo permiten; es idempotente y se elimina al reiniciar el escenario.
+
+E2E prepara la periódica aprobada, ocupa el aula antes de confirmar, verifica ambas fechas, conserva datos, elige otra aula y confirma 26 clases con una sola instancia en agenda. Capturas `frontend/evidence/conflicto-confirmacion-desktop.png` y `conflicto-confirmacion-mobile.png` inspeccionadas. Estado de error móvil sin infracciones automáticas de Axe. 61 unitarias, build y lint correctos. P-06 sigue pendiente de la auditoría integral ya enumerada.

@@ -241,6 +241,7 @@ export function Wizard({
     const issue = validateBooking(booking, bookings, rooms, calendar);
     if (issue) {
       setError(issue);
+      setStep(2);
       return;
     }
     if (step === 2) setStep(3);

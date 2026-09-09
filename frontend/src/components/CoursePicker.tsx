@@ -15,11 +15,13 @@ export function CoursePicker({
   choose: (course: Course) => void;
   add: (course: Course) => void;
 }) {
+  const [attempt, setAttempt] = useState(0);
   const [editing, setEditing] = useState(false),
     [subject, setSubject] = useState(""),
     [commission, setCommission] = useState(""),
     [error, setError] = useState("");
   function create() {
+    setAttempt((n) => n + 1);
     try {
       const course = createCourse(courses, subject, commission, year);
       add(course);
@@ -66,6 +68,7 @@ export function CoursePicker({
           <label>
             Nombre de materia
             <input
+              id="course-subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               list="matter-names"
@@ -79,13 +82,21 @@ export function CoursePicker({
           <label>
             Comisión
             <input
+              id="course-commission"
               value={commission}
               onChange={(e) => setCommission(e.target.value)}
             />
           </label>
           <p>Año lectivo: {year}</p>
           {error && (
-            <FormError message={error} />
+            <FormError
+              message={error}
+              attempt={attempt}
+              fields={[
+                { id: "course-subject", label: "materia" },
+                { id: "course-commission", label: "comisión" },
+              ]}
+            />
           )}
           <Button type="button" onClick={create}>
             Guardar curso y seleccionar

@@ -16,6 +16,7 @@ export function ChangeRoom({
   back: () => void;
 }) {
   const rooms = useRooms();
+  const [attempt, setAttempt] = useState(0);
   const [snapshot] = useState(booking);
   const groups = snapshot.patterns
     ? snapshot.patterns.map((p) => ({
@@ -143,9 +144,7 @@ export function ChangeRoom({
           </section>
         </div>
       </section>
-      {error && (
-        <FormError message={error} />
-      )}
+      {error && <FormError message={error} attempt={attempt} />}
       <div className="change-room-actions">
         <Button variant="outline" onClick={back}>
           Descartar cambios
@@ -153,6 +152,7 @@ export function ChangeRoom({
         <Button
           disabled={!room}
           onClick={() => {
+            setAttempt((n) => n + 1);
             const failure = save(request);
             if (failure) setError(failure);
           }}

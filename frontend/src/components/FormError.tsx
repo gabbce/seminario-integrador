@@ -5,9 +5,11 @@ type ErrorField = { id: string; label: string };
 export function FormError({
   message,
   fields = [],
+  attempt = 0,
 }: {
   message: string;
   fields?: ErrorField[];
+  attempt?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -29,7 +31,7 @@ export function FormError({
       clearTimeout(timer);
       form?.removeEventListener("submit", focusAgain);
     };
-  }, [message]);
+  }, [message, attempt]);
   function visit(field?: ErrorField) {
     const control = field
       ? document.getElementById(field.id)

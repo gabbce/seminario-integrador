@@ -8,3 +8,9 @@ test('errores enfocan el resumen y permiten corregir el campo con teclado',async
  await page.keyboard.press('ControlOrMeta+A');await page.keyboard.type('Nueva2026');await page.getByRole('button',{name:'Guardar cuenta'}).click();await expect(page.getByRole('status')).toContainText('Cuenta guardada');
  await page.setViewportSize({width:1440,height:1000});await page.getByRole('link',{name:'Aulas',exact:true}).click();await page.getByRole('button',{name:'Nueva aula',exact:true}).click();await page.getByLabel('Identificador',{exact:true}).fill('105');await page.getByLabel('Ubicación / edificio',{exact:true}).fill('Edificio A');await page.getByRole('button',{name:'Guardar aula'}).click();await expect(page.getByRole('alert')).toBeFocused();await page.keyboard.press('Tab');await page.keyboard.press('Enter');await expect(page.getByLabel('Identificador',{exact:true})).toBeFocused();await page.keyboard.press('ControlOrMeta+A');await page.keyboard.type('900');await page.getByRole('button',{name:'Guardar aula'}).click();await expect(page.getByRole('status').filter({hasText:'Aula guardada'})).toBeVisible();
 });
+
+test('repetir un error de curso vuelve a enfocar el mensaje y enlaza sus campos',async({page})=>{
+ await page.goto('/');await page.getByLabel('Correo electrónico').fill('bedel@demo.local');await page.getByLabel('Contraseña',{exact:true}).fill('Aulas2026');await page.getByRole('button',{name:'Ingresar',exact:true}).click();await page.getByRole('button',{name:'Nueva reserva',exact:true}).click();await page.getByRole('button',{name:'Crear curso',exact:true}).click();
+ for(let i=0;i<2;i++){await page.getByRole('button',{name:'Guardar curso y seleccionar'}).click();await expect(page.getByRole('alert')).toBeFocused();}
+ await page.keyboard.press('Tab');await page.keyboard.press('Enter');await expect(page.getByLabel('Nombre de materia')).toBeFocused();
+});

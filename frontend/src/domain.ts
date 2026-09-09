@@ -44,7 +44,12 @@ export type Booking = {
   resources?: Resource[];
   board?: string;
   teacherEmail?: string;
-  registrant?: { name: string; email: string; inactive?: boolean };
+  registrant?: {
+    userId?: string;
+    name: string;
+    email: string;
+    inactive?: boolean;
+  };
   occurrences: Occurrence[];
   schedule?: Schedule;
   patterns?: Pattern[];
@@ -217,7 +222,11 @@ export const initialBookings: Booking[] = bookingFixtures.map((b) => ({
   ...b,
   type: rooms.find((r) => r.id === b.occurrences[0]?.room)?.type,
   teacherEmail: teachers.find((t) => t.name === b.teacher)?.email,
-  registrant: { name: "Gabriela · Bedel", email: "bedel@demo.local" },
+  registrant: {
+    userId: "bedel",
+    name: "Gabriela · Bedel",
+    email: "bedel@demo.local",
+  },
 }));
 export const dateLabel = (date: string) =>
   new Intl.DateTimeFormat("es-AR", {

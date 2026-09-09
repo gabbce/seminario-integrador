@@ -19,7 +19,8 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Reprogramación P-03 | Implementado, validado | Una o varias fechas con aula conservada, revisión previa y guardado conjunto. 30 pruebas unitarias, 17 E2E. |
 | Datos compartidos P-03 | Implementado, validado | Curso/docente/alumnos/requisitos antes del inicio, revalidación e historial. 33 pruebas unitarias, 18 E2E. |
 | Inventario de aulas P-04 | Implementado, validado | Alta, edición, baja, filtros, historial e integración de disponibilidad. 37 pruebas unitarias, 19 E2E. |
-| Cuentas y calendario P-04 | Siguiente | Usuarios, calendario e impacto atómico sobre series. |
+| Cuentas P-04 | Implementado, validado | Alta/perfiles, estados, búsqueda/orden/paginación, contraseña y último Admin. 39 pruebas unitarias, 20 E2E. |
+| Calendario P-04 | Siguiente | Años/cuatrimestres/feriados e impacto atómico sobre series. |
 | Indicadores P-05 | Pendiente | Cálculos derivados, vistas diaria/semanal/rango, Chart.js y tabla accesible. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
@@ -122,3 +123,11 @@ Referencia `mockups/administracion-b/01-aulas.png`; capturas `frontend/evidence/
 Inventario compartido mediante contexto React; funciones de validación reciben el conjunto actualizado. Altas crean cobertura histórica desde el reloj de la demo; fixtures tienen cobertura conocida desde enero de 2026. Cambios de estado/tipo generan historial. Baja lógica exige confirmación, conserva identidad y no admite restaurar/reutilizar. Capacidad, estado y recursos protegen futuras/en curso. Agenda indica aulas no reservables; consultas y mutaciones respetan estado. Listados conservan el tipo solicitado de la reserva, sin reclasificar canceladas al editar inventario.
 
 E2E rechaza reducción de 105, crea S01 con piso negativo, la ofrece en disponibilidad y la retira al pasar a mantenimiento. Unitarias cubren bajas, identidad, cobertura y reservas en curso. Se corrigió reclasificación histórica detectada por revisión independiente. Cuentas, calendario, indicadores y validación global siguen pendientes.
+
+## Revisión visual de cuentas
+
+Referencia `mockups/administracion-b/02-usuarios.png`, capturas `frontend/evidence/cuentas-desktop.png` y `cuentas-mobile.png`. Lista y formulario en paralelo; formulario primero en móvil. Filas con acción Editar explícita, nombre accesible con correo, filtros por nombre/correo/rol/estado, orden por apellido o correo y páginas de 20. Se identifica el último Admin activo. Las pestañas con calendario se incorporan en el siguiente corte.
+
+Identidad estable por ID, alta y modificación de nombre/apellido/email/rol/perfil, deshabilitar/rehabilitar y contraseña elegida/confirmada por Admin. Reservas conservadas, contactos de registrador actualizados por ID y auditoría de cambios con identidad del operador. Docentes del catálogo académico siguen independientes de cuentas. Login utiliza perfiles actuales; rol/estado afectan acceso. E2E protege último Admin, crea docente, cambia contraseña, rechaza clave anterior y entra con permisos de consulta.
+
+`mock-auth.ts` es un adaptador ficticio de credenciales en memoria, separado del modelo Usuario, sin persistencia ni servicios externos. La mínima longitud de seis caracteres simula una respuesta de proveedor para la demostración; no añade política definitiva al producto ni sustituye Supabase Auth. No hay temporizador de inactividad ni cambio obligatorio. Integración real y secretos quedan fuera del prototipo. Revisiones independientes sin hallazgos; calendario, indicadores y P-06 pendientes.

@@ -1,23 +1,24 @@
 import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
-import { type Role } from "../domain";
+
 import { Brand } from "../components/Brand";
 import { Button } from "../components/ui/button";
 
-export function Login({ onLogin }: { onLogin: (role: Role) => void }) {
+export function Login({
+  onLogin,
+}: {
+  onLogin: (email: string, password: string) => string | undefined;
+}) {
   const [error, setError] = useState("");
   const [show, setShow] = useState(false);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const roles: Record<string, Role> = {
-      "admin@demo.local": "Administrador",
-      "bedel@demo.local": "Bedel",
-      "docente@demo.local": "Docente",
-    };
-    const r = roles[String(data.get("email")).toLowerCase()];
-    if (r && data.get("password") === "Aulas2026") onLogin(r);
-    else setError("El correo o la contraseña no son correctos.");
+    const failure = onLogin(
+      String(data.get("email")),
+      String(data.get("password")),
+    );
+    if (failure) setError(failure);
   }
   return (
     <div className="login-page">

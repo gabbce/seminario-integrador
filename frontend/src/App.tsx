@@ -1,3 +1,6 @@
+import { Users } from "./pages/Users";
+import { initialUsers, saveUser, type User } from "./users";
+import { authenticate, passwordError, setCredential } from "./mock-auth";
 import { saveRoom } from "./room-management";
 import { RoomContext } from "./room-context";
 import { rooms } from "./domain";
@@ -26,7 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Brand } from "./components/Brand";
-import { initialBookings, type Role } from "./domain";
+import { initialBookings, type Booking } from "./domain";
 import "./App.css";
 import { Login } from "./pages/Login";
 import { Agenda } from "./pages/Agenda";
@@ -43,9 +46,31 @@ const navigation = [
   ["/aulas", "Aulas", DoorOpen],
   ["/indicadores", "Indicadores", ChartNoAxesColumn],
 ] as const;
+function attributeChange(
+  before: Booking,
+  after: Booking,
+  user: User | undefined,
+): Booking {
+  if (!user) return after;
+  const actor = `${user.name} ${user.surname} · ${user.email}`;
+  return {
+    ...after,
+    changes: after.changes?.map((change, index) =>
+      index >= (before.changes?.length ?? 0) ? { ...change, actor } : change,
+    ),
+    occurrences: after.occurrences.map((o, index) =>
+      o.cancellation && !before.occurrences[index]?.cancelled
+        ? { ...o, cancellation: { ...o.cancellation, actor } }
+        : o,
+    ),
+  };
+}
 function App() {
   const [inventory, setInventory] = useState(rooms);
-  const [role, setRole] = useState<Role | null>(null);
+  const [users, setUsers] = useState(initialUsers);
+  const [userId, setUserId] = useState<string>();
+  const currentUser = users.find((u) => u.id === userId && u.active);
+  const role = currentUser?.role;
   const [bookings, setBookings] = useState(initialBookings);
   const [courses, setCourses] = useState(initialCourses);
   const [draft, setDraft] = useState<ReservationDraft>();
@@ -54,7 +79,13 @@ function App() {
     <RoomContext value={inventory}>
       <BrowserRouter>
         {!role ? (
-          <Login onLogin={setRole} />
+          <Login
+            onLogin={(email, password) => {
+              const result = authenticate(users, email, password);
+              if (result.error) return result.error;
+              setUserId(result.id);
+            }}
+          />
         ) : (
           <>
             <header className="topbar">
@@ -94,7 +125,7 @@ function App() {
                   variant="ghost"
                   size="icon"
                   aria-label="Cerrar sesión"
-                  onClick={() => setRole(null)}
+                  onClick={() => setUserId(undefined)}
                 >
                   <LogOut />
                 </Button>
@@ -128,7 +159,19 @@ function App() {
                         }
                         role={role}
                         bookings={bookings}
-                        save={(b) => setBookings((old) => [...old, b])}
+                        save={(b) =>
+                          setBookings((old) => [
+                            ...old,
+                            {
+                              ...b,
+                              registrant: {
+                                name: `${currentUser?.name} ${currentUser?.surname}`,
+                                email: currentUser?.email ?? "",
+                                userId: currentUser?.id,
+                              },
+                            },
+                          ])
+                        }
                       />
                     )
                   }
@@ -161,7 +204,15 @@ function App() {
                         if (result.error) return result.error;
                         if (result.booking)
                           setBookings((old) =>
-                            old.map((b) => (b.id === id ? result.booking : b)),
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
                           );
                       }}
                       reschedule={(id, request) => {
@@ -178,7 +229,15 @@ function App() {
                         if (result.error) return result.error;
                         if (result.booking)
                           setBookings((old) =>
-                            old.map((b) => (b.id === id ? result.booking : b)),
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
                           );
                       }}
                       changeRoom={(id, request) => {
@@ -195,7 +254,15 @@ function App() {
                         if (result.error) return result.error;
                         if (result.booking)
                           setBookings((old) =>
-                            old.map((b) => (b.id === id ? result.booking : b)),
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
                           );
                       }}
                       cancel={(id, request) => {
@@ -206,7 +273,15 @@ function App() {
                         if (result.error) return result.error;
                         if (result.booking)
                           setBookings((old) =>
-                            old.map((b) => (b.id === id ? result.booking : b)),
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
                           );
                       }}
                     />
@@ -250,13 +325,74 @@ function App() {
                     />
                   }
                 />
-                {["indicadores", "administracion"].map((path) => (
+                {["indicadores"].map((path) => (
                   <Route
                     key={path}
                     path={`/${path}`}
                     element={<Pending name={path} />}
                   />
                 ))}
+                <Route
+                  path="/administracion"
+                  element={
+                    role === "Administrador" ? (
+                      <Users
+                        users={users}
+                        save={(user, password, confirmation) => {
+                          const isNew = !users.some((u) => u.id === user.id);
+                          if (isNew) {
+                            const error = passwordError(password, confirmation);
+                            if (error) return error;
+                          }
+                          const result = saveUser(users, user, userId ?? "");
+                          if (result.error) return result.error;
+                          if (result.users) {
+                            if (isNew) {
+                              const error = setCredential(
+                                result.users,
+                                userId ?? "",
+                                user.id,
+                                password,
+                                confirmation,
+                              );
+                              if (error) return error;
+                            }
+                            setUsers(result.users);
+                            setBookings((old) =>
+                              old.map((b) => {
+                                const registrant = result.users.find(
+                                  (u) => u.id === b.registrant?.userId,
+                                );
+                                return registrant
+                                  ? {
+                                      ...b,
+                                      registrant: {
+                                        userId: registrant.id,
+                                        name: `${registrant.name} ${registrant.surname}`,
+                                        email: registrant.email,
+                                        inactive: !registrant.active,
+                                      },
+                                    }
+                                  : b;
+                              }),
+                            );
+                          }
+                        }}
+                        reset={(id, password, confirmation) =>
+                          setCredential(
+                            users,
+                            userId ?? "",
+                            id,
+                            password,
+                            confirmation,
+                          )
+                        }
+                      />
+                    ) : (
+                      <Navigate to="/agenda" replace />
+                    )
+                  }
+                />
                 <Route path="*" element={<Navigate to="/agenda" replace />} />
               </Routes>
             </main>

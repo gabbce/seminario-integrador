@@ -1417,3 +1417,26 @@ body {
 .metric-table table { width:100%; border-collapse:collapse; text-align:left; }
 .metric-table td,.metric-table th { padding:12px 8px; border-bottom:1px solid #d9ddd5; }
 @media(max-width:700px) { .metric-filters,.metric-cards { grid-template-columns:1fr; gap:14px; } .metric-curve-heading { display:block; } .metric-curve-heading p { max-width:none; } .metric-canvas { height:200px; } }
+.metric-toggle { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.weekly-panel,.weekly-comparison { margin-bottom:20px; }
+.heat-scroll { overflow-x:auto; padding:4px; }
+.heat-table { width:100%; min-width:1040px; border-collapse:separate; border-spacing:3px; table-layout:fixed; }
+.heat-table th:first-child { width:110px; text-align:left; position:sticky; left:0; background:#fffefa; z-index:1; }
+.heat-table thead th { font-size:12px; font-weight:400; text-align:left; height:24px; }
+.heat-table tbody th { font-size:14px; }
+.heat-table small { display:block; font-size:12px; font-weight:400; margin-top:4px; }
+.heat-cell { display:block; width:100%; min-height:44px; border:0; cursor:pointer; }
+.heat-cell[aria-pressed=true] { outline:2px solid #185340; outline-offset:1px; }
+.heat-legend { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:14px; }
+.heat-legend span { width:24px; height:16px; border:1px solid #d9ddd5; }
+.heat-zero { background:#f4f2ec; } .heat-max { background:#185340; }
+.heat-selection { background:#f4f2ec; border-left:3px solid #185340; padding:16px; margin:20px 0; min-height:90px; }
+.heat-selection p { margin:4px 0; }
+.volume-bars { display:grid; gap:14px; margin:24px 0; }
+.volume-bars > div { display:grid; grid-template-columns:90px minmax(0,1fr) 180px; gap:16px; align-items:center; }
+.volume-bars > div > div { background:#f4f2ec; height:18px; }
+.volume-bars > div > div > span { display:block; height:100%; background:#185340; }
+.volume-bars strong { font-size:14px; font-weight:400; }
+.weekly-comparison .metric-table table { min-width:640px; }
+@media(max-width:700px) { .volume-bars > div { grid-template-columns:75px minmax(0,1fr); gap:8px; } .volume-bars strong { grid-column:2; } }
+.heat-scroll { position:relative; }

@@ -105,3 +105,118 @@ export function dayMetrics(
     })),
   };
 }
+
+export function validMetricDate(value: string) {
+  return (
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    Number(value.slice(0, 4)) >= 1 &&
+    Number.isFinite(new Date(`${value}T12:00:00Z`).getTime()) &&
+    new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
+  );
+}
+export function rangeMetrics(
+  from: string,
+  to: string,
+  bookings: Booking[],
+  rooms: Room[],
+  calendars: CalendarConfig[],
+  filter: MetricFilter = {},
+) {
+  if (!validMetricDate(from) || !validMetricDate(to) || from > to) return null;
+  const days: ReturnType<typeof dayMetrics>[] = [];
+  // Only registered calendars can supply eligible dates. Missing years remain unknown.
+  for (const calendar of calendars) {
+    const year = String(calendar.year).padStart(4, "0");
+    const start = from > `${year}-01-01` ? from : `${year}-01-01`;
+    const end = to < `${year}-12-31` ? to : `${year}-12-31`;
+    for (let date = start; date <= end;) {
+      days.push(dayMetrics(date, bookings, rooms, calendars, filter));
+      if (date === end) break;
+      const next = new Date(`${date}T12:00:00Z`);
+      next.setUTCDate(next.getUTCDate() + 1);
+      date = next.toISOString().slice(0, 10);
+    }
+  }
+  const expectedDays =
+    (new Date(`${to}T12:00:00Z`).getTime() -
+      new Date(`${from}T12:00:00Z`).getTime()) /
+      86400000 +
+    1;
+  const sum = (
+    items: typeof days,
+    key: "hours" | "availableHours" | "classes" | "studentHours",
+  ) => items.reduce((total, d) => total + d[key], 0);
+  const week = [1, 2, 3, 4, 5].map((day) => {
+    const eligible = days.filter(
+      (d) => d.eligible && new Date(`${d.date}T12:00:00Z`).getUTCDay() === day,
+    );
+    const slots = metricSlots.map((slot, index) => ({
+      ...slot,
+      students: eligible.length
+        ? eligible.reduce((total, d) => total + d.slots[index].students, 0) /
+          eligible.length
+        : null,
+      classes: eligible.length
+        ? eligible.reduce((total, d) => total + d.slots[index].classes, 0) /
+          eligible.length
+        : null,
+    }));
+    return {
+      day,
+      dates: eligible.map((d) => d.date),
+      slots,
+      studentHours: eligible.length
+        ? sum(eligible, "studentHours") / eligible.length
+        : null,
+      classes: eligible.length
+        ? sum(eligible, "classes") / eligible.length
+        : null,
+      peakStudents: eligible.length
+        ? Math.max(...slots.map((s) => s.students!))
+        : null,
+      peakClasses: eligible.length
+        ? Math.max(...slots.map((s) => s.classes!))
+        : null,
+      peakDateStudents: eligible.length
+        ? Math.max(...eligible.map((d) => d.peakStudents))
+        : null,
+    };
+  });
+  const hours = sum(days, "hours"),
+    availableHours = sum(days, "availableHours"),
+    unknownCoverage =
+      days.length !== expectedDays || days.some((d) => d.unknownCoverage);
+  const demand = new Map<
+    string,
+    { type: string; hours: number; classes: number }
+  >();
+  for (const day of days)
+    for (const row of day.demand) {
+      const previous = demand.get(row.type) ?? {
+        type: row.type,
+        hours: 0,
+        classes: 0,
+      };
+      demand.set(row.type, {
+        type: row.type,
+        hours: previous.hours + row.hours,
+        classes: previous.classes + row.classes,
+      });
+    }
+  return {
+    from,
+    to,
+    week,
+    eligible: days.some((d) => d.eligible),
+    unknownCoverage,
+    hours,
+    availableHours,
+    classes: sum(days, "classes"),
+    studentHours: sum(days, "studentHours"),
+    occupancy:
+      unknownCoverage || !availableHours
+        ? null
+        : (100 * hours) / availableHours,
+    demand: [...demand.values()],
+  };
+}

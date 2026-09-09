@@ -23,7 +23,7 @@ Objetivo activo: completar P-01 a P-06 del [plan aprobado](prototipo-navegable.m
 | Calendario e impacto P-04 | Implementado, validado para 2026 | Cuatrimestres y fechas no lectivas compartidos; extensión atómica de series. 43 pruebas unitarias, 21 E2E. |
 | Ciclo de años P-04 | Implementado, validado | Alta/estados y eliminación protegida; reservas y cursos por año, traspaso desde disponibilidad. 48 pruebas unitarias y 22 E2E. |
 | Indicadores diarios P-05 | Implementado, validado | Cálculos históricos, filtros, curvas Chart.js y tabla de 32 franjas. 54 pruebas unitarias y 23 E2E. |
-| Semana típica y rangos P-05 | Siguiente | Medias por fecha elegible, mapa y comparación diaria; estados de consulta. |
+| Semana típica y rangos P-05 | Implementado, validado | Medias por fecha elegible, mapa seleccionable, comparación y filtros. 59 pruebas unitarias y 24 E2E. |
 | Validación P-06 | Pendiente | Estados completos, escenarios, impresión extensa, teclado/zoom/móvil y consistencia entre vistas. |
 
 ## Revisión visual del corte de períodos
@@ -159,3 +159,11 @@ Los valores se calculan de reservas/aulas/calendarios compartidos. El escenario 
 Denominador por módulos completos e historial de aula; tipo al inicio, sin depender del estado administrativo del año ni excluir receso. Canceladas no suman; cero, sin horas y cobertura desconocida se distinguen. Eventos con mismo instante conservan el último, incluyendo continuidad. Se corrigió también el escalón temporal para no adelantar valores media hora. Revisiones independientes sin hallazgos pendientes en este corte.
 
 E2E verifica datos actuales, filtros, fechas vacías/no lectivas, tabla, móvil y bloqueo de ruta para Docente. Compilación y lint correctos. Semana típica, rangos, selección de franjas y estados simulados completos siguen pendientes; no se declara cerrado P-05 ni el objetivo.
+
+## Revisión visual de semana típica y rangos
+
+Referencia `mockups/indicadores-guia-b/02-semana-tipica.png` con correcciones escritas: mapa de 32 medias horas por día, barras de alumnos-hora y demanda por tipo. Capturas `frontend/evidence/indicadores-semana-desktop.png` y `indicadores-semana-mobile.png` revisadas. El mapa se desplaza horizontalmente con los nombres de días fijos; foco, clic y toque muestran ambos valores y fechas aportantes. Corregido desbordamiento móvil de etiquetas accesibles. La comparación se presenta debajo del mapa para dar espacio a sus columnas.
+
+Período rápido por cuatrimestre/año o rango personalizado, conservando filtros. Las medias incluyen días elegibles con cero clases y sin aulas; feriados excluidos, estado de año ignorado. Se distingue pico de curva promedio y máximo de una fecha. Totales dividen sumas de horas. Rangos inválidos retiran los resultados; rangos sin calendarios señalan cobertura desconocida y no recorren años sin datos. Prueba del límite 9999 evita desbordamiento de fecha/bucle.
+
+El ejemplo semanal independiente obtiene 108 horas, 54 clases, 4.352 horas habilitadas y 2,5 %. Doce lunes y catorce de los demás días; medias de alumnos-hora 60/72/60/72/0. La app sigue mostrando su estado compartido, no esos valores fijos. Selector de escenarios, selección de franja diaria, fallos/carga y auditoría completa siguen pendientes de P-06. Compilación/lint y revisiones independientes correctas; objetivo activo.

@@ -3,7 +3,9 @@ import { Clock3, ChartPie, CalendarDays, Users } from "lucide-react";
 import type { Booking } from "../domain";
 import { useRooms } from "../room-context";
 import { useCalendars } from "../calendar-context";
-import { dayMetrics } from "../metrics";
+import { MetricWeek } from "../components/MetricWeek";
+import { Button } from "../components/ui/button";
+import { dayMetrics, rangeMetrics, validMetricDate } from "../metrics";
 const MetricCurve = lazy(() =>
   import("../components/MetricCurve").then((m) => ({ default: m.MetricCurve })),
 );
@@ -15,10 +17,25 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
   const [date, setDate] = useState("2026-09-14"),
     [room, setRoom] = useState(""),
     [type, setType] = useState("");
-  const valid = /^\d{4}-\d{2}-\d{2}$/.test(date);
-  const m = valid
-    ? dayMetrics(date, bookings, rooms, calendars, { room, type })
-    : null;
+  const [mode, setMode] = useState<"day" | "week">("day");
+  const [period, setPeriod] = useState("2026:second");
+  const [customFrom, setCustomFrom] = useState("2026-09-14"),
+    [customTo, setCustomTo] = useState("2026-12-18");
+  const [year, term] = period.split(":");
+  const calendar = calendars.find((c) => c.year === Number(year));
+  const bounds =
+    term === "first" ? calendar?.terms.first : calendar?.terms.second;
+  const from = period === "custom" ? customFrom : (bounds?.[0] ?? ""),
+    to = period === "custom" ? customTo : (bounds?.[1] ?? "");
+  const daily =
+    mode === "day" && validMetricDate(date)
+      ? dayMetrics(date, bookings, rooms, calendars, { room, type })
+      : null;
+  const weekly =
+    mode === "week"
+      ? rangeMetrics(from, to, bookings, rooms, calendars, { room, type })
+      : null;
+  const m = daily ?? weekly;
   const types = [
     ...new Set(rooms.flatMap((r) => (r.history ?? []).map((h) => h.type))),
   ].sort();
@@ -26,23 +43,79 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">INDICADORES · DÍA</p>
+          <p className="eyebrow">
+            INDICADORES · {mode === "day" ? "DÍA" : "SEMANA TÍPICA"}
+          </p>
           <h1>Uso de aulas y horas pico</h1>
           <p>Programación de clases · De 07:00 a 23:00</p>
         </div>
+      </div>
+      <div className="metric-toggle" aria-label="Vista de indicadores">
+        <Button
+          variant={mode === "day" ? "default" : "outline"}
+          onClick={() => setMode("day")}
+        >
+          Día
+        </Button>
+        <Button
+          variant={mode === "week" ? "default" : "outline"}
+          onClick={() => setMode("week")}
+        >
+          Semana típica
+        </Button>
       </div>
       <section
         className="panel metric-filters"
         aria-label="Filtros de indicadores"
       >
-        <label>
-          Día
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </label>
+        {mode === "day" ? (
+          <label>
+            Día
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </label>
+        ) : (
+          <label>
+            Período
+            <select
+              aria-label="Período"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+            >
+              {calendars.flatMap((c) =>
+                (["first", "second"] as const).map((term, i) => (
+                  <option key={`${c.year}:${term}`} value={`${c.year}:${term}`}>
+                    {i + 1}.º cuatrimestre · {c.year}
+                  </option>
+                )),
+              )}
+              <option value="custom">Rango personalizado</option>
+            </select>
+          </label>
+        )}
+        {mode === "week" && period === "custom" && (
+          <>
+            <label>
+              Desde
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+              />
+            </label>
+            <label>
+              Hasta
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+              />
+            </label>
+          </>
+        )}
         <label>
           Aula
           <select
@@ -73,12 +146,15 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
         </label>
       </section>
       {!m ? (
-        <p role="alert">Elegí una fecha válida para consultar.</p>
+        <p role="alert">
+          Elegí una fecha o rango válido para consultar (inicio anterior o igual
+          al fin).
+        </p>
       ) : (
         <>
           {!m.eligible && (
             <p className="closed-notice">
-              Sin datos aplicables de apertura para esta fecha.
+              Sin datos aplicables de apertura para la consulta.
             </p>
           )}
           {m.unknownCoverage && (
@@ -87,7 +163,10 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
               anterior al registro. La ocupación no se calcula.
             </p>
           )}
-          <section className="metric-cards" aria-label="Resumen diario">
+          <section
+            className="metric-cards"
+            aria-label={mode === "day" ? "Resumen diario" : "Resumen del rango"}
+          >
             <article className="panel metric-card">
               <Clock3 />
               <div>
@@ -121,18 +200,28 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
               </div>
             </article>
           </section>
-          <Suspense fallback={<p role="status">Cargando gráficos…</p>}>
-            <MetricCurve
-              slots={m.slots}
-              metric="students"
-              title="Alumnos previstos"
-            />
-            <MetricCurve
-              slots={m.slots}
-              metric="classes"
-              title="Clases simultáneas"
-            />
-          </Suspense>
+          {weekly && (
+            <>
+              <p className="metric-range">
+                Rango consultado: {from} — {to}
+              </p>
+              <MetricWeek key={`${from}:${to}:${room}:${type}`} data={weekly} />
+            </>
+          )}
+          {daily && (
+            <Suspense fallback={<p role="status">Cargando gráficos…</p>}>
+              <MetricCurve
+                slots={daily.slots}
+                metric="students"
+                title="Alumnos previstos"
+              />
+              <MetricCurve
+                slots={daily.slots}
+                metric="classes"
+                title="Clases simultáneas"
+              />
+            </Suspense>
+          )}
           <div className="panel metric-volume">
             <Users />
             <strong>{number(m.studentHours)}</strong>
@@ -169,32 +258,34 @@ export function Indicators({ bookings }: { bookings: Booking[] }) {
               <p>Sin clases programadas para los filtros elegidos.</p>
             )}
           </section>
-          <details className="panel metric-values">
-            <summary>Ver las 32 franjas y sus valores</summary>
-            <p>Un día aporta cada valor. Inicio incluido, fin excluido.</p>
-            <div className="metric-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Franja</th>
-                    <th>Alumnos previstos</th>
-                    <th>Clases simultáneas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {m.slots.map((s) => (
-                    <tr key={s.start}>
-                      <th scope="row">
-                        {s.start}–{s.end}
-                      </th>
-                      <td>{s.students}</td>
-                      <td>{s.classes}</td>
+          {daily && (
+            <details className="panel metric-values">
+              <summary>Ver las 32 franjas y sus valores</summary>
+              <p>Un día aporta cada valor. Inicio incluido, fin excluido.</p>
+              <div className="metric-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Franja</th>
+                      <th>Alumnos previstos</th>
+                      <th>Clases simultáneas</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </details>
+                  </thead>
+                  <tbody>
+                    {daily.slots.map((s) => (
+                      <tr key={s.start}>
+                        <th scope="row">
+                          {s.start}–{s.end}
+                        </th>
+                        <td>{s.students}</td>
+                        <td>{s.classes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          )}
         </>
       )}
     </>

@@ -87,6 +87,13 @@ class SecurityTests {
         var jwt=new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("test-key").build(),claims.build());
         jwt.sign(new RSASSASigner(signer)); return jwt.serialize();
     }
+    @Test void accountEndpointEnforcesRoles() throws Exception {
+        for(String role:new String[]{"ADMINISTRADOR","BEDEL","DOCENTE"}) {
+            UUID id=account(role,true);
+            mvc.perform(get("/api/administracion/cuentas").header("Authorization","Bearer "+token(id)))
+                .andExpect(status().is(role.equals("ADMINISTRADOR")?200:403));
+        }
+    }
     @Test void validProfilesUseDatabaseRolesNotTokenRoles() throws Exception {
         for(String role:new String[]{"ADMINISTRADOR","BEDEL","DOCENTE"}) {
             UUID id=account(role,true);

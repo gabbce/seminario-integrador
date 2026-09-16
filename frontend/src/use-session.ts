@@ -79,6 +79,12 @@ export function useSession() {
   useEffect(() => {
     mounted.current = true;
     if (!supabase) return;
+    const refreshProfile = () => {
+      void supabase?.auth
+        .getSession()
+        .then(({ data }) => resolve(data.session));
+    };
+    window.addEventListener("aulas-profile-refresh", refreshProfile);
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       // Keep SDK callbacks synchronous; session/profile requests run after its lock is released.
@@ -89,6 +95,7 @@ export function useSession() {
       timers.add(timer);
     });
     return () => {
+      window.removeEventListener("aulas-profile-refresh", refreshProfile);
       mounted.current = false;
       invalidate();
       timers.forEach(clearTimeout);

@@ -11,8 +11,7 @@ import { initialCalendar } from "./calendar";
 import { changeCalendar } from "./calendar-management";
 import { CalendarEditor } from "./pages/CalendarEditor";
 import { Users } from "./pages/Users";
-import { initialUsers, saveUser, type User } from "./users";
-import { passwordError, setCredential } from "./mock-auth";
+import { type User } from "./users";
 import { saveRoom } from "./room-management";
 import { RoomContext } from "./room-context";
 
@@ -88,13 +87,6 @@ export default function App({
     initialCalendar;
   const [agendaDate, setAgendaDate] = useState(scenario.now.slice(0, 10));
   const [inventory, setInventory] = useState(scenario.inventory);
-  const [users, setUsers] = useState(() => [
-    ...initialUsers.filter(
-      (u) => u.email !== currentUser.email && u.id !== currentUser.id,
-    ),
-    currentUser,
-  ]);
-  const userId = currentUser.id;
   const role = currentUser?.role;
   const [bookings, setBookings] = useState(scenario.bookings);
   const [courses, setCourses] = useState(initialCourses);
@@ -381,58 +373,7 @@ export default function App({
                 path="/administracion"
                 element={
                   role === "Administrador" ? (
-                    <Users
-                      users={users}
-                      save={(user, password, confirmation) => {
-                        const isNew = !users.some((u) => u.id === user.id);
-                        if (isNew) {
-                          const error = passwordError(password, confirmation);
-                          if (error) return error;
-                        }
-                        const result = saveUser(users, user, userId ?? "");
-                        if (result.error) return result.error;
-                        if (result.users) {
-                          if (isNew) {
-                            const error = setCredential(
-                              result.users,
-                              userId ?? "",
-                              user.id,
-                              password,
-                              confirmation,
-                            );
-                            if (error) return error;
-                          }
-                          setUsers(result.users);
-                          setBookings((old) =>
-                            old.map((b) => {
-                              const registrant = result.users.find(
-                                (u) => u.id === b.registrant?.userId,
-                              );
-                              return registrant
-                                ? {
-                                    ...b,
-                                    registrant: {
-                                      userId: registrant.id,
-                                      name: `${registrant.name} ${registrant.surname}`,
-                                      email: registrant.email,
-                                      inactive: !registrant.active,
-                                    },
-                                  }
-                                : b;
-                            }),
-                          );
-                        }
-                      }}
-                      reset={(id, password, confirmation) =>
-                        setCredential(
-                          users,
-                          userId ?? "",
-                          id,
-                          password,
-                          confirmation,
-                        )
-                      }
-                    />
+                    <Users />
                   ) : (
                     <Navigate to="/agenda" replace />
                   )

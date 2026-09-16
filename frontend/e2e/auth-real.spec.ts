@@ -61,3 +61,20 @@ for (const role of ["admin", "bedel", "docente", "inhabilitado"])
       page.getByRole("heading", { name: "Ingresar", exact: true }),
     ).toBeVisible();
   });
+
+test('I-02.1: perfil persistente y visible desde otra sesión',async({page,browser})=>{
+ await page.goto('/');await page.getByLabel('Correo electrónico').fill('admin@demo.local');await page.getByLabel('Contraseña',{exact:true}).fill(password);
+ await page.getByRole('button',{name:'Ingresar',exact:true}).click();await expect(page.getByRole('link',{name:'Agenda',exact:true})).toBeVisible();
+ await page.goto('/administracion');await page.getByRole('button',{name:'Editar bedel@demo.local'}).click();
+ const before=await page.getByLabel('Nombre',{exact:true}).inputValue();
+ try {
+  await page.getByLabel('Nombre',{exact:true}).fill('Bedel QA');await page.getByRole('button',{name:'Guardar cuenta',exact:true}).click();await expect(page.getByRole('status')).toContainText('Cuenta guardada');
+  await page.reload();await page.getByRole('button',{name:'Editar bedel@demo.local'}).click();await expect(page.getByLabel('Nombre',{exact:true})).toHaveValue('Bedel QA');
+  const other=await browser.newContext();
+  try {const tab=await other.newPage();await tab.goto('http://127.0.0.1:5175/');await tab.getByLabel('Correo electrónico').fill('bedel@demo.local');await tab.getByLabel('Contraseña',{exact:true}).fill(password);await tab.getByRole('button',{name:'Ingresar',exact:true}).click();await expect(tab.getByText('Bedel QA · Bedel',{exact:true})).toBeVisible();await tab.getByRole('button',{name:'Cerrar sesión'}).click();await expect(tab.getByRole('heading',{name:'Ingresar',exact:true})).toBeVisible();}finally{await other.close();}
+  await page.screenshot({path:'evidence/i021-real-cuentas.png',fullPage:true});
+ } finally {
+  await page.getByLabel('Nombre',{exact:true}).fill(before);await page.getByRole('button',{name:'Guardar cuenta',exact:true}).click();await expect(page.getByRole('status')).toContainText('Cuenta guardada');
+ }
+ await page.getByRole('button',{name:'Cerrar sesión'}).click();await expect(page.getByRole('heading',{name:'Ingresar',exact:true})).toBeVisible();
+});

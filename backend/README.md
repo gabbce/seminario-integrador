@@ -32,6 +32,6 @@ Las restricciones diferidas permiten crear Usuario y su especialización, o camb
 
 ## Estado remoto
 
-La conexión a `nrjykdzvzrcixapkdfsp` aún no se verificó: faltan acceso autorizado y variables locales. Las pruebas locales no acreditan configuración ni permisos del proyecto remoto. No se marca I-01.1 completo hasta comprobarlo.
+Conexión verificada a `nrjykdzvzrcixapkdfsp` con un rol dedicado `aulas_app`, dueño únicamente del esquema `aulas`, sin superusuario ni creación de roles/bases. Su contraseña se generó y guardó en `.env`; no se cambió la de `postgres`. Se consultó el host real del pooler (no se deduce de la región). Java aplicó V1, respondió `UP` y el segundo arranque no repitió migraciones. Se verificó ausencia de acceso al esquema para `anon` y `authenticated`, Data API expone solamente `public,graphql_public` y registro público de Auth deshabilitado.
 
 Referencias técnicas: [inicialización y Flyway en Spring Boot](https://docs.spring.io/spring-boot/how-to/data-initialization.html), [conexión Spring Boot/Supabase](https://supabase.com/docs/guides/getting-started/quickstarts/spring-boot). Dependencias resueltas por el BOM de Spring Boot 4.1.1; Flyway 12.4.0 y Testcontainers 2.0.5.

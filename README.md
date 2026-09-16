@@ -4,6 +4,7 @@ Aplicación para una institución educativa, destinada a una demostración acad�
 
 El repositorio contiene la **especificación funcional y técnica v1.0**, final y aprobada por el usuario. El prototipo navegable P-01 a P-06 está implementado y verificado en React, con datos en memoria y un esqueleto ejecutable Java/Spring Boot.
 
+- [Plan aprobado de integración I-01 a I-06](docs/planificacion/integracion.md).
 - [Leer la especificación](docs/especificacion/00-especificacion.md).
 - [Diseño B aprobado y referencias vigentes](docs/diseno/README.md).
 
@@ -14,6 +15,8 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 - [Vocabulario del dominio](CONTEXT.md).
 
 Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.
+
+Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración se prepara en `feat/integracion`; aún no está implementada.
 
 ## Ejecutar el prototipo
 

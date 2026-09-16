@@ -1,0 +1,95 @@
+# Plan aprobado de integración
+
+**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 a I-06 pendientes de implementación. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
+
+## Objetivo y alcance
+
+Convertir el prototipo en la aplicación persistente de la [especificación v1](../especificacion/00-especificacion.md), conservando el diseño B y los recorridos aprobados. Entregas pequeñas con pruebas, revisión visual de las superficies afectadas y commits. No añadir funciones fuera de los casos de uso ni reabrir decisiones funcionales ya resueltas.
+
+La app debe poder presentarse localmente con PostgreSQL/Auth remotos en Supabase. Despliegue web opcional posterior; sin requisitos nuevos de respaldos, alta disponibilidad o infraestructura avanzada. Docker Compose ejecutará la aplicación propia según la arquitectura vigente; no implica instalar Supabase local.
+
+## Preservación del prototipo
+
+- `prototype/v1`: referencia estable al commit `cc5bdc7`, con frontend simulado, escenarios, pruebas y checklist manual. No incorporar en esta rama la integración.
+- `feat/integracion`: rama de trabajo que parte del mismo commit y contiene este plan y los cortes posteriores.
+- `feat/prototipo-base`: rama previa conservada; no se reescribe su historia.
+
+Para consultar o ejecutar el prototipo sin alterar el trabajo de integración, desde el repo se puede crear otro checkout con `git worktree add ../seminario-prototipo prototype/v1`. Luego seguir su README de frontend. Si ambos se ejecutan a la vez, usar un puerto distinto para uno de ellos. No hace falta un selector permanente entre simulación y backend real dentro del producto.
+
+## Entregas y criterios de cierre
+
+| Entrega | Trabajo y dependencias | Resultado para cerrar |
+|---|---|---|
+| I-01 · Base e ingreso real | Migraciones iniciales, conexión PostgreSQL, Supabase Auth, perfil de usuario, permisos en Java y administrador inicial. | Login real y sesión recuperable al recargar; Java valida identidad, estado y rol. Las llamadas directas a API no permiten operar con permisos ajenos. |
+| I-02 · Administración y catálogos | Sobre I-01: aulas, cuentas, calendario y cursos persistidos; docentes simulados. Primera carga reproducible de datos ficticios. | Altas y cambios persistentes, validaciones y dependencias respetadas, identidad/perfil coherentes. Datos iniciales verificables y sin duplicación al arrancar. |
+| I-03 · Reserva periódica completa | Sobre I-02: disponibilidad, preparación/revisión, confirmación, agenda y detalle mínimos del recorrido. | Aula fija por patrón, persistencia tras recargar y confirmación atómica. Dos solicitudes concurrentes por el mismo espacio/horario no pueden reservar ambas; reintentar una creación no duplica la reserva. |
+| I-04 · Operación completa | Sobre I-03: esporádicas, edición, reprogramación, cancelación y efecto del calendario en reservas. | Operaciones consistentes, historial correcto, protección temporal y rechazo de versiones antiguas. Guardados completos o rechazo sin cambios parciales. |
+| I-05 · Consultas e indicadores | Sobre I-04: completar agenda/listados, impresión e indicadores persistentes. Ampliar dataset de demo. | Cálculos exactos con el conjunto pequeño; exploración fluida con el amplio. Filtros, denominadores históricos, estados sin datos e impresión completa comprobados. Consistencia entre todas las vistas. |
+| I-06 · Demo lista para presentar | Integrar lo anterior; ejecutar QA manual y automatizado, preparar Docker Compose, datos reproducibles e instrucciones. | QA registrado, recorridos principales automatizados, arranque documentado y restablecimiento de datos probado. Defectos funcionales bloqueantes resueltos y detalles menores pendientes explícitos. |
+
+Los cortes internos se concretan antes de implementar cada entrega. No se necesita terminar todo el backend para comenzar a conectar React: I-03 entrega un recorrido completo y persistente antes de ampliar las operaciones.
+
+## Responsabilidades y modelo
+
+| Componente | Responsabilidad |
+|---|---|
+| React | Pantallas, formularios, navegación y presentación. Validaciones inmediatas de ayuda; no autoridad de negocio. |
+| Java / Spring Boot | Permisos, reglas, disponibilidad, reservas, calendario e indicadores. Revalidación antes de guardar, transacciones y control de concurrencia. |
+| Supabase Auth | Credenciales y sesiones. React obtiene la sesión; Java verifica identidad y administra identidades mediante operaciones autorizadas del servidor. |
+| PostgreSQL en Supabase | Datos persistidos, relaciones y restricciones de integridad. |
+
+React accede directamente a Supabase solo para autenticación. Todo acceso a datos del negocio pasa por Java. Mantener el monolito y los módulos acordados en [arquitectura](../especificacion/12-arquitectura-y-stack.md), sin duplicar reglas en caminos alternativos.
+
+El [modelo consolidado](../especificacion/13-modelo-consolidado.md) y los diagramas son las fuentes para diseñar las tablas. Conservar usuarios/perfiles vinculados a Auth sin contraseñas propias; aulas y sus características e historial; años/cuatrimestres/no lectivos; materias y cursos/comisiones con código visible separado del ID interno; reservas, patrones, ocurrencias y cambios/cancelaciones requeridos. Esta agrupación no reemplaza relaciones, subtipos o restricciones del modelo aprobado.
+
+Las ocurrencias concretas sustentan ocupación, solapamientos e indicadores. Los patrones mantienen la recurrencia para extender períodos o recuperar fechas que dejen de ser feriado, conservando exclusiones y demás reglas. Docentes: catálogo fijo simulado con IDs estables, separado de las cuentas de acceso; sin integración académica externa.
+
+Migraciones versionadas para estructura. Cargas ficticias separadas de las migraciones. Antes de implementar se contrasta el esquema con el DER y se documentan únicamente los ajustes necesarios.
+
+## Datos de prueba aprobados
+
+| Conjunto | Diseño | Uso |
+|---|---|---|
+| Verificación | Pocas aulas/reservas, fechas fijas, resultados esperados documentados y reloj controlado solo para pruebas. Conservar ejemplos numéricos aprobados del prototipo. | Verificar reglas, operaciones, disponibilidad y cálculos exactos. |
+| Demostración | Un año académico; aproximadamente 20 aulas, 40 cursos/comisiones y varios miles de clases generadas con reservas periódicas y esporádicas. Preparado para el año de presentación, reloj normal. | Presentación y exploración de indicadores, filtros, listados y disponibilidad con volumen. |
+
+El volumen es una configuración inicial, no un nuevo requisito de capacidad productiva. Distribución deliberadamente variada: horas pico y valles, distintos días, tipos/capacidades/equipamiento, alumnos previstos compatibles, clases pasadas/futuras, cancelaciones y reprogramaciones, feriados/recesos e historial de aulas coherente.
+
+Datos iniciales válidos, sin reservas activas solapadas. Los conflictos se prueban proponiendo operaciones sobre horarios ocupados, no insertando inconsistencias. La generación debe ser determinista: misma configuración, mismos datos de negocio. Identidades y secretos del proveedor se provisionan de forma controlada, sin incorporarlos al repositorio.
+
+Cada conjunto tendrá cuentas/roles de prueba, fechas de interés, pasos y resultados esperados. I-02 habilita la carga básica; I-03/I-04 la amplían junto con reservas y operaciones; I-05 completa el conjunto amplio y sus métricas de referencia.
+
+Restablecimiento mediante comando explícito, separado del arranque y limitado al entorno de demo. El arranque normal no borra ni sobrescribe datos. La implementación debe definir el alcance del restablecimiento de dominio e identidades y comprobar que sea repetible antes de cerrar I-06.
+
+## Contratos de API
+
+Definir entradas, salidas y errores de cada entrega antes de implementarla; documentar mediante OpenAPI. Respetar [operaciones y contratos vigentes](../especificacion/15-operaciones-y-contratos.md), incluidos los fallos parciales de operaciones administrativas con Auth.
+
+- REST/JSON bajo `/api`.
+- Fechas `YYYY-MM-DD`, horas de 24 horas y zona institucional. Los horarios de clases no cambian por la ubicación del navegador; auditoría usa instantes inequívocos.
+- Listados con filtros, orden y paginación en Java. Impresión obtiene todos los resultados filtrados.
+- Errores distinguen validación de campos, conflictos concretos, permisos, sesión, datos desactualizados y fallos técnicos; sin presentar un error como conjunto vacío.
+- Versiones para detectar ediciones desactualizadas, según los agregados definidos en la especificación.
+- Cambios de dominio completos o ninguno. La atomicidad JDBC no se extiende a llamadas HTTP de Supabase Auth; aplicar el manejo de fallos administrativos previsto en el contrato vigente.
+- Cada intento lógico de creación de reserva lleva un identificador único para reconocer resultados y evitar duplicación por reintentos. Su alcance, persistencia y respuesta de comprobación se fijan en el contrato de I-03.
+
+Para reservas separar consulta de disponibilidad, revisión de propuesta y confirmación. Consulta/revisión calculan fechas, exclusiones y alternativas sin retener aulas ni guardar borradores. Confirmación recalcula y revalida contra el estado vigente, con protección de base de datos frente a solapamientos concurrentes. La edición de calendario también tiene revisión de impacto y confirmación revalidada.
+
+## Método por corte y validación
+
+1. Definir contrato y casos de aceptación usando las pantallas y reglas aprobadas.
+2. Implementar y probar Java/PostgreSQL, incluidas reglas que no pueden depender del navegador.
+3. Conectar el recorrido React y sustituir su simulación.
+4. Probar el recorrido integrado, revisar visualmente las pantallas afectadas, actualizar documentación y hacer commit.
+
+Combinar pruebas de reglas, integración con PostgreSQL real y recorridos de navegador. Validar concurrencia real, no solo repositorios simulados. El PostgreSQL de pruebas debe estar aislado de datos de demo; su mecanismo de provisión se decide al preparar los tests y no agrega infraestructura al producto.
+
+La [checklist manual del prototipo](../diseno/qa-manual-prototipo.md) y sus [resultados automatizados](../diseno/validacion-prototipo.md) son referencia, no acreditan por sí solos la integración. Adaptar preparación y controles a los datasets persistentes y agregar login real, permisos de API, persistencia, concurrencia y reintentos. Al cierre repetir QA completo, móvil, teclado, zoom e impresión; registrar lo no ejecutado.
+
+No cerrar entregas con defectos que impidan recorridos o incumplan reglas acordadas. Cualquier detalle menor pendiente se identifica explícitamente. El cierre exige pruebas aprobadas, documentación actualizada y commit.
+
+## Próximo paso: preparación de I-01
+
+Con esta planificación acordada, el próximo corte debe concretar migraciones iniciales, contrato de identidad/perfil, arranque del Admin y pruebas de acceso. Antes de conectar servicios, comprobar configuración del entorno Supabase y disponibilidad de variables privadas, sin exponer secretos. Proveedor de hosting, dataset detallado, rutas/DTO precisos y subdivisión de cada entrega son decisiones de implementación pendientes, no trabajo ya realizado.
+
+Este documento consolida la planificación; no inicia I-01 ni cambia las reglas funcionales de la especificación.

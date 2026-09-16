@@ -1,10 +1,10 @@
 # Documentación del sistema de gestión y reservas de aulas
 
-**Versión 1.0 final, aprobada por el usuario.** Las 85 decisiones de la entrevista y revisión están resueltas. Esta entrega contiene documentación; no se inició implementación.
+**Versión 1.0 final, aprobada por el usuario.** Las 85 decisiones de la entrevista y revisión están resueltas. El prototipo P-01 a P-06 está implementado y verificado; la integración persistente todavía no comenzó.
 
 Comenzar por la [especificación de la aplicación](especificacion/00-especificacion.md), que resume el alcance, las reglas y las exclusiones.
 
-El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [plan del prototipo navegable](diseno/prototipo-navegable.md) define pantallas, escenarios y verificación para comenzar la siguiente etapa; aún no hay implementación.
+El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [prototipo navegable](diseno/validacion-prototipo.md) conserva esos recorridos con datos simulados. El siguiente trabajo sigue el [plan aprobado de integración I-01 a I-06](planificacion/integracion.md).
 
 ## Documentos de detalle
 
@@ -46,4 +46,4 @@ La síntesis 00 orienta la lectura. Los capítulos 01–11 desarrollan las regla
 
 Ante diferencias con la versión histórica, aplicar el ajuste DA documentado y el modelo/caso vigente. Las decisiones técnicas derivadas se identifican como tales; no son requisitos adicionales de negocio. Cambios futuros de alcance deben quedar registrados y actualizar los documentos afectados.
 
-Esta entrega constituye el estado final de la especificación v1.0. Las pruebas de aplicación, carga e integración son trabajo de la futura implementación, no resultados de esta revisión documental.
+Esta entrega constituye el estado final de la especificación v1.0. La validación del prototipo está documentada por separado; las pruebas del sistema persistente y su integración son trabajo de la siguiente etapa.

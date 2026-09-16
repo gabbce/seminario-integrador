@@ -1,15 +1,12 @@
 import {
-  addYear,
-  deleteYear,
   bookingYear,
   yearMutationError,
 } from "./academic-years";
 import { CalendarContext } from "./calendar-context";
 import { createScenario } from "./demo-scenarios";
 
-import { initialCalendar } from "./calendar";
-import { changeCalendar } from "./calendar-management";
-import { CalendarEditor } from "./pages/CalendarEditor";
+import { emptyCalendar, type CalendarConfig } from "./calendar";
+import PersistedCalendar from "./pages/PersistedCalendar";
 import { Users } from "./pages/Users";
 import { type User } from "./users";
 import { api } from "./api";
@@ -79,12 +76,17 @@ export default function App({
   onLogout: () => void;
 }) {
   const [scenario] = useState(() => createScenario("base"));
-  const [calendars, setCalendars] = useState([scenario.calendar]);
-  const [selectedYear, setSelectedYear] = useState(2026);
-  const calendar =
-    calendars.find((c) => c.year === selectedYear) ??
-    calendars[0] ??
-    initialCalendar;
+  const [calendars, setCalendars] = useState<CalendarConfig[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(true);
+  const [calendarError, setCalendarError] = useState("");
+  useEffect(() => {
+    let active = true;
+    const load = () => { void api<CalendarConfig[]>("/referencias/calendarios").then(rows => {
+      if(active) {setCalendars(rows);setCalendarError("");}
+    }).catch(e => { if(active) setCalendarError(e.message); }).finally(() => { if(active) setCalendarLoading(false); }); };
+    load(); window.addEventListener("aulas-calendar-refresh",load);
+    return () => { active=false;window.removeEventListener("aulas-calendar-refresh",load); };
+  }, []);
   const [agendaDate, setAgendaDate] = useState(scenario.now.slice(0, 10));
   const [inventory, setInventory] = useState<Room[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
@@ -181,8 +183,9 @@ export default function App({
                 </Button>
               </div>
             )}
-            {inventoryLoading && <p role="status">Cargando aulas…</p>}
-            {!inventoryError && !inventoryLoading && (
+            {calendarError && <p role="alert">{calendarError} <Button onClick={() => window.dispatchEvent(new Event("aulas-calendar-refresh"))}>Reintentar calendario</Button></p>}
+            {(inventoryLoading || calendarLoading) && <p role="status">Cargando datos…</p>}
+            {!inventoryError && !inventoryLoading && !calendarError && !calendarLoading && (
               <Routes>
                 <Route
                   path="/agenda"
@@ -223,7 +226,7 @@ export default function App({
                             bookings,
                             inventory,
                             calendars.find((c) => c.year === bookingYear(b)) ??
-                              initialCalendar,
+                              emptyCalendar(bookingYear(b)),
                           );
                           if (failure) return failure;
                           setBookings((old) => [
@@ -408,73 +411,7 @@ export default function App({
                   path="/administracion/calendario"
                   element={
                     role === "Administrador" ? (
-                      <CalendarEditor
-                        key={calendar.year}
-                        calendar={calendar}
-                        calendars={calendars}
-                        selectYear={setSelectedYear}
-                        addYear={(year) => {
-                          const result = addYear(calendars, year, role);
-                          if (result.error) return result.error;
-                          if (result.calendars) {
-                            setCalendars(result.calendars);
-                            setSelectedYear(year);
-                          }
-                        }}
-                        deleteYear={() => {
-                          const result = deleteYear(
-                            calendars,
-                            calendar.year,
-                            bookings,
-                            courses,
-                            role,
-                          );
-                          if (result.error) return result.error;
-                          if (result.calendars) {
-                            setCalendars(result.calendars);
-                            setSelectedYear(result.calendars[0]?.year ?? 2026);
-                          }
-                        }}
-                        preview={(proposal) => ({
-                          ...changeCalendar(
-                            calendar,
-                            proposal,
-                            bookings,
-                            inventory,
-                            role,
-                          ),
-                          stamp: JSON.stringify(
-                            bookings.map((b) => [b.id, b.version ?? 0]),
-                          ),
-                        })}
-                        save={(proposal, stamp) => {
-                          if (
-                            stamp !==
-                            JSON.stringify(
-                              bookings.map((b) => [b.id, b.version ?? 0]),
-                            )
-                          )
-                            return "Las reservas cambiaron. Volvé a revisar el impacto.";
-                          const result = changeCalendar(
-                            calendar,
-                            proposal,
-                            bookings,
-                            inventory,
-                            role,
-                          );
-                          if (result.error) return result.error;
-                          if (result.impact) {
-                            setCalendars((old) =>
-                              old.map((c) =>
-                                c.year === result.impact.calendar.year
-                                  ? result.impact.calendar
-                                  : c,
-                              ),
-                            );
-                            setBookings(result.impact.bookings);
-                          }
-                        }}
-                      />
+                      <PersistedCalendar />
                     ) : (
                       <Navigate to="/agenda" replace />
                     )

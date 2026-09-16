@@ -220,14 +220,114 @@ test("I-02.2: alta, cambio de correo y contraseña en Supabase", async ({
   ).toBeVisible();
 });
 
-
-test('I-02.3: aula persiste y baja conserva historial',async({page})=>{
- test.setTimeout(120000);
- const code=`QA-${Date.now()}`;
- await page.goto('/');await page.getByLabel('Correo electrónico').fill('bedel@demo.local');await page.getByLabel('Contraseña',{exact:true}).fill(password);await page.getByRole('button',{name:'Ingresar',exact:true}).click();await expect(page.getByRole('link',{name:'Agenda',exact:true})).toBeVisible();await page.goto('/aulas');
- await page.getByRole('button',{name:'Nueva aula',exact:true}).click();await page.getByLabel('Identificador',{exact:true}).fill(code);await page.getByLabel('Ubicación / edificio',{exact:true}).fill('Edificio QA');await page.getByLabel('Tipo de aula',{exact:true}).selectOption('Laboratorio');await page.getByRole('button',{name:'Guardar aula',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Aula guardada'})).toBeVisible();await expect(page.getByRole('button',{name:`Editar ${code}`})).toBeVisible();
- await page.reload();await page.getByRole('button',{name:`Editar ${code}`}).click();await expect(page.getByLabel('Tipo de aula',{exact:true})).toHaveValue('Laboratorio');await page.getByLabel('Estado del aula',{exact:true}).selectOption('Mantenimiento');await page.getByRole('button',{name:'Guardar aula',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Aula guardada'})).toBeVisible();await expect(page.getByRole('button',{name:`Editar ${code}`})).toBeVisible();await page.getByRole('button',{name:`Editar ${code}`}).click();await page.screenshot({path:'evidence/i023-real-aula.png',fullPage:true});
- await page.getByRole('button',{name:'Dar de baja',exact:true}).click();await page.getByRole('button',{name:'Confirmar baja',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Aula dada de baja'})).toBeVisible();await expect(page.getByRole('button',{name:`Editar ${code}`})).toHaveCount(0);await page.getByLabel('Estado de inventario',{exact:true}).selectOption('Baja');await expect(page.getByRole('button',{name:`Ver ${code}`})).toBeVisible();
- await page.getByRole('button',{name:'Cerrar sesión'}).click();await expect(page.getByRole('heading',{name:'Ingresar',exact:true})).toBeVisible();
+test("I-02.3: aula persiste y baja conserva historial", async ({ page }) => {
+  test.setTimeout(120000);
+  const code = `QA-${Date.now()}`;
+  await page.goto("/");
+  await page.getByLabel("Correo electrónico").fill("bedel@demo.local");
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Agenda", exact: true }),
+  ).toBeVisible();
+  await page.goto("/aulas");
+  await page.getByRole("button", { name: "Nueva aula", exact: true }).click();
+  await page.getByLabel("Identificador", { exact: true }).fill(code);
+  await page
+    .getByLabel("Ubicación / edificio", { exact: true })
+    .fill("Edificio QA");
+  await page
+    .getByLabel("Tipo de aula", { exact: true })
+    .selectOption("Laboratorio");
+  await page.getByRole("button", { name: "Guardar aula", exact: true }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Aula guardada" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: `Editar ${code}` }),
+  ).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: `Editar ${code}` }).click();
+  await expect(page.getByLabel("Tipo de aula", { exact: true })).toHaveValue(
+    "Laboratorio",
+  );
+  await page
+    .getByLabel("Estado del aula", { exact: true })
+    .selectOption("Mantenimiento");
+  await page.getByRole("button", { name: "Guardar aula", exact: true }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Aula guardada" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: `Editar ${code}` }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: `Editar ${code}` }).click();
+  await page.screenshot({
+    path: "evidence/i023-real-aula.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Dar de baja", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Confirmar baja", exact: true })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Aula dada de baja" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: `Editar ${code}` }),
+  ).toHaveCount(0);
+  await page
+    .getByLabel("Estado de inventario", { exact: true })
+    .selectOption("Baja");
+  await expect(page.getByRole("button", { name: `Ver ${code}` })).toBeVisible();
+  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Ingresar", exact: true }),
+  ).toBeVisible();
 });
 
+test("I-02.4: calendario persiste tras recarga", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.goto("/");
+  await page.getByLabel("Correo electrónico").fill("admin@demo.local");
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Agenda", exact: true }),
+  ).toBeVisible();
+  await page.goto("/administracion/calendario");
+  await page.getByLabel("Nuevo año", { exact: true }).fill("2028");
+  await page.getByRole("button", { name: "Crear año", exact: true }).click();
+  await expect(page.getByLabel("Número de año", { exact: true })).toHaveValue(
+    "2028",
+  );
+  for (const [label, date] of [
+    ["Inicio 1", "2028-03-01"],
+    ["Fin 1", "2028-07-01"],
+    ["Inicio 2", "2028-08-01"],
+    ["Fin 2", "2028-12-01"],
+  ])
+    await page.getByLabel(label, { exact: true }).fill(date);
+  await page.getByLabel("Nueva fecha no lectiva").fill("2028-10-12");
+  await page.getByLabel("Descripción nueva").fill("Fecha ficticia QA");
+  await page
+    .getByRole("button", { name: "Agregar fecha", exact: true })
+    .click();
+  await page
+    .getByLabel("Estado del año", { exact: true })
+    .selectOption("Habilitado");
+  await page
+    .getByRole("button", { name: "Guardar calendario", exact: true })
+    .click();
+  await expect(
+    page.getByText("Calendario actualizado.", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByLabel("Descripción 2028-10-12", { exact: true }),
+  ).toHaveValue("Fecha ficticia QA");
+  await page.screenshot({
+    path: "evidence/i024-real-calendario.png",
+    fullPage: true,
+  });
+});

@@ -13,19 +13,25 @@ export function CalendarEditor({
   deleteYear,
   preview,
   save,
+  persisted = false,
 }: {
   calendar: CalendarConfig;
   calendars: CalendarConfig[];
   selectYear: (year: number) => void;
-  addYear: (year: number) => string | undefined;
-  deleteYear: () => string | undefined;
-  preview: (proposal: CalendarConfig) => {
+  addYear: (year: number) => string | undefined | Promise<string | undefined>;
+  deleteYear: () => string | undefined | Promise<string | undefined>;
+  preview?: (proposal: CalendarConfig) => {
     impact?: CalendarImpact;
     error?: string;
     stamp: string;
   };
-  save: (proposal: CalendarConfig, stamp: string) => string | undefined;
+  save: (
+    proposal: CalendarConfig,
+    stamp: string,
+  ) => string | undefined | Promise<string | undefined>;
+  persisted?: boolean;
 }) {
+  const [busy, setBusy] = useState(false);
   const [newYear, setNewYear] = useState(calendar.year + 1);
   const [deleting, setDeleting] = useState(false);
   const [draft, setDraft] = useState<CalendarConfig>(() =>
@@ -37,6 +43,24 @@ export function CalendarEditor({
   const [message, setMessage] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
+  async function mutate(
+    action: () => string | undefined | Promise<string | undefined>,
+  ) {
+    setBusy(true);
+    setError("");
+    try {
+      const failure = await action();
+      if (failure) setError(failure);
+      return failure;
+    } catch {
+      const failure =
+        "No se pudo guardar. Revisá el estado antes de reintentar.";
+      setError(failure);
+      return failure;
+    } finally {
+      setBusy(false);
+    }
+  }
   function patch(proposal: CalendarConfig) {
     setDraft(proposal);
     setReview(undefined);
@@ -58,6 +82,7 @@ export function CalendarEditor({
           Año lectivo
           <select
             aria-label="Año del calendario"
+            disabled={busy}
             value={calendar.year}
             onChange={(e) => selectYear(Number(e.target.value))}
           >
@@ -72,33 +97,36 @@ export function CalendarEditor({
           Nuevo año
           <input
             type="number"
-            min="1900"
+            disabled={busy}
+            min="1"
             max="9999"
             value={newYear}
             onChange={(e) => setNewYear(Number(e.target.value))}
           />
         </label>
         <Button
-          onClick={() => {
-            const failure = addYear(newYear);
-            if (failure) setError(failure);
-          }}
+          disabled={busy}
+          onClick={() => void mutate(() => addYear(newYear))}
         >
           Crear año
         </Button>
-        <Button variant="outline" onClick={() => setDeleting(true)}>
+        <Button
+          variant="outline"
+          disabled={busy || calendar.state === "Cerrado"}
+          onClick={() => setDeleting(true)}
+        >
           Eliminar año
         </Button>
         {deleting && (
           <div className="cancellation-warning">
             <p>
-              Se eliminará el año {calendar.year} solo si está en preparación y
-              no tiene datos asociados.
+              Se eliminará el año {calendar.year} solo si no está cerrado y no
+              tiene datos asociados.
             </p>
             <Button
-              onClick={() => {
-                const failure = deleteYear();
-                if (failure) setError(failure);
+              disabled={busy}
+              onClick={async () => {
+                await mutate(deleteYear);
                 setDeleting(false);
               }}
             >
@@ -112,10 +140,17 @@ export function CalendarEditor({
           {message}
         </p>
       )}
+      {error && <FormError message={error} />}
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          const result = preview(draft);
+          if (persisted) {
+            const failure = await mutate(() => save(draft, ""));
+            if (!failure) setMessage("Calendario actualizado.");
+            return;
+          }
+          const result = preview?.(draft);
+          if (!result) return;
           if (result.error) {
             setError(result.error);
             setReview(undefined);
@@ -126,7 +161,22 @@ export function CalendarEditor({
           setError("");
         }}
       >
-        <fieldset disabled={calendar.state === "Cerrado"}>
+        <fieldset disabled={busy || calendar.state === "Cerrado"}>
+          {persisted && (
+            <label>
+              Número de año
+              <input
+                type="number"
+                min="1"
+                max="9999"
+                required
+                value={draft.year}
+                onChange={(e) =>
+                  patch({ ...draft, year: Number(e.target.value) })
+                }
+              />
+            </label>
+          )}
           <label>
             Estado del año
             <select
@@ -157,8 +207,8 @@ export function CalendarEditor({
                         aria-label={`Inicio ${index + 1}`}
                         type="date"
                         required={draft.state === "Habilitado"}
-                        min={`${calendar.year}-01-01`}
-                        max={`${calendar.year}-12-31`}
+                        min={`${draft.year}-01-01`}
+                        max={`${draft.year}-12-31`}
                         value={draft.terms[period][0]}
                         onChange={(e) =>
                           patch({
@@ -180,8 +230,8 @@ export function CalendarEditor({
                         aria-label={`Fin ${index + 1}`}
                         type="date"
                         required={draft.state === "Habilitado"}
-                        min={`${calendar.year}-01-01`}
-                        max={`${calendar.year}-12-31`}
+                        min={`${draft.year}-01-01`}
+                        max={`${draft.year}-12-31`}
                         value={draft.terms[period][1]}
                         onChange={(e) =>
                           patch({
@@ -213,10 +263,12 @@ export function CalendarEditor({
                   </Button>
                 </fieldset>
               ))}
-              <p>
-                Las reservas periódicas se extienden usando el aula de cada
-                patrón semanal. No se recortan clases registradas.
-              </p>
+              {!persisted && (
+                <p>
+                  Las reservas periódicas se extienden usando el aula de cada
+                  patrón semanal. No se recortan clases registradas.
+                </p>
+              )}
             </section>
             <section className="panel">
               <h2>Fechas no lectivas</h2>
@@ -248,6 +300,11 @@ export function CalendarEditor({
                       patch({
                         ...draft,
                         holidays: draft.holidays.filter((d) => d !== day),
+                        descriptions: Object.fromEntries(
+                          Object.entries(draft.descriptions).filter(
+                            ([date]) => date !== day,
+                          ),
+                        ),
                       })
                     }
                   >
@@ -260,8 +317,8 @@ export function CalendarEditor({
                   Nueva fecha no lectiva
                   <input
                     type="date"
-                    min={`${calendar.year}-01-01`}
-                    max={`${calendar.year}-12-31`}
+                    min={`${draft.year}-01-01`}
+                    max={`${draft.year}-12-31`}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                   />
@@ -299,9 +356,6 @@ export function CalendarEditor({
               </Button>
             </section>
           </div>
-          {error && (
-            <FormError message={error} />
-          )}
           {review && (
             <section className="panel calendar-impact">
               <h2>Impacto del cambio</h2>
@@ -325,8 +379,8 @@ export function CalendarEditor({
               )}
               <Button
                 type="button"
-                onClick={() => {
-                  const failure = save(draft, stamp);
+                onClick={async () => {
+                  const failure = await mutate(() => save(draft, stamp));
                   if (failure) {
                     setError(failure);
                     setReview(undefined);
@@ -353,7 +407,13 @@ export function CalendarEditor({
             >
               Descartar cambios
             </Button>
-            <Button type="submit">Revisar impacto</Button>
+            <Button type="submit">
+              {busy
+                ? "Guardando…"
+                : persisted
+                  ? "Guardar calendario"
+                  : "Revisar impacto"}
+            </Button>
           </div>
         </fieldset>
       </form>

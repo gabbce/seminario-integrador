@@ -1,0 +1,157 @@
+openapi: 3.1.0
+info:
+  title: Calendario base I-02.4
+  version: 1.0.0
+  description: |
+    Consulta para Administrador, Bedel y Docente activos. Escrituras solo Administrador.
+    Fechas institucionales America/Argentina/Cordoba. Cada mutación bloquea permisos y
+    año, comprueba su versión y confirma auditoría junto con los datos. Cerrado no se reabre.
+    La representación usa el shape CalendarConfig y agrega id interno estable separado del año.
+    Cuatrimestres ausentes se representan ["", ""], incompletos se admiten en preparación.
+    Quitar un cuatrimestre de un año habilitado exige enviar En preparación en el mismo PUT.
+    El agregado no pierde IDs de cuatrimestres conservados. Fechas sin cambios conservan su ID interno.
+    No existen reservas persistidas en I-02: bloqueos y generación conjunta de clases
+    se integrarán antes de habilitar confirmaciones persistidas I-03/I-04.
+security:
+  - bearerAuth: []
+paths:
+  /api/referencias/calendarios:
+    get:
+      summary: Listar calendarios por año ascendente
+      responses:
+        '503': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Todos los años, incluidos cerrados
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/CalendarConfig'}}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+  /api/referencias/calendarios/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/Id'}
+    get:
+      summary: Consultar un año por ID interno
+      responses:
+        '401': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        '200': {$ref: '#/components/responses/Calendar'}
+        '404': {$ref: '#/components/responses/Error'}
+  /api/administracion/calendarios:
+    post:
+      summary: Crear año en preparación sin períodos ni fechas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [year]
+              properties:
+                year: {type: integer, minimum: 1, maximum: 9999}
+      responses:
+        '401': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        '201': {$ref: '#/components/responses/Calendar'}
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/administracion/calendarios/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/Id'}
+    put:
+      summary: Guardar calendario completo con versión del año
+      description: |
+        Habilitado requiere ambos cuatrimestres completos, dentro del año, ordenados y sin solapamiento.
+        No permite agregar/quitar fechas pasadas ni moverlas desde/hacia el pasado.
+        Sí admite corregir descripción de una fecha pasada conservando la fecha.
+        Todas las fechas requieren descripción y no admiten duplicados.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Edit'}
+      responses:
+        '401': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        '200': {$ref: '#/components/responses/Calendar'}
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+    delete:
+      summary: Eliminar año abierto sin cuatrimestres ni fechas no lectivas
+      parameters:
+        - name: version
+          in: query
+          required: true
+          schema: {type: integer, minimum: 0}
+      responses:
+        '401': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+        '204': {description: Año eliminado y evento conservado}
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: {type: integer, minimum: 1}
+  schemas:
+    Edit:
+      type: object
+      required: [version, year, state, terms, holidays, descriptions]
+      properties:
+        version: {type: integer, minimum: 0}
+        year: {type: integer, minimum: 1, maximum: 9999}
+        state: {type: string, enum: ['En preparación', Habilitado, Cerrado]}
+        terms:
+          type: object
+          required: [first, second]
+          additionalProperties: false
+          properties:
+            first: {$ref: '#/components/schemas/Range'}
+            second: {$ref: '#/components/schemas/Range'}
+        holidays:
+          type: array
+          uniqueItems: true
+          items: {type: string, format: date}
+        descriptions:
+          type: object
+          additionalProperties: {type: string, minLength: 1}
+    Range:
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        type: string
+        description: Fecha ISO YYYY-MM-DD o cadena vacía para extremo pendiente
+    CalendarConfig:
+      allOf:
+        - {$ref: '#/components/schemas/Edit'}
+        - type: object
+          required: [id]
+          properties:
+            id: {type: string, pattern: '^[0-9]+$'}
+  responses:
+    Calendar:
+      description: Calendario persistido con versión vigente
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/CalendarConfig'}
+    Error:
+      description: Error de validación, permiso, inexistencia, versión o dependencia
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message]
+            properties:
+              code: {type: string}
+              message: {type: string}

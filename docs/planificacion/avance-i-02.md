@@ -32,3 +32,9 @@ Diecinueve pruebas backend, doce de navegador sin proveedor y seis recorridos re
 Inventario conectado a Java/PostgreSQL, con filtros y paginación, subtipos, historial de estados/tipo, auditoría, control de versión y baja lógica. La consulta de disponibilidad consume el mismo inventario persistido. Identificadores únicos incluso tras la baja; PC únicamente descriptivas.
 
 Dos pruebas PostgreSQL y dos recorridos de navegador móvil/escritorio aprobados; capturas i023-aulas revisadas, accesibilidad sin infracciones. Recorrido con Supabase aprobado: alta de laboratorio, recarga, mantenimiento y baja conservando consulta histórica. Se corrigió una ventana de versión vieja al reabrir un registro durante el refresco posterior al guardado, detectada en esta prueba remota. Revisiones Terra high de especificación y estándares completadas. La protección frente a reservas persistidas se incorpora en I-03 antes de habilitar sus escrituras.
+
+## I-02.4
+
+Años, dos cuatrimestres y fechas no lectivas persistidos, con versiones, auditoría y reglas temporales; cerrado de solo lectura. Interfaz conectada con vacío real, carga, reintento y recarga que también actualiza el calendario usado por las otras pantallas. Sin aplicar impactos sobre reservas simuladas.
+
+Seis pruebas de calendario en PostgreSQL, dos recorridos móvil/escritorio con accesibilidad y recorrido Supabase aprobados: alta 2028, dos períodos, feriado ficticio, habilitación y recarga. Se revisaron las capturas i024-calendario y i024-real-calendario. Terra high detectó y se corrigió la falta de propagación de recarga, el bloqueo durante carga/fallo y validación de cuerpos nulos. Dependencias con cursos se agregan en I-02.5; las de reservas, antes de sus escrituras en I-03.

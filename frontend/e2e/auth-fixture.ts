@@ -154,6 +154,7 @@ export async function fakeAuth(page: Page) {
       },
     });
   });
+  await page.route("**/api/referencias/calendarios", route => route.fulfill({json: []}));
   return control;
 }
 export async function login(

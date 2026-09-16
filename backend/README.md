@@ -1,6 +1,6 @@
 # Backend Aulas
 
-Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01.1 incorpora PostgreSQL, JPA y migraciones Flyway de usuarios/perfiles. Autenticación y operaciones de dominio siguen pendientes de los siguientes cortes.
+Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. Reservas e indicadores persistentes corresponden a I-03 a I-05.
 
 ## Configuración local
 
@@ -61,3 +61,7 @@ Una respuesta incierta o fallo de Auth no se presenta como éxito. Repetir el co
 GET /api/me recibe Bearer JWT de Supabase y devuelve el perfil activo y sus permisos; [contrato OpenAPI](../docs/api/identidad.openapi.yaml). Java valida firma ES256/RS256, emisor, audiencia authenticated y expiración. Rol y estado se consultan en PostgreSQL en cada petición; no se confía en un rol enviado por React o incluido en metadata del token. /api/health permanece público.
 
 401 indica token inválido; 403 perfil no habilitado o permiso insuficiente; 503 indisponibilidad de validación o persistencia. Los endpoints de negocio se implementarán en siguientes entregas; las pruebas de autorización usan controladores exclusivos de test. Doce pruebas backend verificadas sin Auth remoto, con PostgreSQL desechable y claves JWT locales.
+
+## Catálogos de demostración
+
+La carga explícita de I-02 prepara 20 aulas, 2026/2027 y 40 cursos sin modificar cuentas ni claves. Seguir [datos y comando](../docs/planificacion/datos-demo-i-02.md) y [QA manual](../docs/planificacion/qa-manual-i-02.md). El arranque normal no carga datos. Contratos en `docs/api/`: administración, aulas, calendarios y referencias.

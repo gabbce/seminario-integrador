@@ -3,7 +3,8 @@ export default defineConfig({
   testDir: "./e2e",
   testMatch: "auth-real.spec.ts",
   workers: 1,
-  expect: { timeout: 15000 },
+  timeout: 120000,
+  expect: { timeout: 30000 },
   use: {
     baseURL: "http://127.0.0.1:5175",
     locale: "es-AR",

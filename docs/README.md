@@ -6,7 +6,7 @@ Comenzar por la [especificación de la aplicación](especificacion/00-especifica
 
 El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [prototipo navegable](diseno/validacion-prototipo.md) conserva esos recorridos con datos simulados. El siguiente trabajo sigue el [plan aprobado de integración I-01 a I-06](planificacion/integracion.md).
 
-La próxima entrega tiene su [plan detallado I-02 aprobado](planificacion/i-02-administracion-y-catalogos.md): administración y catálogos persistentes, con datos ficticios para 2026/2027. Implementación pendiente.
+[I-02](planificacion/i-02-administracion-y-catalogos.md) está implementada: administración y catálogos persistentes, con datos ficticios para 2026/2027. Ver [avance](planificacion/avance-i-02.md), [carga de datos](planificacion/datos-demo-i-02.md) y [QA manual](planificacion/qa-manual-i-02.md). La siguiente entrega a detallar es I-03.
 
 ## Documentos de detalle
 

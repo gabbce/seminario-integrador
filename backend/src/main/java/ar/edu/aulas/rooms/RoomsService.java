@@ -17,11 +17,25 @@ public class RoomsService {
  private Room map(java.sql.ResultSet r,int row)throws java.sql.SQLException {
   List<String> resources=new ArrayList<>();for(var pair:Map.of("ventiladores","fans","aire","air","proyector","projector","televisor","television","computadora","computer").entrySet()) if(r.getBoolean(pair.getKey()))resources.add(pair.getValue());
   long key=r.getLong("id_aula");
-  var history=db.query("select * from aulas.historial_aula where id_aula=? order by desde,id",(h,n)->new History(h.getTimestamp("desde").toInstant().atZone(ZoneId.of("America/Argentina/Cordoba")).toLocalDateTime().toString(),h.getBoolean("baja")?"Baja":h.getString("estado"),h.getString("tipo")),key);
-  return new Room(Long.toString(key),r.getString("identificador"),r.getLong("version"),r.getString("tipo"),r.getInt("capacidad"),r.getObject("baja_en")!=null?"Baja":r.getString("estado"),r.getString("ubicacion"),r.getInt("piso"),r.getString("pizarron"),resources,(Integer)r.getObject("cantidad_pc"),history);
+  return new Room(Long.toString(key),r.getString("identificador"),r.getLong("version"),r.getString("tipo"),r.getInt("capacidad"),r.getObject("baja_en")!=null?"Baja":r.getString("estado"),r.getString("ubicacion"),r.getInt("piso"),r.getString("pizarron"),resources,(Integer)r.getObject("cantidad_pc"),List.of());
  }
- public Room get(long id){return db.query(SELECT+" where a.id_aula=?",this::map,id).stream().findFirst().orElseThrow(()->new DomainError(404,"NOT_FOUND","El aula no existe."));}
- public List<Room> references(){return db.query(SELECT+" order by a.identificador,a.id_aula",this::map);}
+ private List<Room> queryRooms(String sql,Object... arguments) {
+  var selected=db.query(sql,this::map,arguments);
+  if(selected.isEmpty())return selected;
+  Map<Long,List<History>> histories=new HashMap<>();
+  String placeholders=String.join(",",Collections.nCopies(selected.size(),"?"));
+  Object[] ids=selected.stream().map(room->Long.parseLong(room.internalId())).toArray();
+  db.query("select id_aula,desde,id,estado,tipo,baja from aulas.historial_aula where id_aula in ("+placeholders+") order by id_aula,desde,id",h->{
+   var history=new History(h.getTimestamp("desde").toInstant().atZone(ZoneId.of("America/Argentina/Cordoba")).toLocalDateTime().toString(),h.getBoolean("baja")?"Baja":h.getString("estado"),h.getString("tipo"));
+   histories.computeIfAbsent(h.getLong("id_aula"),ignored->new ArrayList<>()).add(history);
+  },ids);
+  return selected.stream().map(room->new Room(room.internalId(),room.id(),room.version(),room.type(),room.capacity(),room.state(),room.location(),room.floor(),room.board(),room.resources(),room.computers(),histories.getOrDefault(Long.parseLong(room.internalId()),List.of()))).toList();
+ }
+ @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+ public Room get(long id){return queryRooms(SELECT+" where a.id_aula=?",id).stream().findFirst().orElseThrow(()->new DomainError(404,"NOT_FOUND","El aula no existe."));}
+ @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+ public List<Room> references(){return queryRooms(SELECT+" order by a.identificador,a.id_aula");}
+ @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
  public Page list(String query,String type,String state,String board,String resource,int capacity,String sort,boolean descending,int page,int size) {
   if(page<1 || !List.of(20,50,100).contains(size) || capacity<0)throw DomainError.invalid("Paginación o capacidad inválidas.");
   String column=switch(sort){case "id"->"a.identificador";case "capacity"->"a.capacidad";case "type"->"a.tipo";case "state"->"a.estado";default->throw DomainError.invalid("Orden inválido.");};
@@ -31,7 +45,7 @@ public class RoomsService {
   if(!resource.isEmpty()){String field=switch(resource){case "fans"->"a.ventiladores";case "air"->"a.aire";case "projector"->"m.proyector";case "television"->"m.televisor";case "computer"->"m.computadora";default->throw DomainError.invalid("Recurso inválido.");};where+=" and "+field;}
   String from=" from aulas.aula a left join aulas.aula_multimedios m using(id_aula) left join aulas.aula_laboratorio l using(id_aula)";
   long total=db.queryForObject("select count(*)"+from+where,Long.class,args.toArray());int current=(int)Math.min(page,Math.max(1,(total+size-1)/size));args.add(size);args.add((current-1)*size);
-  return new Page(db.query(SELECT+where+" order by "+column+(descending?" desc":" asc")+",a.id_aula limit ? offset ?",this::map,args.toArray()),total,current,size,db.queryForObject("select count(*) from aulas.aula where baja_en is null and estado='Habilitada'",Long.class));
+  return new Page(queryRooms(SELECT+where+" order by "+column+(descending?" desc":" asc")+",a.id_aula limit ? offset ?",args.toArray()),total,current,size,db.queryForObject("select count(*) from aulas.aula where baja_en is null and estado='Habilitada'",Long.class));
  }
  private void validate(Room r,boolean creating) {
   if(r.id()==null||r.id().isBlank()||r.location()==null||r.location().isBlank()||r.floor()==null||r.capacity()==null||r.capacity()<1||r.type()==null||!List.of("General","Multimedios","Laboratorio").contains(r.type())||r.state()==null||!List.of("Habilitada","Inhabilitada","Mantenimiento","Baja").contains(r.state())||r.board()==null||!List.of("Tiza","Fibrón").contains(r.board()))throw DomainError.invalid("Revisá identificador, ubicación, piso, capacidad, tipo, estado y pizarrón.");

@@ -6,10 +6,10 @@ Plan aprobado: [administración y catálogos](i-02-administracion-y-catalogos.md
 |---|---|
 | I-02.1 | Completado |
 | I-02.2 | Completado |
-| I-02.3 | Pendiente |
-| I-02.4 | Pendiente |
-| I-02.5 | Pendiente |
-| I-02.6 | Pendiente |
+| I-02.3 | Completado |
+| I-02.4 | Completado |
+| I-02.5 | Completado |
+| I-02.6 | Completado |
 
 ## I-02.1
 
@@ -44,3 +44,18 @@ Seis pruebas de calendario en PostgreSQL, dos recorridos móvil/escritorio con a
 Cursos y materias desde Java, con búsqueda en el selector, creación desde el formulario, normalización y unicidad concurrente. Código numérico compartido entre comisiones/años, separado del ID interno. Docentes servidos por Java y compartidos por alta/edición de datos de reserva; el adaptador conserva sus IDs. La lista de cuentas no modifica referencias académicas. Cursos dependientes bloquean renumeración/borrado del año.
 
 Siete pruebas PostgreSQL de referencias (incluida carrera alta de curso/renumeración), dos recorridos móviles/escritorio y recorrido Supabase de creación/recarga aprobados. Sesenta y dos pruebas unitarias históricas del frontend siguen aprobadas, sin contarlas como persistencia de reservas. Capturas i025-referencias revisadas, sin problemas de accesibilidad. Terra high corrigió separación de ID/código visible, docentes aún leídos del fixture en edición, carga de referencias y búsqueda. Contrato referencias.openapi.yaml. Registrar curso no persiste una reserva.
+
+
+## I-02.6
+
+Carga explícita `seed-catalogos`, exclusiva de demo/no web, con configuración JSON versionada. Veinte aulas, dos años 2026/2027 con ambos cuatrimestres, fechas ficticias y cuarenta cursos. Historial de aula preparado desde enero de 2026. Sin llamadas a Auth ni cambios de cuentas. Repetición conserva datos existentes y reporta discrepancias; no es un comando de restablecimiento.
+
+Cuatro pruebas de carga cubren primera ejecución, repetición, preservación de cambios, restricciones de entorno/arranque y rollback. Ambas revisiones Terra high aprobadas. Se ajustó `Lab 2` para mantener el identificador visible del prototipo. Carga aplicada al proyecto Supabase de demo: 20 aulas, 2 años y 40 cursos nuevos; los registros adicionales de QA se conservan.
+
+Guías entregadas: [datos/comando](datos-demo-i-02.md) y [QA manual](qa-manual-i-02.md). Aceptación manual pendiente del usuario. Próxima entrega: detallar I-03 antes de implementar reservas periódicas persistentes y las protecciones de aula/calendario frente a ellas.
+
+Repetición remota del comando: 0 aulas, 0 años y 0 cursos creados, sin discrepancias en los registros del dataset. No se borraron los datos adicionales de QA.
+
+La prueba final con el catálogo poblado detectó consultas anidadas por aula que podían agotar las cuatro conexiones del pool durante recargas concurrentes. Se reemplazaron por una lectura de historial por lote, posterior al cierre del ResultSet de aulas, manteniendo snapshot transaccional. Prueba de asociación/orden de historiales agregada y revisión Terra high aprobada. No se aumentó el pool ni cambió el contrato.
+
+Verificación de cierre: 39 pruebas backend/PostgreSQL, 62 unitarias frontend, 18 recorridos de navegador sin proveedor y 10 recorridos distintos contra Supabase aprobados. Build y lint correctos. La batería remota requirió ajustar la búsqueda del aula después de recargar (ya hay paginación) y los tiempos de espera del proveedor; ambos recorridos afectados se repitieron y pasaron. Capturas de formularios y dataset revisadas en escritorio/móvil; evidencias locales ignoradas por Git. Aceptación manual del usuario todavía pendiente.

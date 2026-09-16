@@ -18,7 +18,7 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.
 
-Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 implementada; módulos de negocio todavía simulados.
+Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 e I-02 implementadas; cuentas, aulas, calendario y cursos persistentes. Reservas e indicadores continúan simulados hasta I-03 a I-05.
 
 ## Ejecutar la integración
 
@@ -40,3 +40,6 @@ Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local`; contraseña en
 - [Instrucciones, recorridos y límites del frontend](frontend/README.md).
 - [Arranque y comprobación del backend](backend/README.md).
 - [Validación completa, criterios y límites del prototipo](docs/diseno/validacion-prototipo.md).
+
+- [Carga reproducible de catálogos ficticios](docs/planificacion/datos-demo-i-02.md).
+- [QA manual de I-02](docs/planificacion/qa-manual-i-02.md).

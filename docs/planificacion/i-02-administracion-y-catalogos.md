@@ -1,6 +1,6 @@
 # I-02 · Administración y catálogos persistentes
 
-**Estado:** plan completo aprobado secuencialmente por el usuario, incluidos alcance, orden, detalles I-02.1 a I-02.6 y escenarios ficticios 2026/2027. Listo para implementar; implementación todavía pendiente. I-01 está implementada y aceptada mediante QA manual.
+**Estado:** implementación I-02.1 a I-02.6 completada y verificada automáticamente, con revisión Terra high y commits por corte. QA manual del usuario pendiente; guía en [QA de I-02](qa-manual-i-02.md). I-01 está implementada y aceptada mediante QA manual.
 
 ## Resultado acordado
 
@@ -147,16 +147,16 @@ Cada corte previo conserva sus pruebas, revisión y commit. El cierre de I-02 re
 
 ## Checklist de cierre de implementación
 
-Las siguientes casillas registran ejecución, no aprobación del plan; permanecen pendientes hasta contar con evidencia.
+Las siguientes casillas registran ejecución. Evidencia detallada en [avance](avance-i-02.md), [datos de demo](datos-demo-i-02.md) y pruebas del repositorio.
 
-- [ ] I-02.1: cuentas existentes, permisos, versiones, auditoría y último Admin bajo concurrencia.
-- [ ] I-02.2: alta, email y contraseña mediante Auth, con recuperación de fallos y comprobación del proveedor.
-- [ ] I-02.3: aulas, subtipos, estados, historial y baja lógica.
-- [ ] I-02.4: años, cuatrimestres y fechas no lectivas persistentes.
-- [ ] I-02.5: materias/cursos y fuente fija docente conectados al formulario.
-- [ ] I-02.6: carga inicial y repetición verificadas; datos del usuario preservados.
-- [ ] Contratos y documentación actualizados; ningún secreto versionado.
-- [ ] Pruebas de API/PostgreSQL y navegador aprobadas, con evidencia de concurrencia y recuperación.
-- [ ] Revisión Terra high y revisión visual completadas por corte; commits guardados.
-- [ ] QA manual de I-02 entregado y límites de reservas/indicadores pendientes documentados.
+- [x] I-02.1: cuentas existentes, permisos, versiones, auditoría y último Admin bajo concurrencia.
+- [x] I-02.2: alta, email y contraseña mediante Auth, con recuperación de fallos y comprobación del proveedor.
+- [x] I-02.3: aulas, subtipos, estados, historial y baja lógica.
+- [x] I-02.4: años, cuatrimestres y fechas no lectivas persistentes.
+- [x] I-02.5: materias/cursos y fuente fija docente conectados al formulario.
+- [x] I-02.6: carga inicial y repetición verificadas; datos del usuario preservados.
+- [x] Contratos y documentación actualizados; ningún secreto versionado.
+- [x] Pruebas de API/PostgreSQL y navegador aprobadas, con evidencia de concurrencia y recuperación.
+- [x] Revisión Terra high y revisión visual completadas por corte; commits guardados.
+- [x] QA manual de I-02 entregado y límites de reservas/indicadores pendientes documentados.
 - [ ] Resultado de aceptación manual del usuario registrado cuando lo realice.

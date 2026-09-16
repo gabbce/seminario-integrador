@@ -1,0 +1,346 @@
+{
+  "dataset": "catalogos-i02-v1",
+  "description": "Datos ficticios de demostración. Las fechas no lectivas no constituyen un calendario oficial.",
+  "historyFrom": "2026-01-01T00:00:00-03:00",
+  "retiredAt": "2026-08-01T00:00:00-03:00",
+  "rooms": [
+    {
+      "id": "105",
+      "type": "General",
+      "capacity": 30,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Tiza",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "203",
+      "type": "Multimedios",
+      "capacity": 40,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 1,
+      "board": "Fibrón",
+      "resources": [
+        "air",
+        "projector",
+        "computer"
+      ],
+      "computers": null
+    },
+    {
+      "id": "108",
+      "type": "General",
+      "capacity": 60,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "Lab 2",
+      "type": "Laboratorio",
+      "capacity": 24,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": 24
+    },
+    {
+      "id": "301",
+      "type": "Multimedios",
+      "capacity": 80,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 2,
+      "board": "Tiza",
+      "resources": [
+        "air",
+        "projector",
+        "computer"
+      ],
+      "computers": null
+    },
+    {
+      "id": "204",
+      "type": "General",
+      "capacity": 30,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 1,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "101",
+      "type": "General",
+      "capacity": 40,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "102",
+      "type": "Multimedios",
+      "capacity": 60,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "air",
+        "projector",
+        "computer"
+      ],
+      "computers": null
+    },
+    {
+      "id": "103",
+      "type": "General",
+      "capacity": 24,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Tiza",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "104",
+      "type": "General",
+      "capacity": 80,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Norte",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "106",
+      "type": "Multimedios",
+      "capacity": 30,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "air",
+        "projector",
+        "computer"
+      ],
+      "computers": null
+    },
+    {
+      "id": "107",
+      "type": "General",
+      "capacity": 40,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "201",
+      "type": "General",
+      "capacity": 60,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 1,
+      "board": "Tiza",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "202",
+      "type": "Multimedios",
+      "capacity": 24,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 1,
+      "board": "Fibrón",
+      "resources": [
+        "air",
+        "projector",
+        "computer"
+      ],
+      "computers": null
+    },
+    {
+      "id": "205",
+      "type": "General",
+      "capacity": 80,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 1,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "206",
+      "type": "General",
+      "capacity": 30,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 1,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "302",
+      "type": "Multimedios",
+      "capacity": 40,
+      "state": "Inhabilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 2,
+      "board": "Tiza",
+      "resources": [
+        "air",
+        "projector",
+        "computer"
+      ],
+      "computers": null
+    },
+    {
+      "id": "303",
+      "type": "General",
+      "capacity": 60,
+      "state": "Mantenimiento",
+      "location": "Edificio de demostración Sur",
+      "floor": 2,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": null
+    },
+    {
+      "id": "Lab1",
+      "type": "Laboratorio",
+      "capacity": 24,
+      "state": "Habilitada",
+      "location": "Edificio de demostración Sur",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": 24
+    },
+    {
+      "id": "Lab3",
+      "type": "Laboratorio",
+      "capacity": 80,
+      "state": "Baja",
+      "location": "Edificio de demostración Sur",
+      "floor": 0,
+      "board": "Fibrón",
+      "resources": [
+        "fans"
+      ],
+      "computers": 24
+    }
+  ],
+  "calendars": [
+    {
+      "year": 2026,
+      "state": "Habilitado",
+      "terms": {
+        "first": [
+          "2026-03-09",
+          "2026-07-03"
+        ],
+        "second": [
+          "2026-09-14",
+          "2026-12-18"
+        ]
+      },
+      "holidays": [
+        "2026-05-25",
+        "2026-10-12",
+        "2026-11-23"
+      ],
+      "descriptions": {
+        "2026-05-25": "Fecha ficticia de ejemplo de mayo",
+        "2026-10-12": "Fecha ficticia de ejemplo de octubre",
+        "2026-11-23": "Fecha ficticia de ejemplo de noviembre"
+      }
+    },
+    {
+      "year": 2027,
+      "state": "Habilitado",
+      "terms": {
+        "first": [
+          "2027-03-09",
+          "2027-07-03"
+        ],
+        "second": [
+          "2027-09-14",
+          "2027-12-18"
+        ]
+      },
+      "holidays": [
+        "2027-05-25",
+        "2027-10-12",
+        "2027-11-23"
+      ],
+      "descriptions": {
+        "2027-05-25": "Fecha ficticia de ejemplo de mayo",
+        "2027-10-12": "Fecha ficticia de ejemplo de octubre",
+        "2027-11-23": "Fecha ficticia de ejemplo de noviembre"
+      }
+    }
+  ],
+  "subjects": [
+    "Matemática I",
+    "Física I",
+    "Historia",
+    "Álgebra",
+    "Programación I",
+    "Química",
+    "Estadística",
+    "Inglés técnico",
+    "Bases de datos",
+    "Sistemas operativos"
+  ],
+  "commissions": [
+    "A",
+    "B"
+  ]
+}

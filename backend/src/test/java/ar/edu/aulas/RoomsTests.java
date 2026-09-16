@@ -38,4 +38,21 @@ class RoomsTests {
   assertThat(rooms.list(id,"","","","",31,"id",false,1,20).total()).isZero();
   assertThatThrownBy(()->rooms.save(teacher,null,room("prohibida",null,"General","Habilitada"))).isInstanceOf(DomainError.class);
  }
+ @Test void batchHistoriesKeepEachRoomChronologyAcrossDetailListAndReferences() {
+  long bedel=actor("BEDEL");String prefix="Historial-"+UUID.randomUUID();
+  var first=rooms.save(bedel,null,room(prefix+"-A",null,"General","Habilitada"));
+  var second=rooms.save(bedel,null,room(prefix+"-B",null,"Multimedios","Inhabilitada"));
+  long firstId=Long.parseLong(first.internalId()),secondId=Long.parseLong(second.internalId());
+  first=rooms.save(bedel,firstId,room(first.id(),first.version(),"Laboratorio","Mantenimiento"));
+  second=rooms.save(bedel,secondId,room(second.id(),second.version(),"Multimedios","Habilitada"));
+  first=rooms.save(bedel,firstId,room(first.id(),first.version(),"Laboratorio","Habilitada"));
+  assertThat(first.history()).extracting(RoomsService.History::state).containsExactly("Habilitada","Mantenimiento","Habilitada");
+  assertThat(second.history()).extracting(RoomsService.History::state).containsExactly("Inhabilitada","Habilitada");
+  var listed=rooms.list(prefix,"","","","",0,"id",false,1,20).items();
+  assertThat(listed).containsExactly(first,second);
+  assertThat(rooms.references().stream().filter(r->r.id().startsWith(prefix)).toList()).containsExactly(first,second);
+  assertThat(rooms.get(firstId)).isEqualTo(first);assertThat(rooms.get(secondId)).isEqualTo(second);
+  assertThat(rooms.list(prefix+"-missing","","","","",0,"id",false,1,20).items()).isEmpty();
+ }
+
 }

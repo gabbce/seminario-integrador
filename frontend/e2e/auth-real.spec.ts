@@ -231,6 +231,7 @@ test("I-02.3: aula persiste y baja conserva historial", async ({ page }) => {
     page.getByRole("link", { name: "Agenda", exact: true }),
   ).toBeVisible();
   await page.goto("/aulas");
+  await page.getByLabel("Buscar aula", { exact: true }).fill(code);
   await page.getByRole("button", { name: "Nueva aula", exact: true }).click();
   await page.getByLabel("Identificador", { exact: true }).fill(code);
   await page
@@ -247,6 +248,7 @@ test("I-02.3: aula persiste y baja conserva historial", async ({ page }) => {
     page.getByRole("button", { name: `Editar ${code}` }),
   ).toBeVisible();
   await page.reload();
+  await page.getByLabel("Buscar aula", { exact: true }).fill(code);
   await page.getByRole("button", { name: `Editar ${code}` }).click();
   await expect(page.getByLabel("Tipo de aula", { exact: true })).toHaveValue(
     "Laboratorio",
@@ -296,8 +298,19 @@ test("I-02.4: calendario persiste tras recarga", async ({ page }) => {
     page.getByRole("link", { name: "Agenda", exact: true }),
   ).toBeVisible();
   await page.goto("/administracion/calendario");
-  await page.getByLabel("Nuevo año", { exact: true }).fill("2028");
-  await page.getByRole("button", { name: "Crear año", exact: true }).click();
+  await expect(page.getByLabel("Nuevo año", { exact: true })).toBeVisible();
+  if (
+    await page
+      .getByRole("option", { name: "2028 · Habilitado", exact: true })
+      .count()
+  ) {
+    await page
+      .getByLabel("Año del calendario", { exact: true })
+      .selectOption("2028");
+  } else {
+    await page.getByLabel("Nuevo año", { exact: true }).fill("2028");
+    await page.getByRole("button", { name: "Crear año", exact: true }).click();
+  }
   await expect(page.getByLabel("Número de año", { exact: true })).toHaveValue(
     "2028",
   );
@@ -308,11 +321,19 @@ test("I-02.4: calendario persiste tras recarga", async ({ page }) => {
     ["Fin 2", "2028-12-01"],
   ])
     await page.getByLabel(label, { exact: true }).fill(date);
-  await page.getByLabel("Nueva fecha no lectiva").fill("2028-10-12");
-  await page.getByLabel("Descripción nueva").fill("Fecha ficticia QA");
-  await page
-    .getByRole("button", { name: "Agregar fecha", exact: true })
-    .click();
+  if (
+    await page.getByLabel("Descripción 2028-10-12", { exact: true }).count()
+  ) {
+    await page
+      .getByLabel("Descripción 2028-10-12", { exact: true })
+      .fill("Fecha ficticia QA");
+  } else {
+    await page.getByLabel("Nueva fecha no lectiva").fill("2028-10-12");
+    await page.getByLabel("Descripción nueva").fill("Fecha ficticia QA");
+    await page
+      .getByRole("button", { name: "Agregar fecha", exact: true })
+      .click();
+  }
   await page
     .getByLabel("Estado del año", { exact: true })
     .selectOption("Habilitado");
@@ -371,6 +392,55 @@ test("I-02.5: curso creado desde reserva persiste", async ({ page }) => {
   ).toHaveCount(1);
   await page.screenshot({
     path: "evidence/i025-real-referencias.png",
+    fullPage: true,
+  });
+});
+
+test("I-02.6: catálogos de demo poblados", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.goto("/");
+  await page.getByLabel("Correo electrónico").fill("admin@demo.local");
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Agenda", exact: true }),
+  ).toBeVisible();
+  await page.goto("/aulas");
+  await page.getByLabel("Buscar aula", { exact: true }).fill("Lab 2");
+  await expect(
+    page.getByRole("button", { name: "Editar Lab 2", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Buscar aula", { exact: true }).fill("");
+  await expect(
+    page.getByRole("button", { name: "Editar 105", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "evidence/i026-demo-aulas.png",
+    fullPage: true,
+  });
+  await page.goto("/administracion/calendario");
+  for (const year of ["2026", "2027"]) {
+    await page
+      .getByLabel("Año del calendario", { exact: true })
+      .selectOption(year);
+    await expect(
+      page.getByLabel("Estado del año", { exact: true }),
+    ).toHaveValue("Habilitado");
+    await expect(page.getByLabel("Inicio 1", { exact: true })).toHaveValue(
+      `${year}-03-09`,
+    );
+  }
+  await page.goto("/reservas/nueva");
+  for (const year of ["2026", "2027"]) {
+    await page
+      .getByLabel("Año de la reserva", { exact: true })
+      .selectOption(year);
+    expect(
+      await page.getByLabel("Curso", { exact: true }).locator("option").count(),
+    ).toBeGreaterThanOrEqual(21);
+  }
+  await page.screenshot({
+    path: "evidence/i026-demo-referencias.png",
     fullPage: true,
   });
 });

@@ -6,7 +6,7 @@ Plan: [base e ingreso real](i-01-base-e-ingreso.md). Rama `feat/integracion`; pr
 |---|---|---|
 | I-01.1 | Completado y validado local/remoto | Migración usuarios/perfiles, configuración JDBC/JPA/Flyway y PostgreSQL desechable. Cuatro pruebas pasan. Proyecto inspeccionado; rol propio, V1 aplicada, salud UP, repetición sin cambios y permisos remotos comprobados. |
 | I-01.2 | Completado | Comandos admin/demo, UUID durable, HTTP fuera de transacciones, recuperación probada y cuatro cuentas reales creadas/repetidas. |
-| I-01.3 | Pendiente | JWT, permisos y `/api/me`. |
+| I-01.3 | Completado | JWT ES256/RS256, perfil y permisos actuales desde PostgreSQL, contrato OpenAPI y 12 pruebas. |
 | I-01.4 | Pendiente | Sesión real React y pruebas integradas. |
 
 ## Verificación local I-01.1
@@ -26,3 +26,7 @@ El usuario autorizó el CLI. Se obtuvieron claves de Auth sin mostrarlas ni vers
 ## I-01.2
 
 Siete pruebas locales, incluidas repetición sin cambios, rechazo de identidad ajena, respuesta incierta y recuperación tras fallo del perfil. La prueba confirma que auth_id persiste después de rollback y que Auth no se llama dentro de una transacción JDBC. Terra detectó y revisó la corrección de esos puntos, paginación acotada y política de contraseña delegada al proveedor; ambos ejes sin bloqueantes. Ejecución real: admin, demo (cuatro cuentas) y repetición corregida completadas. Credenciales en backend/.env, nunca en el journal ni en Git.
+
+## I-01.3
+
+Doce pruebas backend aprobadas con PostgreSQL desechable y claves JWT locales. Cubren firma, emisor, audiencia, expiración, perfil inexistente/deshabilitado, permisos y caída de persistencia. Revisiones Terra high de especificación y estándares aprobadas. Comprobación real con Supabase: Admin, Bedel y Docente reciben 200 y sus permisos en /api/me; cuenta deshabilitada recibe 403 con JWT vigente. Contrato en docs/api/identidad.openapi.yaml.

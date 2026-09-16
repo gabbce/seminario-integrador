@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: Aulas - Identidad I-01
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /me:
+    get:
+      operationId: consultarPerfil
+      summary: Perfil activo y permisos vigentes de la identidad autenticada
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil habilitado; permisos derivados del rol en base de datos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, nombre, apellido, email, rol, permisos]
+                properties:
+                  id: {type: integer, format: int64}
+                  nombre: {type: string}
+                  apellido: {type: string}
+                  email: {type: string, format: email}
+                  rol: {type: string, enum: [ADMINISTRADOR, BEDEL, DOCENTE]}
+                  permisos:
+                    type: array
+                    items:
+                      type: string
+                      enum: ['agenda:read', 'disponibilidad:read', 'reservas:read', 'aulas:read', 'reservas:write', 'aulas:write', 'indicadores:read', 'cuentas:write', 'calendario:write']
+        '401':
+          description: Token ausente, inválido, vencido o sujeto inválido
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+        '403':
+          description: Identidad sin perfil o cuenta deshabilitada (ACCOUNT_UNAVAILABLE)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+        '503':
+          description: Servicio de perfil o verificación temporalmente inaccesible (PROFILE_UNAVAILABLE / AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Error'}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: {type: string, enum: [INVALID_SESSION, ACCOUNT_UNAVAILABLE, FORBIDDEN, PROFILE_UNAVAILABLE, AUTH_UNAVAILABLE]}
+        message: {type: string}

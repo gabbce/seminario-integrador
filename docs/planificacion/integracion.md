@@ -88,8 +88,8 @@ La [checklist manual del prototipo](../diseno/qa-manual-prototipo.md) y sus [res
 
 No cerrar entregas con defectos que impidan recorridos o incumplan reglas acordadas. Cualquier detalle menor pendiente se identifica explícitamente. El cierre exige pruebas aprobadas, documentación actualizada y commit.
 
-## Próximo paso: preparación de I-01
+## Detalle por entrega
 
-Con esta planificación acordada, el próximo corte debe concretar migraciones iniciales, contrato de identidad/perfil, arranque del Admin y pruebas de acceso. Antes de conectar servicios, comprobar configuración del entorno Supabase y disponibilidad de variables privadas, sin exponer secretos. Proveedor de hosting, dataset detallado, rutas/DTO precisos y subdivisión de cada entrega son decisiones de implementación pendientes, no trabajo ya realizado.
+El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. Implementación pendiente. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
 
-Este documento consolida la planificación; no inicia I-01 ni cambia las reglas funcionales de la especificación.
+Cada entrega posterior se detallará y acordará antes de implementarla. Este plan general no reemplaza ese trabajo. Los contratos técnicos exactos y la configuración se concretan en el subcorte correspondiente, sin cambiar las reglas funcionales aprobadas.

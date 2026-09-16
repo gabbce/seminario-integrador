@@ -1,0 +1,5 @@
+# Local credentials (examples remain versioned)
+.env
+.env.*
+!.env.example
+*.local.properties

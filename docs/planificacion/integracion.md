@@ -1,6 +1,6 @@
 # Plan aprobado de integración
 
-**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 a I-06 pendientes de implementación. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
+**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 a I-06 pendientes de implementación. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
 
 ## Objetivo y alcance
 
@@ -51,7 +51,9 @@ Migraciones versionadas para estructura. Cargas ficticias separadas de las migra
 | Conjunto | Diseño | Uso |
 |---|---|---|
 | Verificación | Pocas aulas/reservas, fechas fijas, resultados esperados documentados y reloj controlado solo para pruebas. Conservar ejemplos numéricos aprobados del prototipo. | Verificar reglas, operaciones, disponibilidad y cálculos exactos. |
-| Demostración | Un año académico; aproximadamente 20 aulas, 40 cursos/comisiones y varios miles de clases generadas con reservas periódicas y esporádicas. Preparado para el año de presentación, reloj normal. | Presentación y exploración de indicadores, filtros, listados y disponibilidad con volumen. |
+| Demostración | Años académicos 2026 y 2027, ambos con dos cuatrimestres; aproximadamente 20 aulas compartidas, 40 cursos/comisiones en total y varios miles de clases periódicas y esporádicas. Escenarios: segundo cuatrimestre 2026, primero 2027 y anuales 2027. Reloj normal. | Presentación y exploración de indicadores, filtros, listados y disponibilidad con volumen. |
+
+Todos los datos son ficticios y el uso es exclusivamente demostrativo para el TP. Las reservas persistidas se guardan en PostgreSQL; no son reservas productivas. El segundo cuatrimestre de 2026 se considera en curso solo cuando la fecha de ejecución pertenece a ese período. La carga histórica de demo no habilita altas retroactivas mediante la interfaz.
 
 El volumen es una configuración inicial, no un nuevo requisito de capacidad productiva. Distribución deliberadamente variada: horas pico y valles, distintos días, tipos/capacidades/equipamiento, alumnos previstos compatibles, clases pasadas/futuras, cancelaciones y reprogramaciones, feriados/recesos e historial de aulas coherente.
 
@@ -90,6 +92,8 @@ No cerrar entregas con defectos que impidan recorridos o incumplan reglas acorda
 
 ## Detalle por entrega
 
-El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
+El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 tiene plan detallado aprobado; I-03 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
 
 Cada entrega posterior se detallará y acordará antes de implementarla. Este plan general no reemplaza ese trabajo. Los contratos técnicos exactos y la configuración se concretan en el subcorte correspondiente, sin cambiar las reglas funcionales aprobadas.
+
+El [plan de I-02](i-02-administracion-y-catalogos.md) tiene alcance y orden aprobados, con escenarios ficticios 2026/2027. Los detalles de I-02.1 a I-02.6 están aprobados y consolidados, con criterios de aceptación y checklist de cierre. Implementación pendiente.

@@ -6,6 +6,7 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 - [Plan aprobado de integración I-01 a I-06](docs/planificacion/integracion.md).
 - [Plan detallado de I-01: base e ingreso real](docs/planificacion/i-01-base-e-ingreso.md).
+- [Plan detallado aprobado de I-02: administración y catálogos](docs/planificacion/i-02-administracion-y-catalogos.md).
 - [Leer la especificación](docs/especificacion/00-especificacion.md).
 - [Diseño B aprobado y referencias vigentes](docs/diseno/README.md).
 

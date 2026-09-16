@@ -1,17 +1,21 @@
 import { FormError, FieldError } from "../components/FormError";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type Room, type Role } from "../domain";
-import { useRooms } from "../room-context";
+import { api } from "../api";
 import { resourceLabels, resourcesFor } from "../equipment";
 import { Button } from "../components/ui/button";
-export function Rooms({
-  role,
-  save,
-}: {
-  role: Role;
-  save: (room: Room, originalId?: string) => string | undefined;
-}) {
-  const rooms = useRooms();
+type RoomPage = {
+  items: Room[];
+  total: number;
+  page: number;
+  size: number;
+  enabled: number;
+};
+export function Rooms({ role }: { role: Role }) {
+  const [data, setData] = useState<RoomPage>();
+  const [loadError, setLoadError] = useState("");
+  const [revision, setRevision] = useState(0);
+  const [busy, setBusy] = useState(false);
   const [resource, setResource] = useState("");
   const [board, setBoard] = useState("");
   const [selected, setSelected] = useState<Room>();
@@ -27,35 +31,43 @@ export function Rooms({
   const [descending, setDescending] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const shown = rooms.filter(
-    (r) =>
-      (state ? r.state === state : r.state !== "Baja") &&
-      (!type || r.type === type) &&
-      (!board || r.board === board) &&
-      (!resource || r.resources?.some((value) => value === resource)) &&
-      r.id.toLowerCase().includes(query.toLowerCase()) &&
-      r.capacity >= capacity,
-  );
-  shown.sort((a, b) => {
-    const compare =
-      order === "capacity"
-        ? a.capacity - b.capacity
-        : order === "type"
-          ? a.type.localeCompare(b.type, "es")
-          : order === "state"
-            ? (a.state ?? "").localeCompare(b.state ?? "", "es")
-            : a.id.localeCompare(b.id, "es", { numeric: true });
-    return (
-      (descending ? -1 : 1) *
-      (compare || a.id.localeCompare(b.id, "es", { numeric: true }))
-    );
-  });
-  const pages = Math.max(1, Math.ceil(shown.length / pageSize));
-  const currentPage = Math.min(page, pages);
-  const visible = shown.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    api<RoomPage>(
+      `/aulas?${new URLSearchParams({ query, type, state, board, resource, capacity: String(capacity), sort: order, descending: String(descending), page: String(page), size: String(pageSize) })}`,
+      { signal: controller.signal },
+    )
+      .then((result) => {
+        if (active) {
+          setData(result);
+          setLoadError("");
+        }
+      })
+      .catch((e) => {
+        if (active) setLoadError(e.message);
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [
+    query,
+    type,
+    state,
+    board,
+    resource,
+    capacity,
+    order,
+    descending,
+    page,
+    pageSize,
+    revision,
+  ]);
+  const rooms = data?.items ?? [];
+  const pages = Math.max(1, Math.ceil((data?.total ?? 0) / pageSize));
+  const currentPage = data?.page ?? page;
+  const visible = loadError ? [] : rooms;
   function edit(room: Room | undefined) {
     setSelected(
       room ?? {
@@ -79,12 +91,23 @@ export function Rooms({
     setError("");
     setConfirmDelete(false);
   }
-  function persist(room: Room) {
-    const failure = save(room, originalId);
-    if (failure) {
-      setError(failure);
+  async function persist(room: Room) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const saved = await api<Room>(room.internalId ? `/aulas/${room.internalId}` : "/aulas", {
+        method: room.internalId ? "PUT" : "POST",
+        body: JSON.stringify(room),
+      });
+      setData(current => current ? { ...current, items: current.items.map(item => item.internalId === saved.internalId ? saved : item) } : current);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo guardar.");
       return;
+    } finally {
+      setBusy(false);
     }
+    setRevision((r) => r + 1);
+    window.dispatchEvent(new Event("aulas-inventory-refresh"));
     setSelected(undefined);
     setMessage(
       room.state === "Baja"
@@ -97,10 +120,7 @@ export function Rooms({
       <div className="page-heading">
         <div>
           <h1>Aulas</h1>
-          <p>
-            Inventario de espacios ·{" "}
-            {rooms.filter((r) => r.state === "Habilitada").length} habilitados
-          </p>
+          <p>Inventario de espacios · {data?.enabled ?? 0} habilitados</p>
         </div>
         {role !== "Docente" && (
           <Button onClick={() => edit(undefined)}>Nueva aula</Button>
@@ -258,6 +278,15 @@ export function Rooms({
               </article>
             ))}
           </div>
+          {loadError && (
+            <div role="alert">
+              {loadError}
+              <Button onClick={() => setRevision((r) => r + 1)}>
+                Reintentar
+              </Button>
+            </div>
+          )}
+          {!data && !loadError && <p role="status">Cargando aulas…</p>}
           <nav className="pagination" aria-label="Paginación de aulas">
             <label>
               Aulas por página
@@ -274,7 +303,7 @@ export function Rooms({
               </select>
             </label>
             <span role="status">
-              {shown.length} aulas · Página {currentPage} de {pages}
+              {data?.total ?? 0} aulas · Página {currentPage} de {pages}
             </span>
             <Button
               variant="outline"
@@ -291,7 +320,7 @@ export function Rooms({
               Siguiente
             </Button>
           </nav>
-          {!shown.length && (
+          {data && !loadError && !data.total && (
             <p role="status">No hay aulas que coincidan con los filtros.</p>
           )}
         </section>
@@ -305,7 +334,7 @@ export function Rooms({
           >
             <h2>{originalId ? `Aula ${originalId}` : "Nueva aula"}</h2>
             <fieldset
-              disabled={role === "Docente" || selected.state === "Baja"}
+              disabled={busy || role === "Docente" || selected.state === "Baja"}
             >
               <div className="form-grid">
                 <label>
@@ -505,7 +534,7 @@ export function Rooms({
                   type="button"
                   className="cancel-confirm"
                   onClick={() => {
-                    const current = rooms.find((r) => r.id === originalId);
+                    const current = selected;
                     if (current)
                       persist({
                         ...current,

@@ -219,3 +219,15 @@ test("I-02.2: alta, cambio de correo y contraseña en Supabase", async ({
     page.getByRole("heading", { name: "Ingresar", exact: true }),
   ).toBeVisible();
 });
+
+
+test('I-02.3: aula persiste y baja conserva historial',async({page})=>{
+ test.setTimeout(120000);
+ const code=`QA-${Date.now()}`;
+ await page.goto('/');await page.getByLabel('Correo electrónico').fill('bedel@demo.local');await page.getByLabel('Contraseña',{exact:true}).fill(password);await page.getByRole('button',{name:'Ingresar',exact:true}).click();await expect(page.getByRole('link',{name:'Agenda',exact:true})).toBeVisible();await page.goto('/aulas');
+ await page.getByRole('button',{name:'Nueva aula',exact:true}).click();await page.getByLabel('Identificador',{exact:true}).fill(code);await page.getByLabel('Ubicación / edificio',{exact:true}).fill('Edificio QA');await page.getByLabel('Tipo de aula',{exact:true}).selectOption('Laboratorio');await page.getByRole('button',{name:'Guardar aula',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Aula guardada'})).toBeVisible();await expect(page.getByRole('button',{name:`Editar ${code}`})).toBeVisible();
+ await page.reload();await page.getByRole('button',{name:`Editar ${code}`}).click();await expect(page.getByLabel('Tipo de aula',{exact:true})).toHaveValue('Laboratorio');await page.getByLabel('Estado del aula',{exact:true}).selectOption('Mantenimiento');await page.getByRole('button',{name:'Guardar aula',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Aula guardada'})).toBeVisible();await expect(page.getByRole('button',{name:`Editar ${code}`})).toBeVisible();await page.getByRole('button',{name:`Editar ${code}`}).click();await page.screenshot({path:'evidence/i023-real-aula.png',fullPage:true});
+ await page.getByRole('button',{name:'Dar de baja',exact:true}).click();await page.getByRole('button',{name:'Confirmar baja',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Aula dada de baja'})).toBeVisible();await expect(page.getByRole('button',{name:`Editar ${code}`})).toHaveCount(0);await page.getByLabel('Estado de inventario',{exact:true}).selectOption('Baja');await expect(page.getByRole('button',{name:`Ver ${code}`})).toBeVisible();
+ await page.getByRole('button',{name:'Cerrar sesión'}).click();await expect(page.getByRole('heading',{name:'Ingresar',exact:true})).toBeVisible();
+});
+

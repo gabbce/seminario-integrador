@@ -26,3 +26,9 @@ Cierre I-02.1: 16 pruebas backend aprobadas, build/lint frontend limpios y ambos
 Alta, cambio de email y contraseña conectados a Supabase desde Java. Journal sin secretos y recuperación de alta mediante UUID de operación. Reintentos de email consultan Auth antes de repetir la misma asignación; contraseñas inciertas no se repiten automáticamente. La interfaz conserva e inmoviliza datos durante recuperación y separa perfil/email/contraseña en el panel aprobado.
 
 Diecinueve pruebas backend, doce de navegador sin proveedor y seis recorridos reales aprobados. El recorrido nuevo creó una cuenta ficticia QA, verificó ingreso inicial, cambió email conservando identidad, verificó nuevo ingreso, cambió contraseña, comprobó ingreso con la nueva y rechazo de la anterior. Cuenta QA deshabilitada al finalizar. Captura i022-real-cuentas revisada; secretos nunca guardados en evidencias. Ambos revisores Terra high aprobaron tras corregir clasificación de rechazo/duplicado, recuperación de email no aplicado e inmovilización de datos al reintentar.
+
+## I-02.3
+
+Inventario conectado a Java/PostgreSQL, con filtros y paginación, subtipos, historial de estados/tipo, auditoría, control de versión y baja lógica. La consulta de disponibilidad consume el mismo inventario persistido. Identificadores únicos incluso tras la baja; PC únicamente descriptivas.
+
+Dos pruebas PostgreSQL y dos recorridos de navegador móvil/escritorio aprobados; capturas i023-aulas revisadas, accesibilidad sin infracciones. Recorrido con Supabase aprobado: alta de laboratorio, recarga, mantenimiento y baja conservando consulta histórica. Se corrigió una ventana de versión vieja al reabrir un registro durante el refresco posterior al guardado, detectada en esta prueba remota. Revisiones Terra high de especificación y estándares completadas. La protección frente a reservas persistidas se incorpora en I-03 antes de habilitar sus escrituras.

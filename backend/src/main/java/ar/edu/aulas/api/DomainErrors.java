@@ -13,7 +13,9 @@ public class DomainErrors {
     @ExceptionHandler(DomainError.class)
     ResponseEntity<ErrorBody> domain(DomainError e) { return ResponseEntity.status(e.status).body(new ErrorBody(e.code,e.getMessage())); }
     @ExceptionHandler(DataIntegrityViolationException.class)
-    ResponseEntity<ErrorBody> integrity() { return ResponseEntity.status(409).body(new ErrorBody("CONFLICT","Los datos ya existen o tienen dependencias. Revisá y volvé a intentar.")); }
+    ResponseEntity<ErrorBody> integrity(DataIntegrityViolationException e) {
+        if(String.valueOf(e.getMostSpecificCause().getMessage()).contains("aula_identificador_unico")) return ResponseEntity.status(409).body(new ErrorBody("DUPLICATE_ROOM","El identificador debe ser único, incluso entre aulas dadas de baja."));
+        return ResponseEntity.status(409).body(new ErrorBody("CONFLICT","Los datos ya existen o tienen dependencias. Revisá y volvé a intentar.")); }
     @ExceptionHandler({HttpMessageNotReadableException.class,MethodArgumentTypeMismatchException.class})
     ResponseEntity<ErrorBody> invalid() { return ResponseEntity.badRequest().body(new ErrorBody("INVALID_DATA","Revisá los campos de la solicitud.")); }
     @ExceptionHandler(DataAccessException.class)

@@ -1,0 +1,588 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Inventario de aulas",
+    "version": "I-02.3"
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Room": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "capacity",
+          "state",
+          "location",
+          "floor",
+          "board"
+        ],
+        "properties": {
+          "internalId": {
+            "type": "string",
+            "readOnly": true
+          },
+          "id": {
+            "type": "string",
+            "description": "Identificador visible inmutable; separado de internalId"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "General",
+              "Multimedios",
+              "Laboratorio"
+            ]
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "Habilitada",
+              "Inhabilitada",
+              "Mantenimiento",
+              "Baja"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "floor": {
+            "type": "integer"
+          },
+          "board": {
+            "type": "string",
+            "enum": [
+              "Tiza",
+              "Fibrón"
+            ]
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fans",
+                "air",
+                "projector",
+                "television",
+                "computer"
+              ]
+            }
+          },
+          "computers": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true
+          },
+          "history": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "description": "Fecha/hora local institucional"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/aulas": {
+      "get": {
+        "summary": "Inventario filtrado, ordenado y paginado; todos los roles",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "General",
+                "Multimedios",
+                "Laboratorio"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Habilitada",
+                "Inhabilitada",
+                "Mantenimiento",
+                "Baja"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "board",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Tiza",
+                "Fibrón"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "resource",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fans",
+                "air",
+                "projector",
+                "television",
+                "computer"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "capacity",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "capacity",
+                "type",
+                "state"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "descending",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                20,
+                50,
+                100
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Room"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "size": {
+                      "type": "integer"
+                    },
+                    "enabled": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permiso insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aula inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Versión o integridad incompatible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear aula; Admin/Bedel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Room"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permiso insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aula inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Versión o integridad incompatible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aulas/{id}": {
+      "put": {
+        "summary": "Editar aula o baja lógica; versión requerida, sin restauración",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID interno"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Room"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permiso insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aula inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Versión o integridad incompatible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/referencias/aulas": {
+      "get": {
+        "summary": "Referencias de aulas para recorridos de reserva y consulta",
+        "responses": {
+          "200": {
+            "description": "Resultado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Room"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permiso insuficiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aula inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Versión o integridad incompatible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Servicio no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "administracion.openapi.json#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

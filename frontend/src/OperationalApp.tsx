@@ -12,7 +12,7 @@ import { changeCalendar } from "./calendar-management";
 import { CalendarEditor } from "./pages/CalendarEditor";
 import { Users } from "./pages/Users";
 import { type User } from "./users";
-import { saveRoom } from "./room-management";
+import { api } from "./api";
 import { RoomContext } from "./room-context";
 
 import { changeHeader } from "./booking-header";
@@ -22,7 +22,7 @@ import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
 import { initialCourses } from "./catalog";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import {
   CalendarDays,
@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Brand } from "./components/Brand";
-import { validateBooking, type Booking } from "./domain";
+import { validateBooking, type Booking, type Room } from "./domain";
 import "./App.css";
 import type { Profile } from "./auth-client";
 import { Agenda } from "./pages/Agenda";
@@ -86,7 +86,33 @@ export default function App({
     calendars[0] ??
     initialCalendar;
   const [agendaDate, setAgendaDate] = useState(scenario.now.slice(0, 10));
-  const [inventory, setInventory] = useState(scenario.inventory);
+  const [inventory, setInventory] = useState<Room[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [inventoryError, setInventoryError] = useState("");
+  useEffect(() => {
+    let active = true;
+    const load = () => {
+      void api<Room[]>("/referencias/aulas")
+        .then((rooms) => {
+          if (active) {
+            setInventory(rooms);
+            setInventoryError("");
+          }
+        })
+        .catch((e) => {
+          if (active) setInventoryError(e.message);
+        })
+        .finally(() => {
+          if (active) setInventoryLoading(false);
+        });
+    };
+    load();
+    window.addEventListener("aulas-inventory-refresh", load);
+    return () => {
+      active = false;
+      window.removeEventListener("aulas-inventory-refresh", load);
+    };
+  }, []);
   const role = currentUser?.role;
   const [bookings, setBookings] = useState(scenario.bookings);
   const [courses, setCourses] = useState(initialCourses);
@@ -143,28 +169,85 @@ export default function App({
             </div>
           </header>
           <main>
-            <Routes>
-              <Route
-                path="/agenda"
-                element={
-                  <Agenda
-                    date={agendaDate}
-                    setDate={setAgendaDate}
-                    bookings={bookings}
-                    operator={role !== "Docente"}
-                  />
-                }
-              />
-              <Route
-                path="/reservas/nueva"
-                element={
-                  role === "Docente" ? (
-                    <Navigate to="/agenda" />
-                  ) : (
-                    <Wizard
-                      key="register"
-                      initial={draft}
-                      onConsume={() => setDraft(undefined)}
+            {inventoryError && (
+              <div role="alert">
+                {inventoryError}
+                <Button
+                  onClick={() =>
+                    window.dispatchEvent(new Event("aulas-inventory-refresh"))
+                  }
+                >
+                  Reintentar aulas
+                </Button>
+              </div>
+            )}
+            {inventoryLoading && <p role="status">Cargando aulas…</p>}
+            {!inventoryError && !inventoryLoading && (
+              <Routes>
+                <Route
+                  path="/agenda"
+                  element={
+                    <Agenda
+                      date={agendaDate}
+                      setDate={setAgendaDate}
+                      bookings={bookings}
+                      operator={role !== "Docente"}
+                    />
+                  }
+                />
+                <Route
+                  path="/reservas/nueva"
+                  element={
+                    role === "Docente" ? (
+                      <Navigate to="/agenda" />
+                    ) : (
+                      <Wizard
+                        key="register"
+                        initial={draft}
+                        onConsume={() => setDraft(undefined)}
+                        courses={courses}
+                        addCourse={(course) =>
+                          setCourses((old) =>
+                            old.some((c) => c.id === course.id)
+                              ? old
+                              : [...old, course],
+                          )
+                        }
+                        role={role}
+                        bookings={bookings}
+                        save={(b) => {
+                          if (bookings.some((existing) => existing.id === b.id))
+                            return "Esta reserva ya está registrada. Consultá su detalle antes de volver a enviarla.";
+                          const failure = validateBooking(
+                            b,
+                            bookings,
+                            inventory,
+                            calendars.find((c) => c.year === bookingYear(b)) ??
+                              initialCalendar,
+                          );
+                          if (failure) return failure;
+                          setBookings((old) => [
+                            ...old,
+                            {
+                              ...b,
+                              registrant: {
+                                name: `${currentUser?.name} ${currentUser?.surname}`,
+                                email: currentUser?.email ?? "",
+                                userId: currentUser?.id,
+                              },
+                            },
+                          ]);
+                        }}
+                      />
+                    )
+                  }
+                />
+                <Route
+                  path="/reservas/:id"
+                  element={
+                    <Detail
+                      bookings={bookings}
+                      role={role}
                       courses={courses}
                       addCourse={(course) =>
                         setCourses((old) =>
@@ -173,294 +256,235 @@ export default function App({
                             : [...old, course],
                         )
                       }
-                      role={role}
-                      bookings={bookings}
-                      save={(b) => {
-                        if (bookings.some((existing) => existing.id === b.id))
-                          return "Esta reserva ya está registrada. Consultá su detalle antes de volver a enviarla.";
-                        const failure = validateBooking(
-                          b,
-                          bookings,
-                          inventory,
-                          calendars.find((c) => c.year === bookingYear(b)) ??
-                            initialCalendar,
-                        );
-                        if (failure) return failure;
-                        setBookings((old) => [
-                          ...old,
-                          {
-                            ...b,
-                            registrant: {
-                              name: `${currentUser?.name} ${currentUser?.surname}`,
-                              email: currentUser?.email ?? "",
-                              userId: currentUser?.id,
-                            },
-                          },
-                        ]);
-                      }}
-                    />
-                  )
-                }
-              />
-              <Route
-                path="/reservas/:id"
-                element={
-                  <Detail
-                    bookings={bookings}
-                    role={role}
-                    courses={courses}
-                    addCourse={(course) =>
-                      setCourses((old) =>
-                        old.some((c) => c.id === course.id)
-                          ? old
-                          : [...old, course],
-                      )
-                    }
-                    changeHeader={(id, request) => {
-                      const current = bookings.find((b) => b.id === id);
-                      if (!current) return "Reserva no encontrada.";
-                      const yearError = yearMutationError(current, calendars);
-                      if (yearError) return yearError;
-                      const result = changeHeader(
-                        current,
-                        request,
-                        courses,
-                        role,
-                        undefined,
-                        inventory,
-                      );
-                      if (result.error) return result.error;
-                      if (result.booking)
-                        setBookings((old) =>
-                          old.map((b) =>
-                            b.id === id
-                              ? attributeChange(
-                                  current,
-                                  result.booking,
-                                  currentUser,
-                                )
-                              : b,
-                          ),
-                        );
-                    }}
-                    reschedule={(id, request) => {
-                      const current = bookings.find((b) => b.id === id);
-                      if (!current) return "Reserva no encontrada.";
-                      const yearError = yearMutationError(current, calendars);
-                      if (yearError) return yearError;
-                      const result = reschedule(
-                        current,
-                        request,
-                        bookings,
-                        role,
-                        undefined,
-                        inventory,
-                        calendars.find((c) => c.year === bookingYear(current)),
-                      );
-                      if (result.error) return result.error;
-                      if (result.booking)
-                        setBookings((old) =>
-                          old.map((b) =>
-                            b.id === id
-                              ? attributeChange(
-                                  current,
-                                  result.booking,
-                                  currentUser,
-                                )
-                              : b,
-                          ),
-                        );
-                    }}
-                    changeRoom={(id, request) => {
-                      const current = bookings.find((b) => b.id === id);
-                      if (!current) return "Reserva no encontrada.";
-                      const yearError = yearMutationError(current, calendars);
-                      if (yearError) return yearError;
-                      const result = changeRoom(
-                        current,
-                        request,
-                        bookings,
-                        role,
-                        undefined,
-                        inventory,
-                      );
-                      if (result.error) return result.error;
-                      if (result.booking)
-                        setBookings((old) =>
-                          old.map((b) =>
-                            b.id === id
-                              ? attributeChange(
-                                  current,
-                                  result.booking,
-                                  currentUser,
-                                )
-                              : b,
-                          ),
-                        );
-                    }}
-                    cancel={(id, request) => {
-                      const current = bookings.find((b) => b.id === id);
-                      if (!current) return "La reserva ya no está disponible.";
-                      const yearError = yearMutationError(current, calendars);
-                      if (yearError) return yearError;
-                      const result = cancelClasses(current, request, role);
-                      if (result.error) return result.error;
-                      if (result.booking)
-                        setBookings((old) =>
-                          old.map((b) =>
-                            b.id === id
-                              ? attributeChange(
-                                  current,
-                                  result.booking,
-                                  currentUser,
-                                )
-                              : b,
-                          ),
-                        );
-                    }}
-                  />
-                }
-              />
-              <Route
-                path="/reservas"
-                element={<Listing bookings={bookings} />}
-              />
-              <Route
-                path="/aulas"
-                element={
-                  <Rooms
-                    role={role}
-                    save={(room, originalId) => {
-                      const result = saveRoom(
-                        inventory,
-                        room,
-                        originalId,
-                        bookings,
-                        role,
-                      );
-                      if (result.error) return result.error;
-                      if (result.rooms) setInventory(result.rooms);
-                    }}
-                  />
-                }
-              />
-              <Route
-                path="/disponibilidad"
-                element={
-                  <Wizard
-                    key="query"
-                    queryOnly
-                    role={role}
-                    bookings={bookings}
-                    courses={courses}
-                    addCourse={() => {}}
-                    save={() => {}}
-                    onPrepare={setDraft}
-                  />
-                }
-              />
-              <Route
-                path="/indicadores"
-                element={
-                  role === "Docente" ? (
-                    <Navigate to="/agenda" replace />
-                  ) : (
-                    <Indicators bookings={bookings} />
-                  )
-                }
-              />
-              <Route
-                path="/administracion"
-                element={
-                  role === "Administrador" ? (
-                    <Users />
-                  ) : (
-                    <Navigate to="/agenda" replace />
-                  )
-                }
-              />
-              <Route
-                path="/administracion/calendario"
-                element={
-                  role === "Administrador" ? (
-                    <CalendarEditor
-                      key={calendar.year}
-                      calendar={calendar}
-                      calendars={calendars}
-                      selectYear={setSelectedYear}
-                      addYear={(year) => {
-                        const result = addYear(calendars, year, role);
-                        if (result.error) return result.error;
-                        if (result.calendars) {
-                          setCalendars(result.calendars);
-                          setSelectedYear(year);
-                        }
-                      }}
-                      deleteYear={() => {
-                        const result = deleteYear(
-                          calendars,
-                          calendar.year,
-                          bookings,
+                      changeHeader={(id, request) => {
+                        const current = bookings.find((b) => b.id === id);
+                        if (!current) return "Reserva no encontrada.";
+                        const yearError = yearMutationError(current, calendars);
+                        if (yearError) return yearError;
+                        const result = changeHeader(
+                          current,
+                          request,
                           courses,
                           role,
+                          undefined,
+                          inventory,
                         );
                         if (result.error) return result.error;
-                        if (result.calendars) {
-                          setCalendars(result.calendars);
-                          setSelectedYear(result.calendars[0]?.year ?? 2026);
-                        }
-                      }}
-                      preview={(proposal) => ({
-                        ...changeCalendar(
-                          calendar,
-                          proposal,
-                          bookings,
-                          inventory,
-                          role,
-                        ),
-                        stamp: JSON.stringify(
-                          bookings.map((b) => [b.id, b.version ?? 0]),
-                        ),
-                      })}
-                      save={(proposal, stamp) => {
-                        if (
-                          stamp !==
-                          JSON.stringify(
-                            bookings.map((b) => [b.id, b.version ?? 0]),
-                          )
-                        )
-                          return "Las reservas cambiaron. Volvé a revisar el impacto.";
-                        const result = changeCalendar(
-                          calendar,
-                          proposal,
-                          bookings,
-                          inventory,
-                          role,
-                        );
-                        if (result.error) return result.error;
-                        if (result.impact) {
-                          setCalendars((old) =>
-                            old.map((c) =>
-                              c.year === result.impact.calendar.year
-                                ? result.impact.calendar
-                                : c,
+                        if (result.booking)
+                          setBookings((old) =>
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
                             ),
                           );
-                          setBookings(result.impact.bookings);
-                        }
+                      }}
+                      reschedule={(id, request) => {
+                        const current = bookings.find((b) => b.id === id);
+                        if (!current) return "Reserva no encontrada.";
+                        const yearError = yearMutationError(current, calendars);
+                        if (yearError) return yearError;
+                        const result = reschedule(
+                          current,
+                          request,
+                          bookings,
+                          role,
+                          undefined,
+                          inventory,
+                          calendars.find(
+                            (c) => c.year === bookingYear(current),
+                          ),
+                        );
+                        if (result.error) return result.error;
+                        if (result.booking)
+                          setBookings((old) =>
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
+                          );
+                      }}
+                      changeRoom={(id, request) => {
+                        const current = bookings.find((b) => b.id === id);
+                        if (!current) return "Reserva no encontrada.";
+                        const yearError = yearMutationError(current, calendars);
+                        if (yearError) return yearError;
+                        const result = changeRoom(
+                          current,
+                          request,
+                          bookings,
+                          role,
+                          undefined,
+                          inventory,
+                        );
+                        if (result.error) return result.error;
+                        if (result.booking)
+                          setBookings((old) =>
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
+                          );
+                      }}
+                      cancel={(id, request) => {
+                        const current = bookings.find((b) => b.id === id);
+                        if (!current)
+                          return "La reserva ya no está disponible.";
+                        const yearError = yearMutationError(current, calendars);
+                        if (yearError) return yearError;
+                        const result = cancelClasses(current, request, role);
+                        if (result.error) return result.error;
+                        if (result.booking)
+                          setBookings((old) =>
+                            old.map((b) =>
+                              b.id === id
+                                ? attributeChange(
+                                    current,
+                                    result.booking,
+                                    currentUser,
+                                  )
+                                : b,
+                            ),
+                          );
                       }}
                     />
-                  ) : (
-                    <Navigate to="/agenda" replace />
-                  )
-                }
-              />
-              <Route path="*" element={<Navigate to="/agenda" replace />} />
-            </Routes>
+                  }
+                />
+                <Route
+                  path="/reservas"
+                  element={<Listing bookings={bookings} />}
+                />
+                <Route path="/aulas" element={<Rooms role={role} />} />
+                <Route
+                  path="/disponibilidad"
+                  element={
+                    <Wizard
+                      key="query"
+                      queryOnly
+                      role={role}
+                      bookings={bookings}
+                      courses={courses}
+                      addCourse={() => {}}
+                      save={() => {}}
+                      onPrepare={setDraft}
+                    />
+                  }
+                />
+                <Route
+                  path="/indicadores"
+                  element={
+                    role === "Docente" ? (
+                      <Navigate to="/agenda" replace />
+                    ) : (
+                      <Indicators bookings={bookings} />
+                    )
+                  }
+                />
+                <Route
+                  path="/administracion"
+                  element={
+                    role === "Administrador" ? (
+                      <Users />
+                    ) : (
+                      <Navigate to="/agenda" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="/administracion/calendario"
+                  element={
+                    role === "Administrador" ? (
+                      <CalendarEditor
+                        key={calendar.year}
+                        calendar={calendar}
+                        calendars={calendars}
+                        selectYear={setSelectedYear}
+                        addYear={(year) => {
+                          const result = addYear(calendars, year, role);
+                          if (result.error) return result.error;
+                          if (result.calendars) {
+                            setCalendars(result.calendars);
+                            setSelectedYear(year);
+                          }
+                        }}
+                        deleteYear={() => {
+                          const result = deleteYear(
+                            calendars,
+                            calendar.year,
+                            bookings,
+                            courses,
+                            role,
+                          );
+                          if (result.error) return result.error;
+                          if (result.calendars) {
+                            setCalendars(result.calendars);
+                            setSelectedYear(result.calendars[0]?.year ?? 2026);
+                          }
+                        }}
+                        preview={(proposal) => ({
+                          ...changeCalendar(
+                            calendar,
+                            proposal,
+                            bookings,
+                            inventory,
+                            role,
+                          ),
+                          stamp: JSON.stringify(
+                            bookings.map((b) => [b.id, b.version ?? 0]),
+                          ),
+                        })}
+                        save={(proposal, stamp) => {
+                          if (
+                            stamp !==
+                            JSON.stringify(
+                              bookings.map((b) => [b.id, b.version ?? 0]),
+                            )
+                          )
+                            return "Las reservas cambiaron. Volvé a revisar el impacto.";
+                          const result = changeCalendar(
+                            calendar,
+                            proposal,
+                            bookings,
+                            inventory,
+                            role,
+                          );
+                          if (result.error) return result.error;
+                          if (result.impact) {
+                            setCalendars((old) =>
+                              old.map((c) =>
+                                c.year === result.impact.calendar.year
+                                  ? result.impact.calendar
+                                  : c,
+                              ),
+                            );
+                            setBookings(result.impact.bookings);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <Navigate to="/agenda" replace />
+                    )
+                  }
+                />
+                <Route path="*" element={<Navigate to="/agenda" replace />} />
+              </Routes>
+            )}
           </main>
-          <footer>
-            Demostración académica · Datos ficticios
-          </footer>
+          <footer>Demostración académica · Datos ficticios</footer>
         </>
       </RoomContext>
     </CalendarContext>

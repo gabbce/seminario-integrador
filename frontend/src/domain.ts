@@ -12,6 +12,7 @@ import {
 export { holidays, omittedDates } from "./calendar";
 export type Role = "Administrador" | "Bedel" | "Docente";
 export type Room = {
+  internalId?: string;
   version?: number;
   state?: "Habilitada" | "Inhabilitada" | "Mantenimiento" | "Baja";
   location?: string;

@@ -6,6 +6,9 @@ const ids = {
   inhabilitado: "44444444-4444-4444-8444-444444444444",
 };
 export async function fakeAuth(page: Page) {
+  await page.route("**/api/referencias/aulas", (route) =>
+    route.fulfill({ json: [] }),
+  );
   const control = {
     api: "normal",
     refreshes: 0,

@@ -83,7 +83,7 @@ Las pruebas automáticas habituales no requieren Supabase en línea. Las pruebas
 ## Checklist de cierre
 
 - [x] I-01.1 verificado y guardado en commit; ver [avance](avance-i-01.md).
-- [ ] I-01.2 verificado y guardado en commit.
+- [x] I-01.2 verificado y guardado en commit.
 - [ ] I-01.3 verificado y guardado en commit.
 - [ ] I-01.4 verificado y guardado en commit.
 - [ ] Recorrido conjunto real probado con las cuentas preparadas en Supabase.

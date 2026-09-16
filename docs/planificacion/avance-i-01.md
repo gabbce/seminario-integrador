@@ -5,7 +5,7 @@ Plan: [base e ingreso real](i-01-base-e-ingreso.md). Rama `feat/integracion`; pr
 | Corte | Estado | Evidencia / pendiente |
 |---|---|---|
 | I-01.1 | Completado y validado local/remoto | Migración usuarios/perfiles, configuración JDBC/JPA/Flyway y PostgreSQL desechable. Cuatro pruebas pasan. Proyecto inspeccionado; rol propio, V1 aplicada, salud UP, repetición sin cambios y permisos remotos comprobados. |
-| I-01.2 | Pendiente | Preparación explícita y recuperación de cuentas. |
+| I-01.2 | Completado | Comandos admin/demo, UUID durable, HTTP fuera de transacciones, recuperación probada y cuatro cuentas reales creadas/repetidas. |
 | I-01.3 | Pendiente | JWT, permisos y `/api/me`. |
 | I-01.4 | Pendiente | Sesión real React y pruebas integradas. |
 
@@ -22,3 +22,7 @@ Revisión de Terra high en dos ejes (especificación y estándares): sin hallazg
 ## Cierre remoto I-01.1
 
 El usuario autorizó el CLI. Se obtuvieron claves de Auth sin mostrarlas ni versionarlas; se creó `aulas_app` y el esquema privado sin alterar la contraseña general de PostgreSQL. Supabase estaba sin tablas en public/aulas. Se deshabilitó registro público y configuró URL local. Java conectó por Session pooler, aplicó V1, devolvió salud UP y repitió arranque sin migraciones pendientes. Roles anon/authenticated sin uso de aulas, fuera de esquemas expuestos por Data API. Se continúa I-01.2.
+
+## I-01.2
+
+Siete pruebas locales, incluidas repetición sin cambios, rechazo de identidad ajena, respuesta incierta y recuperación tras fallo del perfil. La prueba confirma que auth_id persiste después de rollback y que Auth no se llama dentro de una transacción JDBC. Terra detectó y revisó la corrección de esos puntos, paginación acotada y política de contraseña delegada al proveedor; ambos ejes sin bloqueantes. Ejecución real: admin, demo (cuatro cuentas) y repetición corregida completadas. Credenciales en backend/.env, nunca en el journal ni en Git.

@@ -41,3 +41,7 @@ Verificación: build y lint correctos; 62 unitarias; 9 pruebas de navegador con 
 Revisión Terra high en especificación y estándares: corregidos cierre de sesión prematuro, respuesta de perfil inválida y configuración ausente. El cierre mantiene la app bloqueada hasta limpiar almacenamiento; probado también con proveedor lento o fallido. Evidencias locales en frontend/evidence/, ignoradas por Git. [QA reproducible](qa-i-01.md).
 
 Las 44 pruebas históricas del prototipo se conservan como referencia en e2e/prototype/ y se ejecutan desde prototype/v1; no se cuentan como pruebas de integración. I-02 a I-06 continúan pendientes: antes de cada entrega se detalla y acuerda su plan.
+
+## Aceptación funcional
+
+El usuario completó el [QA manual de I-01](qa-i-01.md) en localhost y confirmó funcionamiento correcto según lo planeado, sin incidencias reportadas. I-01 queda cerrada con validación técnica y aceptación manual. El siguiente paso es detallar y acordar I-02 antes de implementarla.

@@ -27,3 +27,7 @@ Arrancar Java y React según sus README. Este entorno tiene .env y .env.local pr
 El acceso es real. Reservas, inventario, calendario, cursos, administración en pantalla e indicadores todavía trabajan con datos en memoria. La administración simulada no cambia la identidad real ni sus permisos. La adaptación de esos módulos se realiza en I-02 a I-05; I-06 contempla validación conjunta. No interpretar esta checklist como certificación de persistencia de negocio.
 
 El QA completo histórico, escenarios y sus 44 pruebas de navegador corresponden a prototype/v1 y a docs/diseno/qa-manual-prototipo.md.
+
+## Resultado manual informado por el usuario
+
+El usuario confirmó haber realizado el QA propuesto en localhost y que todo funciona correctamente según lo planeado, sin incidencias reportadas. I-01 queda aceptada funcionalmente dentro del alcance de esta guía.

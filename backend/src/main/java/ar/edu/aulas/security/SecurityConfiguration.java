@@ -41,6 +41,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/aulas","/api/referencias/**").authenticated()
                 .requestMatchers("/api/aulas","/api/aulas/**").hasAnyRole("ADMINISTRADOR","BEDEL")
+                .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/referencias/cursos").hasAnyRole("ADMINISTRADOR","BEDEL")
                 .requestMatchers("/api/administracion/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/indicadores/**").hasAnyRole("ADMINISTRADOR","BEDEL")
                 .anyRequest().denyAll())

@@ -41,7 +41,9 @@ export type Booking = {
   id: string;
   subject: string;
   course: string;
+  courseId?: string;
   teacher: string;
+  teacherId?: string;
   students: number;
   type?: string;
   resources?: Resource[];

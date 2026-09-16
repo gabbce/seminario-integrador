@@ -2,10 +2,10 @@ import { FormError, FieldError } from "../components/FormError";
 import { useRooms } from "../room-context";
 import { useState } from "react";
 import { type Booking } from "../domain";
-import { type Course } from "../catalog";
+import { courseLabel, type Course } from "../catalog";
 import { type HeaderChange } from "../booking-header";
 import { CoursePicker } from "../components/CoursePicker";
-import { teachers } from "../teachers";
+import { useTeachers } from "../teacher-context";
 import { resourceLabels, resourcesFor } from "../equipment";
 import { Button } from "../components/ui/button";
 export function EditHeader({
@@ -22,9 +22,13 @@ export function EditHeader({
   back: () => void;
 }) {
   const rooms = useRooms();
+  const teachers = useTeachers();
   const [request, setRequest] = useState<HeaderChange>({
     version: booking.version ?? 0,
-    course: booking.course,
+    course:
+      booking.courseId ??
+      courses.find((c) => courseLabel(c) === booking.course)?.id ??
+      "",
     teacher: booking.teacher,
     students: booking.students,
     type:

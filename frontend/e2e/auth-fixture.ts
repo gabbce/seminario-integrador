@@ -154,7 +154,15 @@ export async function fakeAuth(page: Page) {
       },
     });
   });
-  await page.route("**/api/referencias/calendarios", route => route.fulfill({json: []}));
+  await page.route("**/api/referencias/calendarios", (route) =>
+    route.fulfill({ json: [] }),
+  );
+  await page.route("**/api/referencias/cursos?*", (route) =>
+    route.fulfill({ json: [] }),
+  );
+  await page.route("**/api/referencias/docentes", (route) =>
+    route.fulfill({ json: [] }),
+  );
   return control;
 }
 export async function login(

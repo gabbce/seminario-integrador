@@ -1,6 +1,7 @@
 import { FormError } from "../components/FormError";
 import { useState } from "react";
-import { createCourse, type Course } from "../catalog";
+import { courseLabel, type Course } from "../catalog";
+import { api } from "../api";
 import { Button } from "./ui/button";
 export function CoursePicker({
   courses,
@@ -15,25 +16,42 @@ export function CoursePicker({
   choose: (course: Course) => void;
   add: (course: Course) => void;
 }) {
+  const [query, setQuery] = useState("");
   const [attempt, setAttempt] = useState(0);
   const [editing, setEditing] = useState(false),
     [subject, setSubject] = useState(""),
     [commission, setCommission] = useState(""),
     [error, setError] = useState("");
-  function create() {
+  const [busy, setBusy] = useState(false);
+  async function create() {
+    if (busy) return;
+    setBusy(true);
     setAttempt((n) => n + 1);
     try {
-      const course = createCourse(courses, subject, commission, year);
+      const course = await api<Course>("/referencias/cursos", {
+        method: "POST",
+        body: JSON.stringify({ subject, commission, year }),
+      });
       add(course);
       choose(course);
       setEditing(false);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Revisá los datos.");
+    } finally {
+      setBusy(false);
     }
   }
   return (
     <div className="course-picker">
+      <label>
+        Buscar curso
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Materia o comisión"
+        />
+      </label>
       <label>
         Curso
         <select
@@ -44,11 +62,19 @@ export function CoursePicker({
             if (course) choose(course);
           }}
         >
+          <option value="">Seleccioná un curso</option>
           {courses
-            .filter((c) => c.year === year)
+            .filter(
+              (c) =>
+                c.year === year &&
+                (c.id === selected ||
+                  `${c.subject} ${courseLabel(c)}`
+                    .toLocaleLowerCase("es")
+                    .includes(query.trim().toLocaleLowerCase("es"))),
+            )
             .map((c) => (
               <option key={c.id} value={c.id}>
-                {c.subject} · {c.id}
+                {c.subject} · {courseLabel(c)}
               </option>
             ))}
         </select>
@@ -61,7 +87,11 @@ export function CoursePicker({
         {editing ? "Cerrar creación" : "Crear curso"}
       </Button>
       {editing && (
-        <section className="course-create" aria-label="Crear curso">
+        <fieldset
+          disabled={busy}
+          className="course-create"
+          aria-label="Crear curso"
+        >
           <p className="muted">
             El código de materia se genera y se reutiliza para sus comisiones.
           </p>
@@ -98,10 +128,10 @@ export function CoursePicker({
               ]}
             />
           )}
-          <Button type="button" onClick={create}>
+          <Button type="button" disabled={busy} onClick={create}>
             Guardar curso y seleccionar
           </Button>
-        </section>
+        </fieldset>
       )}
     </div>
   );

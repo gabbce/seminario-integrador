@@ -331,3 +331,46 @@ test("I-02.4: calendario persiste tras recarga", async ({ page }) => {
     fullPage: true,
   });
 });
+
+test("I-02.5: curso creado desde reserva persiste", async ({ page }) => {
+  test.setTimeout(120000);
+  const subject = `Materia QA ${Date.now()}`;
+  await page.goto("/");
+  await page.getByLabel("Correo electrónico").fill("bedel@demo.local");
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Agenda", exact: true }),
+  ).toBeVisible();
+  await page.goto("/reservas/nueva");
+  await page
+    .getByLabel("Año de la reserva", { exact: true })
+    .selectOption("2028");
+  await page.getByRole("button", { name: "Crear curso", exact: true }).click();
+  await page.getByLabel("Nombre de materia", { exact: true }).fill(subject);
+  await page.getByLabel("Comisión", { exact: true }).fill("a");
+  await page
+    .getByRole("button", { name: "Guardar curso y seleccionar", exact: true })
+    .click();
+  await expect(
+    page.getByRole("option", {
+      name: new RegExp(subject + " · [0-9]+-A-2028"),
+    }),
+  ).toHaveCount(1);
+  const key = await page.getByLabel("Curso", { exact: true }).inputValue();
+  expect(key.length > 0).toBe(true);
+  await page.reload();
+  await page
+    .getByLabel("Año de la reserva", { exact: true })
+    .selectOption("2028");
+  await page.getByLabel("Curso", { exact: true }).selectOption(key);
+  await expect(
+    page.getByRole("option", {
+      name: new RegExp(subject + " · [0-9]+-A-2028"),
+    }),
+  ).toHaveCount(1);
+  await page.screenshot({
+    path: "evidence/i025-real-referencias.png",
+    fullPage: true,
+  });
+});

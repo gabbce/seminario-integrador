@@ -45,3 +45,7 @@ export const initialCourses: Course[] = [
   commission: "A",
   year: 2026,
 }));
+
+export function courseLabel(course: Course): string {
+  return `${String(course.code).padStart(3, "0")}-${course.commission}-${course.year}`;
+}

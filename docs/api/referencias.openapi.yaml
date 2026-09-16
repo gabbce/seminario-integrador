@@ -1,0 +1,113 @@
+openapi: 3.1.0
+info:
+  title: Referencias para reservar I-02.5
+  version: 1.0.0
+  description: |
+    Cursos persistidos y docentes fijos independientes de las cuentas Auth.
+    La selección y creación de cursos no confirma una reserva. No hay ABM académico.
+    Código de materia generado numéricamente, reutilizado entre comisiones y años.
+    ID interno de curso separado del identificador visible derivado 001-A-2026.
+    Nombre normalizado por espacios y mayúsculas; comisión normalizada a mayúsculas.
+    Creaciones equivalentes, incluidas simultáneas, devuelven el curso existente.
+    Crear exige año habilitado; consulta admite años en cualquier estado.
+    Un año con cursos no puede cambiar de número ni eliminarse; la FK conserva las referencias.
+    Permisos y año se bloquean en el mismo orden que las mutaciones de calendario.
+security:
+  - bearerAuth: []
+paths:
+  /api/referencias/cursos:
+    get:
+      summary: Consultar cursos de un año para cualquier rol activo
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: {type: integer, minimum: 1, maximum: 9999}
+        - name: query
+          in: query
+          schema: {type: string, default: ''}
+          description: Búsqueda por nombre, comisión o identificador visible
+      responses:
+        '503': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Cursos ordenados por nombre, comisión e ID
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/Course'}}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+    post:
+      summary: Crear o reutilizar materia y curso; solo Administrador o Bedel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject, commission, year]
+              properties:
+                subject: {type: string, minLength: 1}
+                commission: {type: string, minLength: 1}
+                year: {type: integer, minimum: 1, maximum: 9999}
+      responses:
+        '503': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Curso creado o reutilizado, sin duplicarlo
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Course'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/referencias/docentes:
+    get:
+      summary: Consultar lista fija de cinco docentes de referencia
+      description: |
+        IDs D-01 a D-05 independientes de Usuario. Crear una cuenta Docente no cambia
+        esta lista. Los roles Administrador y Bedel reciben email; Docente no recibe
+        la propiedad email. El nombre completo coincide con la interfaz aprobada.
+      responses:
+        '503': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Lista fija para selección en reservas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, name]
+                  properties:
+                    id: {type: string}
+                    name: {type: string}
+                    email: {type: string, format: email, description: Solo roles operativos}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  schemas:
+    Course:
+      type: object
+      required: [id, code, subject, commission, year]
+      properties:
+        id: {type: string, pattern: '^[0-9]+$'}
+        code: {type: integer, minimum: 1, description: Código numérico generado de materia}
+        subject: {type: string}
+        commission: {type: string}
+        year: {type: integer}
+  responses:
+    Error:
+      description: Error de validación, permiso, inexistencia o estado del año
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message]
+            properties:
+              code: {type: string}
+              message: {type: string}

@@ -12,9 +12,9 @@ import {
   resourceLabels,
   type Resource,
 } from "../equipment";
-import { type Course } from "../catalog";
+import { courseLabel, type Course } from "../catalog";
 import { CoursePicker } from "../components/CoursePicker";
-import { teachers } from "../teachers";
+import { useTeachers } from "../teacher-context";
 import { RoomChoices } from "../components/RoomChoices";
 import { ScheduleDates } from "../components/ScheduleDates";
 import {
@@ -61,6 +61,7 @@ export function Wizard({
   onPrepare?: (draft: ReservationDraft) => void;
   save: (b: Booking) => string | undefined | void;
 }) {
+  const teachers = useTeachers();
   const { saveMode } = useContext(DemoQueryContext);
   const [saving, setSaving] = useState(false),
     [uncertain, setUncertain] = useState(false);
@@ -75,8 +76,12 @@ export function Wizard({
     () =>
       `R-${String(Math.max(0, ...bookings.map((b) => (/^R-\d+$/.test(b.id) ? Number(b.id.slice(2)) : 0))) + 1).padStart(3, "0")}`,
   );
-  const [year, setYear] = useState(initial?.schedule.year ?? 2026);
   const calendars = useCalendars();
+  const [year, setYear] = useState(
+    initial?.schedule.year ??
+      calendars.find((c) => c.state === "Habilitado")?.year ??
+      new Date().getFullYear(),
+  );
   const calendar = useCalendar(year);
   const terms = calendar.terms;
   const periodLabels = Object.fromEntries(
@@ -106,7 +111,7 @@ export function Wizard({
   const [course, setCourse] = useState(
     courses.find((c) => c.year === year)?.id ?? "",
   );
-  const [teacher, setTeacher] = useState("Laura Gómez");
+  const [teacher, setTeacher] = useState(teachers[0]?.name ?? "");
   const [students, setStudents] = useState(initial?.students ?? 30);
   const [type, setType] = useState(initial?.type ?? "Multimedios");
   const [resources, setResources] = useState<Resource[]>(
@@ -133,11 +138,15 @@ export function Wizard({
     const total = minutes(start) + duration;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   };
+  const chosenCourse = courses.find((c) => c.id === course);
+  const visibleCourse = chosenCourse ? courseLabel(chosenCourse) : "";
   const booking = {
     id: reservationId,
     subject,
-    course,
+    course: visibleCourse,
+    courseId: course,
     teacher,
+    teacherId: teachers.find((t) => t.name === teacher)?.id,
     teacherEmail: teachers.find((t) => t.name === teacher)?.email,
     registrant: {
       name: "Demo · " + role,
@@ -320,7 +329,7 @@ export function Wizard({
           Se registraron {occurrences.length} clases de {subject}.
         </p>
         <p className="muted">
-          {course} · {teacher} · {students} alumnos previstos
+          {visibleCourse} · {teacher} · {students} alumnos previstos
         </p>
         <div className="actions">
           <Button onClick={() => go(`/reservas/${saved.id}`)}>
@@ -745,7 +754,7 @@ export function Wizard({
               <>
                 <div className="review-data">
                   <h3>
-                    {subject} <small>{course}</small>
+                    {subject} <small>{visibleCourse}</small>
                   </h3>
                   <p>
                     {teacher} · {students} alumnos previstos
@@ -858,7 +867,7 @@ export function Wizard({
             {queryOnly ? "CRITERIOS CONSULTADOS" : "TU RESERVA"}
           </p>
           <h2>{queryOnly ? "Tu consulta" : subject || "Nueva clase"}</h2>
-          {!queryOnly && <p>{course}</p>}
+          {!queryOnly && <p>{visibleCourse}</p>}
           <hr />
           {!queryOnly && <p>{teacher}</p>}
           <p>{students} alumnos previstos</p>

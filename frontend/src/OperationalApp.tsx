@@ -1,7 +1,4 @@
-import {
-  bookingYear,
-  yearMutationError,
-} from "./academic-years";
+import { bookingYear, yearMutationError } from "./academic-years";
 import { CalendarContext } from "./calendar-context";
 import { createScenario } from "./demo-scenarios";
 
@@ -17,7 +14,9 @@ import { reschedule } from "./reschedule";
 import { changeRoom } from "./room-change";
 import { cancelClasses } from "./cancellation";
 import { type ReservationDraft } from "./reservation-draft";
-import { initialCourses } from "./catalog";
+import type { Course } from "./catalog";
+import type { TeacherReference } from "./teachers";
+import { TeacherContext } from "./teacher-context";
 
 import { useState, useEffect } from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
@@ -81,11 +80,27 @@ export default function App({
   const [calendarError, setCalendarError] = useState("");
   useEffect(() => {
     let active = true;
-    const load = () => { void api<CalendarConfig[]>("/referencias/calendarios").then(rows => {
-      if(active) {setCalendars(rows);setCalendarError("");}
-    }).catch(e => { if(active) setCalendarError(e.message); }).finally(() => { if(active) setCalendarLoading(false); }); };
-    load(); window.addEventListener("aulas-calendar-refresh",load);
-    return () => { active=false;window.removeEventListener("aulas-calendar-refresh",load); };
+    const load = () => {
+      void api<CalendarConfig[]>("/referencias/calendarios")
+        .then((rows) => {
+          if (active) {
+            setCalendars(rows);
+            setCalendarError("");
+          }
+        })
+        .catch((e) => {
+          if (active) setCalendarError(e.message);
+        })
+        .finally(() => {
+          if (active) setCalendarLoading(false);
+        });
+    };
+    load();
+    window.addEventListener("aulas-calendar-refresh", load);
+    return () => {
+      active = false;
+      window.removeEventListener("aulas-calendar-refresh", load);
+    };
   }, []);
   const [agendaDate, setAgendaDate] = useState(scenario.now.slice(0, 10));
   const [inventory, setInventory] = useState<Room[]>([]);
@@ -117,313 +132,412 @@ export default function App({
   }, []);
   const role = currentUser?.role;
   const [bookings, setBookings] = useState(scenario.bookings);
-  const [courses, setCourses] = useState(initialCourses);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<TeacherReference[]>([]);
+  const [referencesLoading, setReferencesLoading] = useState(true);
+  const [referencesError, setReferencesError] = useState("");
+  useEffect(() => {
+    let active = true;
+    const load = () => {
+      setReferencesLoading(true);
+      void Promise.all([
+        Promise.all(
+          calendars.map((calendar) =>
+            api<Course[]>(`/referencias/cursos?year=${calendar.year}`),
+          ),
+        ).then((rows) => rows.flat()),
+        api<TeacherReference[]>("/referencias/docentes"),
+      ])
+        .then(([items, people]) => {
+          if (active) {
+            setCourses(items);
+            setTeachers(people);
+            setReferencesError("");
+          }
+        })
+        .catch((e) => {
+          if (active) setReferencesError(e.message);
+        })
+        .finally(() => {
+          if (active) setReferencesLoading(false);
+        });
+    };
+    load();
+    window.addEventListener("aulas-references-refresh", load);
+    return () => {
+      active = false;
+      window.removeEventListener("aulas-references-refresh", load);
+    };
+  }, [calendars]);
   const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
 
   return (
-    <CalendarContext value={calendars}>
-      <RoomContext value={inventory}>
-        <>
-          <header className="topbar">
-            <Brand />
-            <button
-              className="mobile-menu"
-              onClick={() => setMenu(!menu)}
-              aria-expanded={menu}
-            >
-              <Menu size={20} /> Menú
-            </button>
-            <nav
-              className={menu ? "open" : ""}
-              aria-label="Navegación principal"
-            >
-              {navigation
-                .filter(
-                  (n) =>
-                    n[0] !== "/indicadores" ||
-                    currentUser.permissions.includes("indicadores:read"),
-                )
-                .map(([path, label, Icon]) => (
-                  <NavLink key={path} to={path} onClick={() => setMenu(false)}>
-                    <Icon size={20} />
-                    {label}
-                  </NavLink>
-                ))}
-              {currentUser.permissions.includes("cuentas:write") && (
-                <NavLink to="/administracion" onClick={() => setMenu(false)}>
-                  Administración
-                </NavLink>
-              )}
-            </nav>
-            <div className="account">
-              <span>
-                {currentUser.name} · {role}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Cerrar sesión"
-                onClick={onLogout}
+    <TeacherContext value={teachers}>
+      <CalendarContext value={calendars}>
+        <RoomContext value={inventory}>
+          <>
+            <header className="topbar">
+              <Brand />
+              <button
+                className="mobile-menu"
+                onClick={() => setMenu(!menu)}
+                aria-expanded={menu}
               >
-                <LogOut />
-              </Button>
-            </div>
-          </header>
-          <main>
-            {inventoryError && (
-              <div role="alert">
-                {inventoryError}
+                <Menu size={20} /> Menú
+              </button>
+              <nav
+                className={menu ? "open" : ""}
+                aria-label="Navegación principal"
+              >
+                {navigation
+                  .filter(
+                    (n) =>
+                      n[0] !== "/indicadores" ||
+                      currentUser.permissions.includes("indicadores:read"),
+                  )
+                  .map(([path, label, Icon]) => (
+                    <NavLink
+                      key={path}
+                      to={path}
+                      onClick={() => setMenu(false)}
+                    >
+                      <Icon size={20} />
+                      {label}
+                    </NavLink>
+                  ))}
+                {currentUser.permissions.includes("cuentas:write") && (
+                  <NavLink to="/administracion" onClick={() => setMenu(false)}>
+                    Administración
+                  </NavLink>
+                )}
+              </nav>
+              <div className="account">
+                <span>
+                  {currentUser.name} · {role}
+                </span>
                 <Button
-                  onClick={() =>
-                    window.dispatchEvent(new Event("aulas-inventory-refresh"))
-                  }
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Cerrar sesión"
+                  onClick={onLogout}
                 >
-                  Reintentar aulas
+                  <LogOut />
                 </Button>
               </div>
-            )}
-            {calendarError && <p role="alert">{calendarError} <Button onClick={() => window.dispatchEvent(new Event("aulas-calendar-refresh"))}>Reintentar calendario</Button></p>}
-            {(inventoryLoading || calendarLoading) && <p role="status">Cargando datos…</p>}
-            {!inventoryError && !inventoryLoading && !calendarError && !calendarLoading && (
-              <Routes>
-                <Route
-                  path="/agenda"
-                  element={
-                    <Agenda
-                      date={agendaDate}
-                      setDate={setAgendaDate}
-                      bookings={bookings}
-                      operator={role !== "Docente"}
+            </header>
+            <main>
+              {inventoryError && (
+                <div role="alert">
+                  {inventoryError}
+                  <Button
+                    onClick={() =>
+                      window.dispatchEvent(new Event("aulas-inventory-refresh"))
+                    }
+                  >
+                    Reintentar aulas
+                  </Button>
+                </div>
+              )}
+              {referencesError && (
+                <p role="alert">
+                  {referencesError}{" "}
+                  <Button
+                    onClick={() =>
+                      window.dispatchEvent(
+                        new Event("aulas-references-refresh"),
+                      )
+                    }
+                  >
+                    Reintentar referencias
+                  </Button>
+                </p>
+              )}
+              {calendarError && (
+                <p role="alert">
+                  {calendarError}{" "}
+                  <Button
+                    onClick={() =>
+                      window.dispatchEvent(new Event("aulas-calendar-refresh"))
+                    }
+                  >
+                    Reintentar calendario
+                  </Button>
+                </p>
+              )}
+              {(inventoryLoading || calendarLoading || referencesLoading) && (
+                <p role="status">Cargando datos…</p>
+              )}
+              {!inventoryError &&
+                !inventoryLoading &&
+                !calendarError &&
+                !calendarLoading &&
+                !referencesError &&
+                !referencesLoading && (
+                  <Routes>
+                    <Route
+                      path="/agenda"
+                      element={
+                        <Agenda
+                          date={agendaDate}
+                          setDate={setAgendaDate}
+                          bookings={bookings}
+                          operator={role !== "Docente"}
+                        />
+                      }
                     />
-                  }
-                />
-                <Route
-                  path="/reservas/nueva"
-                  element={
-                    role === "Docente" ? (
-                      <Navigate to="/agenda" />
-                    ) : (
-                      <Wizard
-                        key="register"
-                        initial={draft}
-                        onConsume={() => setDraft(undefined)}
-                        courses={courses}
-                        addCourse={(course) =>
-                          setCourses((old) =>
-                            old.some((c) => c.id === course.id)
-                              ? old
-                              : [...old, course],
-                          )
-                        }
-                        role={role}
-                        bookings={bookings}
-                        save={(b) => {
-                          if (bookings.some((existing) => existing.id === b.id))
-                            return "Esta reserva ya está registrada. Consultá su detalle antes de volver a enviarla.";
-                          const failure = validateBooking(
-                            b,
-                            bookings,
-                            inventory,
-                            calendars.find((c) => c.year === bookingYear(b)) ??
-                              emptyCalendar(bookingYear(b)),
-                          );
-                          if (failure) return failure;
-                          setBookings((old) => [
-                            ...old,
-                            {
-                              ...b,
-                              registrant: {
-                                name: `${currentUser?.name} ${currentUser?.surname}`,
-                                email: currentUser?.email ?? "",
-                                userId: currentUser?.id,
-                              },
-                            },
-                          ]);
-                        }}
-                      />
-                    )
-                  }
-                />
-                <Route
-                  path="/reservas/:id"
-                  element={
-                    <Detail
-                      bookings={bookings}
-                      role={role}
-                      courses={courses}
-                      addCourse={(course) =>
-                        setCourses((old) =>
-                          old.some((c) => c.id === course.id)
-                            ? old
-                            : [...old, course],
+                    <Route
+                      path="/reservas/nueva"
+                      element={
+                        role === "Docente" ? (
+                          <Navigate to="/agenda" />
+                        ) : (
+                          <Wizard
+                            key="register"
+                            initial={draft}
+                            onConsume={() => setDraft(undefined)}
+                            courses={courses}
+                            addCourse={(course) =>
+                              setCourses((old) =>
+                                old.some((c) => c.id === course.id)
+                                  ? old
+                                  : [...old, course],
+                              )
+                            }
+                            role={role}
+                            bookings={bookings}
+                            save={(b) => {
+                              if (
+                                bookings.some(
+                                  (existing) => existing.id === b.id,
+                                )
+                              )
+                                return "Esta reserva ya está registrada. Consultá su detalle antes de volver a enviarla.";
+                              const failure = validateBooking(
+                                b,
+                                bookings,
+                                inventory,
+                                calendars.find(
+                                  (c) => c.year === bookingYear(b),
+                                ) ?? emptyCalendar(bookingYear(b)),
+                              );
+                              if (failure) return failure;
+                              setBookings((old) => [
+                                ...old,
+                                {
+                                  ...b,
+                                  registrant: {
+                                    name: `${currentUser?.name} ${currentUser?.surname}`,
+                                    email: currentUser?.email ?? "",
+                                    userId: currentUser?.id,
+                                  },
+                                },
+                              ]);
+                            }}
+                          />
                         )
                       }
-                      changeHeader={(id, request) => {
-                        const current = bookings.find((b) => b.id === id);
-                        if (!current) return "Reserva no encontrada.";
-                        const yearError = yearMutationError(current, calendars);
-                        if (yearError) return yearError;
-                        const result = changeHeader(
-                          current,
-                          request,
-                          courses,
-                          role,
-                          undefined,
-                          inventory,
-                        );
-                        if (result.error) return result.error;
-                        if (result.booking)
-                          setBookings((old) =>
-                            old.map((b) =>
-                              b.id === id
-                                ? attributeChange(
-                                    current,
-                                    result.booking,
-                                    currentUser,
-                                  )
-                                : b,
-                            ),
-                          );
-                      }}
-                      reschedule={(id, request) => {
-                        const current = bookings.find((b) => b.id === id);
-                        if (!current) return "Reserva no encontrada.";
-                        const yearError = yearMutationError(current, calendars);
-                        if (yearError) return yearError;
-                        const result = reschedule(
-                          current,
-                          request,
-                          bookings,
-                          role,
-                          undefined,
-                          inventory,
-                          calendars.find(
-                            (c) => c.year === bookingYear(current),
-                          ),
-                        );
-                        if (result.error) return result.error;
-                        if (result.booking)
-                          setBookings((old) =>
-                            old.map((b) =>
-                              b.id === id
-                                ? attributeChange(
-                                    current,
-                                    result.booking,
-                                    currentUser,
-                                  )
-                                : b,
-                            ),
-                          );
-                      }}
-                      changeRoom={(id, request) => {
-                        const current = bookings.find((b) => b.id === id);
-                        if (!current) return "Reserva no encontrada.";
-                        const yearError = yearMutationError(current, calendars);
-                        if (yearError) return yearError;
-                        const result = changeRoom(
-                          current,
-                          request,
-                          bookings,
-                          role,
-                          undefined,
-                          inventory,
-                        );
-                        if (result.error) return result.error;
-                        if (result.booking)
-                          setBookings((old) =>
-                            old.map((b) =>
-                              b.id === id
-                                ? attributeChange(
-                                    current,
-                                    result.booking,
-                                    currentUser,
-                                  )
-                                : b,
-                            ),
-                          );
-                      }}
-                      cancel={(id, request) => {
-                        const current = bookings.find((b) => b.id === id);
-                        if (!current)
-                          return "La reserva ya no está disponible.";
-                        const yearError = yearMutationError(current, calendars);
-                        if (yearError) return yearError;
-                        const result = cancelClasses(current, request, role);
-                        if (result.error) return result.error;
-                        if (result.booking)
-                          setBookings((old) =>
-                            old.map((b) =>
-                              b.id === id
-                                ? attributeChange(
-                                    current,
-                                    result.booking,
-                                    currentUser,
-                                  )
-                                : b,
-                            ),
-                          );
-                      }}
                     />
-                  }
-                />
-                <Route
-                  path="/reservas"
-                  element={<Listing bookings={bookings} />}
-                />
-                <Route path="/aulas" element={<Rooms role={role} />} />
-                <Route
-                  path="/disponibilidad"
-                  element={
-                    <Wizard
-                      key="query"
-                      queryOnly
-                      role={role}
-                      bookings={bookings}
-                      courses={courses}
-                      addCourse={() => {}}
-                      save={() => {}}
-                      onPrepare={setDraft}
+                    <Route
+                      path="/reservas/:id"
+                      element={
+                        <Detail
+                          bookings={bookings}
+                          role={role}
+                          courses={courses}
+                          addCourse={(course) =>
+                            setCourses((old) =>
+                              old.some((c) => c.id === course.id)
+                                ? old
+                                : [...old, course],
+                            )
+                          }
+                          changeHeader={(id, request) => {
+                            const current = bookings.find((b) => b.id === id);
+                            if (!current) return "Reserva no encontrada.";
+                            const yearError = yearMutationError(
+                              current,
+                              calendars,
+                            );
+                            if (yearError) return yearError;
+                            const result = changeHeader(
+                              current,
+                              request,
+                              courses,
+                              role,
+                              undefined,
+                              inventory,
+                              teachers,
+                            );
+                            if (result.error) return result.error;
+                            if (result.booking)
+                              setBookings((old) =>
+                                old.map((b) =>
+                                  b.id === id
+                                    ? attributeChange(
+                                        current,
+                                        result.booking,
+                                        currentUser,
+                                      )
+                                    : b,
+                                ),
+                              );
+                          }}
+                          reschedule={(id, request) => {
+                            const current = bookings.find((b) => b.id === id);
+                            if (!current) return "Reserva no encontrada.";
+                            const yearError = yearMutationError(
+                              current,
+                              calendars,
+                            );
+                            if (yearError) return yearError;
+                            const result = reschedule(
+                              current,
+                              request,
+                              bookings,
+                              role,
+                              undefined,
+                              inventory,
+                              calendars.find(
+                                (c) => c.year === bookingYear(current),
+                              ),
+                            );
+                            if (result.error) return result.error;
+                            if (result.booking)
+                              setBookings((old) =>
+                                old.map((b) =>
+                                  b.id === id
+                                    ? attributeChange(
+                                        current,
+                                        result.booking,
+                                        currentUser,
+                                      )
+                                    : b,
+                                ),
+                              );
+                          }}
+                          changeRoom={(id, request) => {
+                            const current = bookings.find((b) => b.id === id);
+                            if (!current) return "Reserva no encontrada.";
+                            const yearError = yearMutationError(
+                              current,
+                              calendars,
+                            );
+                            if (yearError) return yearError;
+                            const result = changeRoom(
+                              current,
+                              request,
+                              bookings,
+                              role,
+                              undefined,
+                              inventory,
+                            );
+                            if (result.error) return result.error;
+                            if (result.booking)
+                              setBookings((old) =>
+                                old.map((b) =>
+                                  b.id === id
+                                    ? attributeChange(
+                                        current,
+                                        result.booking,
+                                        currentUser,
+                                      )
+                                    : b,
+                                ),
+                              );
+                          }}
+                          cancel={(id, request) => {
+                            const current = bookings.find((b) => b.id === id);
+                            if (!current)
+                              return "La reserva ya no está disponible.";
+                            const yearError = yearMutationError(
+                              current,
+                              calendars,
+                            );
+                            if (yearError) return yearError;
+                            const result = cancelClasses(
+                              current,
+                              request,
+                              role,
+                            );
+                            if (result.error) return result.error;
+                            if (result.booking)
+                              setBookings((old) =>
+                                old.map((b) =>
+                                  b.id === id
+                                    ? attributeChange(
+                                        current,
+                                        result.booking,
+                                        currentUser,
+                                      )
+                                    : b,
+                                ),
+                              );
+                          }}
+                        />
+                      }
                     />
-                  }
-                />
-                <Route
-                  path="/indicadores"
-                  element={
-                    role === "Docente" ? (
-                      <Navigate to="/agenda" replace />
-                    ) : (
-                      <Indicators bookings={bookings} />
-                    )
-                  }
-                />
-                <Route
-                  path="/administracion"
-                  element={
-                    role === "Administrador" ? (
-                      <Users />
-                    ) : (
-                      <Navigate to="/agenda" replace />
-                    )
-                  }
-                />
-                <Route
-                  path="/administracion/calendario"
-                  element={
-                    role === "Administrador" ? (
-                      <PersistedCalendar />
-                    ) : (
-                      <Navigate to="/agenda" replace />
-                    )
-                  }
-                />
-                <Route path="*" element={<Navigate to="/agenda" replace />} />
-              </Routes>
-            )}
-          </main>
-          <footer>Demostración académica · Datos ficticios</footer>
-        </>
-      </RoomContext>
-    </CalendarContext>
+                    <Route
+                      path="/reservas"
+                      element={<Listing bookings={bookings} />}
+                    />
+                    <Route path="/aulas" element={<Rooms role={role} />} />
+                    <Route
+                      path="/disponibilidad"
+                      element={
+                        <Wizard
+                          key="query"
+                          queryOnly
+                          role={role}
+                          bookings={bookings}
+                          courses={courses}
+                          addCourse={() => {}}
+                          save={() => {}}
+                          onPrepare={setDraft}
+                        />
+                      }
+                    />
+                    <Route
+                      path="/indicadores"
+                      element={
+                        role === "Docente" ? (
+                          <Navigate to="/agenda" replace />
+                        ) : (
+                          <Indicators bookings={bookings} />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/administracion"
+                      element={
+                        role === "Administrador" ? (
+                          <Users />
+                        ) : (
+                          <Navigate to="/agenda" replace />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/administracion/calendario"
+                      element={
+                        role === "Administrador" ? (
+                          <PersistedCalendar />
+                        ) : (
+                          <Navigate to="/agenda" replace />
+                        )
+                      }
+                    />
+                    <Route
+                      path="*"
+                      element={<Navigate to="/agenda" replace />}
+                    />
+                  </Routes>
+                )}
+            </main>
+            <footer>Demostración académica · Datos ficticios</footer>
+          </>
+        </RoomContext>
+      </CalendarContext>
+    </TeacherContext>
   );
 }

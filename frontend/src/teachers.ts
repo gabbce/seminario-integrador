@@ -5,3 +5,5 @@ export const teachers = [
   { id: "D-04", name: "Sofía Paz", email: "sofia.paz@example.test" },
   { id: "D-05", name: "Diego Luna", email: "diego.luna@example.test" },
 ];
+
+export type TeacherReference = { id: string; name: string; email?: string };

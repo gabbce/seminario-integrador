@@ -87,6 +87,7 @@ public class CalendarManagement {
     }
     @Transactional public Config edit(long actor,long id,Edit edit) {
         authorize(actor);if(edit==null)throw DomainError.invalid("Completá el calendario.");Config current=lock(id,edit.version());validate(edit,current);
+        if(current.year()!=edit.year() && db.queryForObject("select count(*) from aulas.curso where id_anio_lectivo=?",Long.class,id)>0) throw DomainError.conflict("No se puede cambiar el número de un año con cursos asociados.");
         db.update("update aulas.anio_lectivo set anio_calendario=?,estado=?,version=version+1 where id_anio_lectivo=?",edit.year(),state(edit.state()),id);
         for(int number=1;number<=2;number++) {
             var range=edit.terms().get(number==1?"first":"second");
@@ -100,6 +101,7 @@ public class CalendarManagement {
     }
     @Transactional public void delete(long actor,long id,Long version) {
         authorize(actor);Config current=lock(id,version);
+        if(db.queryForObject("select count(*) from aulas.curso where id_anio_lectivo=?",Long.class,id)>0) throw DomainError.conflict("No se puede eliminar un año con cursos asociados.");
         if(db.queryForObject("select count(*) from aulas.cuatrimestre where id_anio_lectivo=?",Long.class,id)>0 || !current.holidays().isEmpty()) throw DomainError.conflict("El año tiene cuatrimestres o fechas no lectivas. Quitá esas dependencias antes de eliminarlo.");
         db.update("delete from aulas.anio_lectivo where id_anio_lectivo=?",id);audit(actor,id,"ELIMINAR_CALENDARIO",current.toString());
     }

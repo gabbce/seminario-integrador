@@ -1,6 +1,6 @@
 import { type Booking, type Role, type Room, rooms } from "./domain";
-import { type Course } from "./catalog";
-import { teachers } from "./teachers";
+import { courseLabel, type Course } from "./catalog";
+import { teachers, type TeacherReference } from "./teachers";
 import { compatible, resourcesFor, type Resource } from "./equipment";
 import { demoNow } from "./calendar";
 import { isFuture } from "./cancellation";
@@ -24,6 +24,7 @@ export function changeHeader(
   role: Role,
   now = demoNow,
   inventory: Room[] = rooms,
+  availableTeachers: TeacherReference[] = teachers,
 ): { booking: Booking; error?: never } | { error: string; booking?: never } {
   if (role === "Docente")
     return { error: "Tu cuenta solo permite consultar reservas." };
@@ -41,7 +42,7 @@ export function changeHeader(
       c.id === request.course &&
       c.year === Number(b.occurrences[0]?.date.slice(0, 4)),
   );
-  const teacher = teachers.find((t) => t.name === request.teacher);
+  const teacher = availableTeachers.find((t) => t.name === request.teacher);
   if (!course || !teacher)
     return { error: "Elegí un curso del año y un docente del catálogo." };
   if (!Number.isInteger(request.students) || request.students < 1)
@@ -68,8 +69,10 @@ export function changeHeader(
     booking: {
       ...b,
       subject: course.subject,
-      course: course.id,
+      course: courseLabel(course),
+      courseId: course.id,
       teacher: teacher.name,
+      teacherId: teacher.id,
       teacherEmail: teacher.email,
       students: request.students,
       type: request.type,
@@ -81,7 +84,7 @@ export function changeHeader(
         {
           at: now,
           actor: role,
-          description: `Datos compartidos: curso ${b.course} → ${course.id}; docente ${b.teacher} → ${teacher.name}; alumnos ${b.students} → ${request.students}; tipo ${b.type ?? "Sin registro"} → ${request.type}; pizarrón ${b.board || "Sin preferencia"} → ${request.board || "Sin preferencia"}; recursos ${(b.resources ?? []).join(", ") || "Sin requisitos"} → ${request.resources.join(", ") || "Sin requisitos"}.`,
+          description: `Datos compartidos: curso ${b.course} → ${courseLabel(course)}; docente ${b.teacher} → ${teacher.name}; alumnos ${b.students} → ${request.students}; tipo ${b.type ?? "Sin registro"} → ${request.type}; pizarrón ${b.board || "Sin preferencia"} → ${request.board || "Sin preferencia"}; recursos ${(b.resources ?? []).join(", ") || "Sin requisitos"} → ${request.resources.join(", ") || "Sin requisitos"}.`,
         },
       ],
     },

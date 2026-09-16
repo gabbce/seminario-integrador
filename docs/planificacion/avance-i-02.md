@@ -38,3 +38,9 @@ Dos pruebas PostgreSQL y dos recorridos de navegador móvil/escritorio aprobados
 Años, dos cuatrimestres y fechas no lectivas persistidos, con versiones, auditoría y reglas temporales; cerrado de solo lectura. Interfaz conectada con vacío real, carga, reintento y recarga que también actualiza el calendario usado por las otras pantallas. Sin aplicar impactos sobre reservas simuladas.
 
 Seis pruebas de calendario en PostgreSQL, dos recorridos móvil/escritorio con accesibilidad y recorrido Supabase aprobados: alta 2028, dos períodos, feriado ficticio, habilitación y recarga. Se revisaron las capturas i024-calendario y i024-real-calendario. Terra high detectó y se corrigió la falta de propagación de recarga, el bloqueo durante carga/fallo y validación de cuerpos nulos. Dependencias con cursos se agregan en I-02.5; las de reservas, antes de sus escrituras en I-03.
+
+## I-02.5
+
+Cursos y materias desde Java, con búsqueda en el selector, creación desde el formulario, normalización y unicidad concurrente. Código numérico compartido entre comisiones/años, separado del ID interno. Docentes servidos por Java y compartidos por alta/edición de datos de reserva; el adaptador conserva sus IDs. La lista de cuentas no modifica referencias académicas. Cursos dependientes bloquean renumeración/borrado del año.
+
+Siete pruebas PostgreSQL de referencias (incluida carrera alta de curso/renumeración), dos recorridos móviles/escritorio y recorrido Supabase de creación/recarga aprobados. Sesenta y dos pruebas unitarias históricas del frontend siguen aprobadas, sin contarlas como persistencia de reservas. Capturas i025-referencias revisadas, sin problemas de accesibilidad. Terra high corrigió separación de ID/código visible, docentes aún leídos del fixture en edición, carga de referencias y búsqueda. Contrato referencias.openapi.yaml. Registrar curso no persiste una reserva.

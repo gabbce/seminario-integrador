@@ -1,6 +1,6 @@
 # Documentación del sistema de gestión y reservas de aulas
 
-**Versión 1.0 final, aprobada por el usuario.** Las 85 decisiones de la entrevista y revisión están resueltas. El prototipo P-01 a P-06 está implementado y verificado; la integración persistente todavía no comenzó.
+**Versión 1.0 final, aprobada por el usuario.** Las 85 decisiones de la entrevista y revisión están resueltas. El prototipo P-01 a P-06 está implementado y verificado; I-01 incorpora acceso real y perfiles persistentes; ver [avance](planificacion/avance-i-01.md).
 
 Comenzar por la [especificación de la aplicación](especificacion/00-especificacion.md), que resume el alcance, las reglas y las exclusiones.
 

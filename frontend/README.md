@@ -1,29 +1,27 @@
-# Frontend Aulas — prototipo navegable
+# Frontend Aulas — integración I-01
 
-React 19, TypeScript, Vite 8, Tailwind 4 y botón shadcn/Base UI. Requiere Node 24 (probado con 24.14.0) y npm 11. Dependencias reproducibles en `package-lock.json`.
+React 19, TypeScript, Vite 8, Tailwind 4 y shadcn/Base UI. Node 24 y npm 11; dependencias en package-lock.json.
+
+## Ejecutar
+
+Preparar `.env.local` a partir de `.env.example`: URL Supabase y clave pública. Nunca incluir la clave administrativa en frontend. En este entorno el archivo ya está configurado. Iniciar Java siguiendo [backend](../backend/README.md) y luego:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Abrir http://localhost:5173. Usar `bedel@demo.local`, `admin@demo.local` o `docente@demo.local`, todos con contraseña ficticia `Aulas2026`.
+Abrir http://localhost:5173. Cuentas ficticias: admin@demo.local, bedel@demo.local y docente@demo.local; la contraseña preparada está en AULAS_DEMO_PASSWORD de backend/.env. La cuenta inhabilitado@demo.local debe ser rechazada. La antigua contraseña del prototipo no aplica.
 
-La sesión y las reservas viven en memoria. Navegar conserva los cambios; recargar reinicia todo. El acceso simulado sirve para revisar la interfaz: no implementa autenticación ni autorización reales. No utiliza Supabase ni necesita claves.
+El proxy /api apunta a Java en 8080; AULAS_API_TARGET permite cambiarlo en .env.local. El SDK conserva y renueva la sesión de Supabase; cada recuperación consulta /api/me antes de mostrar la app.
 
-## Recorrido reproducible
+## Alcance actual
 
-1. Ingresar como bedel. Agenda comienza en el día del reloj ficticio (08/09/2026). Elegir 14/09/2026 para este recorrido; «Hoy» vuelve al día simulado.
-2. Nueva reserva: Matemática I, 001-A-2026, Laura Gómez, 30 alumnos, Multimedios, lunes/miércoles 14–16.
-3. Buscar aulas. Lunes: 203. Miércoles: 105. Cada elección cubre todas las fechas del día semanal.
-4. Revisar las 26 fechas y confirmar. Ver detalle; volver a agenda muestra la nueva clase.
-5. Cerrar sesión e ingresar como docente para consultar sin acción de creación.
+Login, sesión, perfil y permisos usan Supabase y Java reales. Reservas, aulas, cursos, calendario, indicadores y administración de cuentas siguen con datos ficticios en memoria hasta sus entregas. Sus cambios se reinician al recargar; editar una cuenta en esa pantalla aún no modifica Auth. La identidad de acceso no se puede cambiar mediante controles de demostración.
 
-Agenda contiene inicialmente cuatro clases. Matemática se agrega al confirmar el recorrido; no está precargada para evitar duplicaciones. Las seis aulas candidatas aparecen en la agenda. Desplazar verticalmente para recorrer 07–23; inicialmente muestra desde 13. En móvil se usa una lista cronológica.
+El prototipo completo, con escenarios y controles de fallos, permanece en prototype/v1. Los documentos de diseño y su QA describen esa referencia. No constituyen evidencia de integración persistente.
 
 ## Comprobaciones
-
-Guía para evaluación humana: [QA manual del prototipo](../docs/diseno/qa-manual-prototipo.md).
 
 ```bash
 npm run build
@@ -33,17 +31,22 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Playwright inicia Vite si hace falta. Las capturas quedan en `evidence/` y los resultados en `test-results/`, ignorados por Git. La suite comprende 62 pruebas unitarias y 44 de navegador: registro, consulta, operación, administración, indicadores, recuperación, impresión completa, teclado, anchos 390/768/1440 y zoom nativo 200 %. La prueba de zoom usa una extensión local de Chromium incluida en `e2e/fixtures/zoom-extension/`; no requiere credenciales ni servicios externos.
+62 pruebas unitarias y suite de sesión con proveedor simulado, sin conexión a Supabase. Playwright usa Vite en 5174 con configuración pública ficticia; cubre roles, recarga, cierre, Atrás, errores, renovación acotada, teclado, accesibilidad y anchos 390/768/1440. Capturas en evidence/, ignoradas por Git.
 
-## Organización y alcance
+Comprobación adicional explícita con Supabase real, backend encendido y las cuatro cuentas preparadas:
 
-- `src/pages/`: páginas y recorrido periódico.
-- `src/domain.ts`: datos ficticios, recurrencia, disponibilidad y validación de confirmación.
-- `src/App.tsx`: navegación, sesión y estado compartido.
-- `src/App.css`: adaptación visual B; `src/components/`: componentes compartidos.
+```bash
+npm run test:e2e:real
+```
 
-La reserva periódica permite elegir ambos cuatrimestres del año elegido o una anual, omite pasado/receso/feriados y conserva exclusiones manuales. Inicio y duración determinan el fin. Las aulas se ordenan por capacidad y código, con tres sugerencias y opción de ver todas. Cuando no hay disponibilidad, las alternativas muestran conflictos y contactos ficticios, sin permitir elegir un aula ocupada. Se pueden crear y reutilizar cursos por materia/comisión/año y solicitar pizarrón, ventilación y recursos Multimedios. La modalidad esporádica permite agregar/quitar fechas, asignar aula por fecha y confirmar el conjunto. Disponibilidad permite consultar por modalidad sin preparar reserva; Docente no ve contactos privados ni acciones de registro, y operadores pueden continuar con los criterios elegidos. Los listados por día/curso filtran estado, tipo y aula, con paginación 20/50/100 e impresión diaria de todos los resultados. La agenda ofrece día y semana, conserva filtros y distingue fechas no reservables. El detalle permite cancelar clases futuras con motivo e historial, liberando sus aulas y conservando las clases iniciadas. También permite cambiar el aula para las futuras del patrón periódico o una fecha esporádica, con disponibilidad conjunta e historial. La reprogramación permite una o varias clases con aula conservada, comparación previa y validación completa. La edición de datos compartidos revalida todas las aulas y solo se permite antes de iniciar la reserva. El inventario permite altas, edición y bajas con protección de reservas, filtros e historial; sus cambios alimentan disponibilidad. Administración permite gestionar cuentas y establecer contraseñas mediante un adaptador ficticio en memoria; no usa Supabase todavía. Calendario permite crear años, habilitarlos al completar ambos cuatrimestres, cerrarlos sin clases vigentes pendientes y eliminar únicamente años vacíos en preparación. Permite modificar los cuatrimestres y fechas no lectivas del año seleccionado, previsualizando y guardando juntas las nuevas clases de series. Indicadores ofrece vista diaria con horas-aula, ocupación histórica, clases, alumnos-hora, curvas por media hora, filtros y valores en tabla. Semana típica permite cuatrimestre o rango personalizado, mapa de promedios por franja, selección por teclado/toque y comparación diaria con fechas aportantes. El selector al pie permite aplicar/reiniciar escenarios independientes; ver [recorridos de demostración](../docs/diseno/escenarios-demo.md). Los fallos de consulta, guardado, resultado incierto, sesión y versión pueden activarse desde las herramientas de demostración. P-01 a P-06 verificados; ver la [matriz de aceptación y límites](../docs/diseno/validacion-prototipo.md).
+Usa Vite en 5175 y lee la contraseña desde backend/.env o AULAS_DEMO_PASSWORD. No habilita trazas ni video. Verifica ingreso, perfil, navegación por rol, recarga, cierre y rechazo del usuario inactivo. Nunca imprimir tokens ni contraseñas en aserciones.
 
-El proxy `/api` apunta al Spring Boot local en 8080; el frontend todavía no consume servicios. El alcance completo permanece en la especificación y el plan de entregas.
+Las 44 pruebas históricas de navegador están en e2e/prototype/, excluidas de esta suite. Se ejecutan en la rama prototype/v1; se adaptarán por módulo durante I-02 a I-05.
 
-Estado detallado y próximos cortes: [avance del prototipo](../docs/diseno/avance-prototipo.md).
+## Organización
+
+- src/auth-client.ts y src/use-session.ts: cliente y ciclo de sesión.
+- src/App.tsx: acceso y carga de la aplicación.
+- src/OperationalApp.tsx: navegación y estado de negocio aún simulado.
+- src/pages/, src/components/ y src/App.css: recorridos y diseño B.
+- [Avance I-01](../docs/planificacion/avance-i-01.md) y [QA de ingreso real](../docs/planificacion/qa-i-01.md).

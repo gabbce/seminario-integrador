@@ -90,6 +90,6 @@ No cerrar entregas con defectos que impidan recorridos o incumplan reglas acorda
 
 ## Detalle por entrega
 
-El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. Implementación pendiente. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
+El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
 
 Cada entrega posterior se detallará y acordará antes de implementarla. Este plan general no reemplaza ese trabajo. Los contratos técnicos exactos y la configuración se concretan en el subcorte correspondiente, sin cambiar las reglas funcionales aprobadas.

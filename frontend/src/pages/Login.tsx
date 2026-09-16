@@ -11,19 +11,24 @@ export function Login({
   notice,
 }: {
   notice?: string;
-  onLogin: (email: string, password: string) => string | undefined;
+  onLogin: (email: string, password: string) => Promise<string | undefined>;
 }) {
-  const go=useNavigate();
+  const go = useNavigate();
   const [error, setError] = useState("");
   const [show, setShow] = useState(false);
-  function submit(e: FormEvent<HTMLFormElement>) {
+  const [busy, setBusy] = useState(false);
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-    const failure = onLogin(
+    if (busy) return;
+    setBusy(true);
+    const failure = await onLogin(
       String(data.get("email")),
       String(data.get("password")),
     );
-    if (failure) setError(failure); else go("/agenda",{replace:true});
+    setBusy(false);
+    if (failure) setError(failure);
+    else go("/agenda", { replace: true });
   }
   return (
     <div className="login-page">
@@ -55,21 +60,14 @@ export function Login({
             </button>
           </div>
         </label>
-        {error && (
-          <FormError message={error} />
-        )}
-        <Button type="submit">
-          Ingresar <ArrowRight />
+        {error && <FormError message={error} />}
+        <Button type="submit" disabled={busy}>
+          {busy ? "Ingresando…" : "Ingresar"} <ArrowRight />
         </Button>
         <p className="help">
           Si necesitás ayuda para ingresar, contactá al administrador.
         </p>
       </form>
-      <aside className="demo-note">
-        Acceso de demostración: bedel@demo.local · Aulas2026
-        <br />
-        También disponibles: admin@demo.local y docente@demo.local.
-      </aside>
     </div>
   );
 }

@@ -7,7 +7,7 @@ Plan: [base e ingreso real](i-01-base-e-ingreso.md). Rama `feat/integracion`; pr
 | I-01.1 | Completado y validado local/remoto | Migración usuarios/perfiles, configuración JDBC/JPA/Flyway y PostgreSQL desechable. Cuatro pruebas pasan. Proyecto inspeccionado; rol propio, V1 aplicada, salud UP, repetición sin cambios y permisos remotos comprobados. |
 | I-01.2 | Completado | Comandos admin/demo, UUID durable, HTTP fuera de transacciones, recuperación probada y cuatro cuentas reales creadas/repetidas. |
 | I-01.3 | Completado | JWT ES256/RS256, perfil y permisos actuales desde PostgreSQL, contrato OpenAPI y 12 pruebas. |
-| I-01.4 | Pendiente | Sesión real React y pruebas integradas. |
+| I-01.4 | Completado | Login Supabase, perfil Java, navegación por permisos, restauración, salida y errores; 9 pruebas de navegador y 4 recorridos reales. |
 
 ## Verificación local I-01.1
 
@@ -30,3 +30,14 @@ Siete pruebas locales, incluidas repetición sin cambios, rechazo de identidad a
 ## I-01.3
 
 Doce pruebas backend aprobadas con PostgreSQL desechable y claves JWT locales. Cubren firma, emisor, audiencia, expiración, perfil inexistente/deshabilitado, permisos y caída de persistencia. Revisiones Terra high de especificación y estándares aprobadas. Comprobación real con Supabase: Admin, Bedel y Docente reciben 200 y sus permisos en /api/me; cuenta deshabilitada recibe 403 con JWT vigente. Contrato en docs/api/identidad.openapi.yaml.
+
+
+## I-01.4 y cierre de entrega
+
+React usa Supabase y consulta /api/me antes de mostrar la app. Se retiraron los controles de identidad simulada; el negocio conserva los datos en memoria conforme al alcance. Aplicación operativa cargada después del login, sin agregar avisos de módulos pendientes.
+
+Verificación: build y lint correctos; 62 unitarias; 9 pruebas de navegador con proveedor simulado y 4 con Supabase real aprobadas. Recorridos reales para Admin/Bedel/Docente e inhabilitado: permisos, recarga, cierre, Atrás y bloqueo de perfil. Capturas revisadas de ingreso móvil y navegación tablet/escritorio; accesibilidad axe sin violaciones en los recorridos evaluados. Backend responde UP. Configuración faltante probada de forma aislada: error legible, sin crash.
+
+Revisión Terra high en especificación y estándares: corregidos cierre de sesión prematuro, respuesta de perfil inválida y configuración ausente. El cierre mantiene la app bloqueada hasta limpiar almacenamiento; probado también con proveedor lento o fallido. Evidencias locales en frontend/evidence/, ignoradas por Git. [QA reproducible](qa-i-01.md).
+
+Las 44 pruebas históricas del prototipo se conservan como referencia en e2e/prototype/ y se ejecutan desde prototype/v1; no se cuentan como pruebas de integración. I-02 a I-06 continúan pendientes: antes de cada entrega se detalla y acuerda su plan.

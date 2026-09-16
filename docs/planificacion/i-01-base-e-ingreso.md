@@ -12,7 +12,7 @@ Incluye conexión, migraciones iniciales de usuarios/perfiles, preparación expl
 
 ## Entorno aprobado
 
-- Proyecto Supabase indicado por el usuario: `nrjykdzvzrcixapkdfsp` ([dashboard](https://supabase.com/dashboard/project/nrjykdzvzrcixapkdfsp)). Su configuración y contenido aún no se inspeccionaron como parte de este plan.
+- Proyecto Supabase indicado por el usuario: `nrjykdzvzrcixapkdfsp` ([dashboard](https://supabase.com/dashboard/project/nrjykdzvzrcixapkdfsp)). Su configuración y contenido se inspeccionaron y verificaron durante I-01; ver el avance.
 - Un proyecto dedicado a desarrollo/demo, sin producción separada por ahora. React y Java se ejecutan localmente.
 - PostgreSQL y Auth remotos. Esquema de dominio propio, no accesible mediante la API pública de Supabase; acceso por Java.
 - Variables del frontend: URL del proyecto y clave pública de Auth. Variables exclusivamente del backend: conexión PostgreSQL y credencial administrativa de Auth. Ejemplos sin secretos; valores reales fuera de Git y logs.
@@ -85,10 +85,10 @@ Las pruebas automáticas habituales no requieren Supabase en línea. Las pruebas
 - [x] I-01.1 verificado y guardado en commit; ver [avance](avance-i-01.md).
 - [x] I-01.2 verificado y guardado en commit.
 - [x] I-01.3 verificado y guardado en commit.
-- [ ] I-01.4 verificado y guardado en commit.
-- [ ] Recorrido conjunto real probado con las cuentas preparadas en Supabase.
-- [ ] Pruebas automáticas aprobadas y evidencia visual registrada.
-- [ ] Variables, comandos y comprobaciones documentados sin secretos.
-- [ ] Limitaciones de módulos todavía simulados documentadas fuera de la UI.
+- [x] I-01.4 verificado y guardado en commit.
+- [x] Recorrido conjunto real probado con las cuentas preparadas en Supabase.
+- [x] Pruebas automáticas aprobadas y evidencia visual registrada.
+- [x] Variables, comandos y comprobaciones documentados sin secretos.
+- [x] Limitaciones de módulos todavía simulados documentadas fuera de la UI.
 
-Las casillas están pendientes: esta consolidación no certifica implementación ni pruebas. Antes de iniciar I-02 se detalla y acuerda su propio plan.
+Entrega implementada y validada; evidencia y límites en [avance](avance-i-01.md). Antes de iniciar I-02 se detalla y acuerda su propio plan.

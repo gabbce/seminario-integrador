@@ -62,6 +62,20 @@ public class SupabaseAuthAdmin implements AuthAdmin {
             throw new IllegalStateException("No se pudo comprobar la identidad Auth; reintentar cuando el servicio esté disponible.");
         }
     }
+    @Override public Identity changeEmail(UUID id,String email) {
+        var result=update(id,Map.of("email",email,"email_confirm",true));
+        if(result==null) throw new IllegalStateException("Respuesta de Auth incompleta");
+        return result.identity();
+    }
+    @Override public void changePassword(UUID id,String password) { update(id,Map.of("password",password)); }
+    private RemoteUser update(UUID id,Map<String,Object> fields) {
+        try { return client().put().uri("/admin/users/{id}",id).body(fields).retrieve().body(RemoteUser.class); }
+        catch (org.springframework.web.client.HttpClientErrorException e) {
+            if(e.getStatusCode().value()==400 || e.getStatusCode().value()==422)
+                throw ar.edu.aulas.api.DomainError.invalid("Supabase rechazó los datos. Revisá el correo o la política de contraseña.");
+            throw new IllegalStateException("No se confirmó el cambio en Auth; su resultado puede ser incierto.");
+        } catch (RuntimeException e) {throw new IllegalStateException("No se confirmó el cambio en Auth; su resultado puede ser incierto.");}
+    }
     @Override public Identity create(AccountSpec account, String password, UUID operationId) {
         try {
             var body = Map.of("email", account.email(), "password", password, "email_confirm", true,
@@ -69,6 +83,10 @@ public class SupabaseAuthAdmin implements AuthAdmin {
             var result = client().post().uri("/admin/users").body(body).retrieve().body(RemoteUser.class);
             if (result == null) throw new IllegalStateException();
             return result.identity();
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            if(e.getStatusCode().value()==400 || e.getStatusCode().value()==422)
+                throw ar.edu.aulas.api.DomainError.invalid("Supabase rechazó el alta. Revisá el correo y la política de contraseña.");
+            throw new IllegalStateException("No se pudo confirmar el alta de Auth.");
         } catch (RuntimeException e) {
             throw new IllegalStateException("Alta Auth no confirmada. Repetir el comando comprobará el resultado antes de crear otra identidad.");
         }

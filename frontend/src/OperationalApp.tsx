@@ -459,8 +459,7 @@ export default function App({
             </Routes>
           </main>
           <footer>
-            Demostración académica · Datos ficticios · Los cambios se reinician
-            al recargar
+            Demostración académica · Datos ficticios
           </footer>
         </>
       </RoomContext>

@@ -5,7 +5,7 @@ Plan aprobado: [administración y catálogos](i-02-administracion-y-catalogos.md
 | Corte | Estado |
 |---|---|
 | I-02.1 | Completado |
-| I-02.2 | Pendiente |
+| I-02.2 | Completado |
 | I-02.3 | Pendiente |
 | I-02.4 | Pendiente |
 | I-02.5 | Pendiente |
@@ -20,3 +20,9 @@ Pruebas PostgreSQL: perfil y auditoría, rechazo de versión vieja, permisos y d
 Revisiones Terra high separadas de especificación y estándares. Se corrigió auditoría insuficiente y se documentaron cuerpos de error OpenAPI. Contrato: docs/api/administracion.openapi.json. Alta/email/contraseña corresponden al siguiente corte; no se usan adaptadores de identidad ficticia.
 
 Cierre I-02.1: 16 pruebas backend aprobadas, build/lint frontend limpios y ambos revisores Terra high sin bloqueantes tras las correcciones. Las unitarias históricas del prototipo no se cuentan como evidencia de integración.
+
+## I-02.2
+
+Alta, cambio de email y contraseña conectados a Supabase desde Java. Journal sin secretos y recuperación de alta mediante UUID de operación. Reintentos de email consultan Auth antes de repetir la misma asignación; contraseñas inciertas no se repiten automáticamente. La interfaz conserva e inmoviliza datos durante recuperación y separa perfil/email/contraseña en el panel aprobado.
+
+Diecinueve pruebas backend, doce de navegador sin proveedor y seis recorridos reales aprobados. El recorrido nuevo creó una cuenta ficticia QA, verificó ingreso inicial, cambió email conservando identidad, verificó nuevo ingreso, cambió contraseña, comprobó ingreso con la nueva y rechazo de la anterior. Cuenta QA deshabilitada al finalizar. Captura i022-real-cuentas revisada; secretos nunca guardados en evidencias. Ambos revisores Terra high aprobaron tras corregir clasificación de rechazo/duplicado, recuperación de email no aplicado e inmovilización de datos al reintentar.

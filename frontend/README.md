@@ -17,7 +17,7 @@ El proxy /api apunta a Java en 8080; AULAS_API_TARGET permite cambiarlo en .env.
 
 ## Alcance actual
 
-Login, sesión, perfil y permisos usan Supabase y Java reales. Consulta y edición de perfil/rol/estado de cuentas también persisten. Reservas, aulas, cursos, calendario e indicadores siguen con datos ficticios en memoria hasta sus entregas. Sus cambios se reinician al recargar; alta, email y contraseña se conectan en I-02.2. La identidad de acceso no se puede cambiar mediante controles de demostración.
+Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Reservas, aulas, cursos, calendario e indicadores siguen con datos ficticios en memoria hasta sus entregas. Sus cambios se reinician al recargar; los cambios de cuentas se mantienen y los de negocio todavía se reinician. La identidad de acceso no se puede cambiar mediante controles de demostración.
 
 El prototipo completo, con escenarios y controles de fallos, permanece en prototype/v1. Los documentos de diseño y su QA describen esa referencia. No constituyen evidencia de integración persistente.
 

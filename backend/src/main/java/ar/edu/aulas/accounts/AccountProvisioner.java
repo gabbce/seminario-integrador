@@ -20,17 +20,18 @@ public class AccountProvisioner {
             new Operation(r.getObject("id",UUID.class), new AccountSpec(r.getString("email"),r.getString("nombre"),
                 r.getString("apellido"),r.getString("rol"),r.getBoolean("activo")),r.getObject("auth_id",UUID.class),r.getBoolean("completada")),email);
     }
-    public UUID prepare(AccountSpec desired, String password) {
+    public UUID prepare(AccountSpec desired, String password) { return prepare(desired,password,null,id->{}); }
+    public UUID prepare(AccountSpec desired,String password,UUID requestId,java.util.function.LongConsumer completedProfile) {
         if (password == null || password.isBlank()) throw new IllegalArgumentException("Falta la contraseña de preparación");
         // Persist intent before HTTP. Concurrent commands share the same operation UUID.
         var op=transactions.execute(status -> {
             db.update("""
                 insert into aulas.preparacion_cuenta(id,email,nombre,apellido,rol,activo)
                 values (?,?,?,?,?,?) on conflict(email) do nothing
-                """,UUID.randomUUID(),desired.email(),desired.nombre(),desired.apellido(),desired.rol(),desired.activo());
+                """,requestId==null?UUID.randomUUID():requestId,desired.email(),desired.nombre(),desired.apellido(),desired.rol(),desired.activo());
             return operation(desired.email(),false);
         });
-        if (op == null || !op.account().equals(desired)) throw new IllegalStateException("Existe una preparación incompatible; no se modificó la cuenta");
+        if (op == null || (requestId!=null && !requestId.equals(op.id())) || !op.account().equals(desired)) throw new IllegalStateException("Existe una preparación incompatible; no se modificó la cuenta");
         // Network calls hold no JDBC transaction/connection. Auth enforces email uniqueness.
         var identity=op.authId()==null ? auth.findByEmail(desired.email()) : auth.findById(op.authId());
         if ((op.completed() || op.authId()!=null) && identity.isEmpty()) throw new IllegalStateException("La identidad preparada ya no existe; requiere revisión");
@@ -60,6 +61,7 @@ public class AccountProvisioner {
                 """,Long.class,user.id(),desired.email(),desired.nombre(),desired.apellido(),desired.rol(),desired.activo());
             String table=switch(desired.rol()) { case "ADMINISTRADOR"->"administrador"; case "BEDEL"->"bedel"; case "DOCENTE"->"docente"; default->throw new IllegalArgumentException(); };
             db.update("insert into aulas."+table+"(id_usuario) values (?)",id);
+            completedProfile.accept(id);
             db.update("update aulas.preparacion_cuenta set completada=true where id=?",op.id());
             return user.id();
         });

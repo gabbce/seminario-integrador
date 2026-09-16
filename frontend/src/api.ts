@@ -1,9 +1,11 @@
 import { supabase } from "./auth-client";
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  code?: string;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -38,6 +40,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       typeof body?.message === "string"
         ? body.message
         : "No se pudo completar la operación.",
+      body?.code,
     );
   }
   return body as T;

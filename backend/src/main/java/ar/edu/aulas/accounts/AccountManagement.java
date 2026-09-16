@@ -50,6 +50,8 @@ public class AccountManagement {
     public User edit(long actor,long id,Edit edit) {
         if(edit.version()==null || edit.active()==null) throw DomainError.invalid("Completá versión y estado de la cuenta.");
         lockAndAuthorize(actor);
+        if(db.queryForObject("select count(*) from aulas.operacion_identidad where usuario_id=? and estado in ('PREPARADA','ENVIADA','CONFIRMADA')",Long.class,id)>0)
+            throw DomainError.conflict("Hay un cambio de identidad pendiente. Completalo antes de editar el perfil.");
         User current=get(id);
         if(current.version()!=edit.version().longValue()) throw DomainError.conflict("La cuenta cambió. Volvé a abrirla para revisar la versión actual.");
         String role=role(edit.role());

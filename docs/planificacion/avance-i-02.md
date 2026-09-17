@@ -67,3 +67,5 @@ El usuario completó el QA y aceptó la operación funcional de I-02. Solicitó 
 Verificación del ajuste visual: build/lint aprobados, siete recorridos existentes de calendario/cuentas/referencias y dos comprobaciones visuales adicionales a 390/1440 px. Se verificaron alta, error de duplicado, guardado/recarga, conflicto, eliminación, cierre, foco y espaciado de la alerta. Sin errores JavaScript ni infracciones Axe en esos recorridos, sin desbordamiento horizontal. Validación frontend con API simulada; no fue necesario modificar ni volver a cargar datos de Supabase.
 
 Seguimiento visual: se separaron el selector del año consultado y la creación de otro año en dos paneles titulados, con explicación y tratamiento visual propios. Eliminar año permanece junto al año consultado. En móvil los paneles se apilan; se conserva el recorrido de alta, edición y eliminación.
+
+Cierre de aceptación: el usuario aprobó la fase completa tras la separación de consulta/creación de años lectivos (`7b64db5`). I-02 cerrada, incluidos los ajustes visuales, el 17/09/2026.

@@ -1,6 +1,6 @@
 # I-02 · Administración y catálogos persistentes
 
-**Estado:** implementación I-02.1 a I-02.6 completada y verificada automáticamente, con revisión Terra high y commits por corte. Operación aceptada por el usuario el 17/09/2026; seguimiento visual de alertas/calendario registrado; guía en [QA de I-02](qa-manual-i-02.md). I-01 está implementada y aceptada mediante QA manual.
+**Estado:** implementación I-02.1 a I-02.6 completada y verificada automáticamente, con revisión Terra high y commits por corte. Fase aceptada y cerrada por el usuario el 17/09/2026, incluidos los ajustes visuales de alertas y calendario; guía en [QA de I-02](qa-manual-i-02.md). I-01 está implementada y aceptada mediante QA manual.
 
 ## Resultado acordado
 

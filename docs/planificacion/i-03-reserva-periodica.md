@@ -1,6 +1,6 @@
 # I-03 · Reserva periódica persistente
 
-**Estado:** planificación detallada aprobada secuencialmente por el usuario el 17/09/2026. Implementación terminada y verificada; QA y aceptación del usuario pendientes; ver [avance y evidencia](avance-i-03.md). I-02 aceptada y cerrada, incluidos ajustes visuales, el 17/09/2026.
+**Estado:** planificación detallada aprobada secuencialmente por el usuario el 17/09/2026. Implementación terminada y verificada; QA aprobado y entrega cerrada por el usuario el 17/09/2026; ver [avance y evidencia](avance-i-03.md). I-02 aceptada y cerrada, incluidos ajustes visuales, el 17/09/2026.
 
 ## Resultado acordado
 

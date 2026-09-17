@@ -6,7 +6,7 @@ Comenzar por la [especificación de la aplicación](especificacion/00-especifica
 
 El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [prototipo navegable](diseno/validacion-prototipo.md) conserva esos recorridos con datos simulados. El siguiente trabajo sigue el [plan aprobado de integración I-01 a I-06](planificacion/integracion.md).
 
-[I-02](planificacion/i-02-administracion-y-catalogos.md) está implementada: administración y catálogos persistentes, con datos ficticios para 2026/2027. Ver [avance](planificacion/avance-i-02.md), [carga de datos](planificacion/datos-demo-i-02.md) y [QA manual](planificacion/qa-manual-i-02.md). I-02 fue aceptada y cerrada, incluidos los ajustes visuales. El [plan detallado de I-03](planificacion/i-03-reserva-periodica.md) está implementado y verificado, pendiente de QA y aceptación del usuario. Ver [avance y evidencia](planificacion/avance-i-03.md) y [QA manual](planificacion/qa-manual-i-03.md).
+[I-02](planificacion/i-02-administracion-y-catalogos.md) está implementada: administración y catálogos persistentes, con datos ficticios para 2026/2027. Ver [avance](planificacion/avance-i-02.md), [carga de datos](planificacion/datos-demo-i-02.md) y [QA manual](planificacion/qa-manual-i-02.md). I-02 fue aceptada y cerrada, incluidos los ajustes visuales. El [plan detallado de I-03](planificacion/i-03-reserva-periodica.md) está implementado, verificado y aceptado por el usuario el 17/09/2026. Ver [avance y evidencia](planificacion/avance-i-03.md) y [QA manual](planificacion/qa-manual-i-03.md).
 
 ## Documentos de detalle
 

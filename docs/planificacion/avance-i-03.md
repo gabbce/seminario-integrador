@@ -1,6 +1,6 @@
 # Avance de I-03
 
-Plan: [reserva periódica persistente](i-03-reserva-periodica.md), aprobado el 17/09/2026. Implementación completa autorizada por el usuario, con revisión Terra high, pruebas, comprobación visual y commits por corte. La aceptación manual corresponde al usuario después de la entrega.
+Plan: [reserva periódica persistente](i-03-reserva-periodica.md), aprobado el 17/09/2026. Implementación completa autorizada por el usuario, con revisión Terra high, pruebas, comprobación visual y commits por corte. El usuario aprobó el QA manual el 17/09/2026.
 
 | Corte | Estado |
 |---|---|
@@ -67,4 +67,4 @@ La primera ejecución del recorrido real de I-03.4 se interrumpió al detectar l
 
 Recorrido real final de I-03.4 aprobado contra Supabase (57,9 s): recuentos de las doce series, agenda 2026, detalle anual móvil, ranking de laboratorios y proyección sin contactos en una segunda sesión Docente. Se corrigió un selector del test para localizar el tipo de aula por su rol accesible. Las aulas QA anteriores tienen disponibilidad propia; se agregó Ventiladores como requisito del escenario para comprobar los dos laboratorios sin modificar esos datos. Capturas reales de agenda, detalle móvil y alternativas inspeccionadas (`/tmp/i034-real-*.png`). La ejecución es de lectura y no agrega reservas.
 
-**I-03 implementada y verificada; pendiente de QA y aceptación del usuario.** La guía manual está lista. I-04 a I-06 conservan su planificación detallada pendiente; no se adelantaron sus funcionalidades.
+**I-03 implementada, verificada y cerrada: QA aprobado por el usuario el 17/09/2026.** La guía manual queda como referencia para futuras regresiones. I-04 a I-06 conservan su planificación detallada pendiente; no se adelantaron sus funcionalidades.

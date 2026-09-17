@@ -1,6 +1,6 @@
 # QA manual · I-03
 
-**Estado:** lista para ejecutar. Implementación y verificación automatizada terminadas; QA y aceptación del usuario pendientes.
+**Estado:** QA aprobado por el usuario el 17/09/2026. I-03 aceptada y cerrada. La aprobación comunicada es global, sin desglose de resultados por caso.
 
 ## Preparación
 
@@ -69,8 +69,8 @@ Referencia exacta con el calendario original `catalogos-i02-v1`, sin exclusiones
 
 | Sección | Resultado del usuario | Observaciones |
 |---|---|---|
-| Preparación y disponibilidad | Pendiente | |
-| Confirmación y consulta persistente | Pendiente | |
-| Alternativas y permisos | Pendiente | |
-| Protección administrativa | Pendiente | |
-| Datos y presentación visual | Pendiente | |
+| Preparación y disponibilidad | Aprobado globalmente | Sin desglose por caso |
+| Confirmación y consulta persistente | Aprobado globalmente | Sin desglose por caso |
+| Alternativas y permisos | Aprobado globalmente | Sin desglose por caso |
+| Protección administrativa | Aprobado globalmente | Sin desglose por caso |
+| Datos y presentación visual | Aprobado globalmente | Sin desglose por caso |

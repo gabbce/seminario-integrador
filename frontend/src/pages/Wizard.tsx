@@ -678,6 +678,7 @@ export function Wizard({
                   ) && (
                     <PreparedRoomChoices
                       readOnly={queryOnly}
+                      showContacts={role !== "Docente"}
                       pattern={preparation.data.patterns.find(
                         (pattern) => pattern.day === p.day,
                       )!}
@@ -762,6 +763,22 @@ export function Wizard({
               />
             )}
             <div className="form-actions">
+              {step === 2 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={preparation.status !== "ready"}
+                  onClick={() => {
+                    setError("");
+                    setPatterns((current) =>
+                      current.map((pattern) => ({ ...pattern, room: "" })),
+                    );
+                    preparation.retry();
+                  }}
+                >
+                  Volver a consultar
+                </Button>
+              )}
               {step > 1 && (
                 <Button
                   type="button"

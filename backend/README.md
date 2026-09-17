@@ -1,6 +1,6 @@
 # Backend Aulas
 
-Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. Reservas e indicadores persistentes corresponden a I-03 a I-05.
+Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. I-03 incorpora reservas periódicas persistentes; las operaciones restantes e indicadores se completan en I-04 e I-05.
 
 ## Configuración local
 
@@ -12,11 +12,11 @@ Ejecutar desde `backend/`, ya que `.env` se resuelve respecto del directorio de 
 ./mvnw spring-boot:run
 ```
 
-Obtener host/usuario desde Connect → Session pooler. Usar el puerto 5432 y TLS (`sslmode=require`); guardar la contraseña por separado, nunca en la URL. La conexión directa es alternativa si la red permite acceder al host. No imprimir claves ni agregar `.env` al repositorio. Las claves de Auth del ejemplo se preparan para cortes posteriores y no son utilizadas por este corte.
+Obtener host/usuario desde Connect → Session pooler. Usar el puerto 5432 y TLS (`sslmode=require`); guardar la contraseña por separado, nunca en la URL. La conexión directa es alternativa si la red permite acceder al host. No imprimir claves ni agregar `.env` al repositorio. Las claves de Auth se usan para validar sesiones y administrar cuentas según los permisos del usuario.
 
 Las migraciones se aplican al esquema `aulas`. JPA valida, no crea/modifica tablas. Flyway no adopta automáticamente bases preexistentes (`baseline-on-migrate=false`) y su limpieza está deshabilitada. Antes del primer arranque remoto, inspeccionar que el esquema no contenga objetos ajenos y que `aulas` no esté entre los esquemas expuestos de Data API. La migración revoca acceso de PUBLIC, anon y authenticated al esquema/objetos. No modifica tablas internas de Auth.
 
-El pool local se limita a cuatro conexiones. `/api/health` informa salud sin detalles internos; escucha en loopback, puerto `PORT` (8080 predeterminado). Ya requiere conexión válida a PostgreSQL para arrancar. No hay endpoints de dominio ni autenticación implementados en I-01.1.
+El pool local se limita a cuatro conexiones. `/api/health` informa salud sin detalles internos; escucha en loopback, puerto `PORT` (8080 predeterminado). Ya requiere conexión válida a PostgreSQL para arrancar. Los contratos vigentes de identidad, administración, catálogos y reservas están en `docs/api/`.
 
 ## Pruebas
 
@@ -60,8 +60,12 @@ Una respuesta incierta o fallo de Auth no se presenta como éxito. Repetir el co
 
 GET /api/me recibe Bearer JWT de Supabase y devuelve el perfil activo y sus permisos; [contrato OpenAPI](../docs/api/identidad.openapi.yaml). Java valida firma ES256/RS256, emisor, audiencia authenticated y expiración. Rol y estado se consultan en PostgreSQL en cada petición; no se confía en un rol enviado por React o incluido en metadata del token. /api/health permanece público.
 
-401 indica token inválido; 403 perfil no habilitado o permiso insuficiente; 503 indisponibilidad de validación o persistencia. Los endpoints de negocio se implementarán en siguientes entregas; las pruebas de autorización usan controladores exclusivos de test. Doce pruebas backend verificadas sin Auth remoto, con PostgreSQL desechable y claves JWT locales.
+401 indica token inválido; 403 perfil no habilitado o permiso insuficiente; 503 indisponibilidad de validación o persistencia. Las pruebas de autorización combinan controladores de test con los endpoints operativos. Se ejecutan sin Auth remoto, con PostgreSQL desechable y claves JWT locales.
 
 ## Catálogos de demostración
 
 La carga explícita de I-02 prepara 20 aulas, 2026/2027 y 40 cursos sin modificar cuentas ni claves. Seguir [datos y comando](../docs/planificacion/datos-demo-i-02.md) y [QA manual](../docs/planificacion/qa-manual-i-02.md). El arranque normal no carga datos. Contratos en `docs/api/`: administración, aulas, calendarios y referencias.
+
+## Reservas periódicas (I-03)
+
+[Contrato OpenAPI](../docs/api/reservas.openapi.yaml) y [transacciones, bloqueos y reintentos](../docs/api/reservas-concurrencia.md). La disponibilidad y la confirmación se calculan en Java; el cliente no aporta identidad del registrador ni datos libres del docente. [Avance verificable](../docs/planificacion/avance-i-03.md) y [guía de QA](../docs/planificacion/qa-manual-i-03.md).

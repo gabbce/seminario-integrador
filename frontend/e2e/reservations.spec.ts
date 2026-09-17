@@ -62,6 +62,7 @@ async function setup(page: Page, role = "bedel") {
   );
   const control = {
     fail: false,
+    availability: "available" as "available" | "occupied" | "incompatible",
     calls: 0,
     confirmations: 0,
     confirmationMode: "normal" as
@@ -104,8 +105,50 @@ async function setup(page: Page, role = "bedel") {
           end: `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`,
           dates: excluded ? [] : [date],
           omitted: excluded ? [{ date, reason: "Exclusión manual" }] : [],
-          availableRooms: inventory,
-          compatibleCount: 4,
+          availableRooms:
+            pattern.day === 1 && control.availability !== "available"
+              ? []
+              : inventory,
+          compatibleCount:
+            pattern.day === 1 && control.availability === "incompatible"
+              ? 0
+              : 4,
+          alternatives:
+            pattern.day === 1 && control.availability === "occupied"
+              ? inventory.map((room, index) => ({
+                  room,
+                  group: index < 2 ? "SPORADIC_ONLY" : "WITH_PERIODIC",
+                  sporadicDates: index < 2 ? 1 : 0,
+                  sporadicMinutes: index < 2 ? (index + 1) * 30 : 0,
+                  periodicMinutes: index >= 2 ? (index - 1) * 30 : 0,
+                  conflicts: [
+                    {
+                      reservationId: String(700 + index),
+                      subject: "Física QA",
+                      course: "002-B-2027",
+                      modality: index < 2 ? "sporadic" : "periodic",
+                      date,
+                      start: "14:00",
+                      end: index % 2 === 0 ? "14:30" : "15:00",
+                      overlapStart: "14:00",
+                      overlapEnd: index % 2 === 0 ? "14:30" : "15:00",
+                      overlapMinutes: index % 2 === 0 ? 30 : 60,
+                      teacher: "Docente de Física",
+                      ...(role !== "docente"
+                        ? {
+                            teacherEmail: "fisica@example.test",
+                            registrant: {
+                              userId: "11",
+                              name: "Operador Actual",
+                              email: "actual@example.test",
+                              inactive: true,
+                            },
+                          }
+                        : {}),
+                    },
+                  ],
+                }))
+              : [],
         };
       },
     );
@@ -501,4 +544,130 @@ test("listado previo demorado no borra una confirmación nueva de la agenda", as
   } finally {
     release();
   }
+});
+
+for (const width of [390, 1440])
+  test(`alternativas informativas y nueva consulta a ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    const control = await setup(page);
+    control.availability = "occupied";
+    await page.goto("/reservas/nueva");
+    await page.getByLabel("Período", { exact: true }).selectOption("first");
+    await page.getByRole("button", { name: "Buscar aulas" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Requieren resolver conflictos" }),
+    ).toBeVisible();
+    await expect(page.locator('input[name="room-1"]')).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Revisar reserva" }),
+    ).toBeDisabled();
+    await expect(
+      page.getByText("Ver conflictos del aula QA-4", { exact: true }),
+    ).toHaveCount(0);
+    await page
+      .getByText("Ver conflictos del aula QA-1", { exact: true })
+      .click();
+    await expect(
+      page.getByText("fisica@example.test", { exact: false }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText("actual@example.test", { exact: false }).first(),
+    ).toBeVisible();
+    await expect(page.getByText(/inactiv/i).first()).toBeVisible();
+    const refreshBounds = await page
+      .getByRole("button", { name: "Volver a consultar", exact: true })
+      .boundingBox();
+    expect(refreshBounds).not.toBeNull();
+    expect(refreshBounds!.x).toBeGreaterThanOrEqual(0);
+    expect(refreshBounds!.x + refreshBounds!.width).toBeLessThanOrEqual(width);
+    await page.screenshot({
+      path: `/tmp/i033-alternativas-${width}.png`,
+      fullPage: true,
+    });
+    await page
+      .locator(".form-actions")
+      .screenshot({ path: `/tmp/i033-acciones-${width}.png` });
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page
+      .getByRole("button", {
+        name: "Ver todas las alternativas (4)",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByText("Ver conflictos del aula QA-4", { exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Volver a consultar", exact: true })
+      .first()
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Requieren resolver conflictos" }),
+    ).toBeVisible();
+    await expect(page.locator('input[name="room-1"]')).toHaveCount(0);
+    control.availability = "available";
+    await page
+      .getByRole("button", { name: "Volver a consultar", exact: true })
+      .first()
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Requieren resolver conflictos" }),
+    ).toHaveCount(0);
+    await expect(page.locator('input[name="room-1"]')).toHaveCount(3);
+    await expect(
+      page.getByText("Matemática QA", { exact: true }),
+    ).toBeVisible();
+  });
+
+test("alternativas Docente no muestran contactos ni acciones de selección", async ({
+  page,
+}) => {
+  const control = await setup(page, "docente");
+  control.availability = "occupied";
+  await page.goto("/disponibilidad");
+  await page.getByLabel("Período", { exact: true }).selectOption("first");
+  await page.getByRole("button", { name: "Buscar aulas" }).click();
+  await page.getByText("Ver conflictos del aula QA-1", { exact: true }).click();
+  await expect(
+    page.getByText("002-B-2027", { exact: false }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/fisica@example|actual@example|Operador Actual/),
+  ).toHaveCount(0);
+  await expect(page.getByRole("radio")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Confirmar reserva" }),
+  ).toHaveCount(0);
+  await page.screenshot({ path: "/tmp/i033-docente.png", fullPage: true });
+});
+
+test("sin aulas compatibles no ofrece alternativas insuficientes", async ({
+  page,
+}) => {
+  const control = await setup(page);
+  control.availability = "incompatible";
+  await page.goto("/reservas/nueva");
+  await page.getByRole("button", { name: "Buscar aulas" }).click();
+  await expect(
+    page.getByText(
+      "No hay aulas compatibles con la capacidad, el tipo y los recursos solicitados.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Requieren resolver conflictos" }),
+  ).toHaveCount(0);
+  await expect(page.locator('input[name="room-1"]')).toHaveCount(0);
 });

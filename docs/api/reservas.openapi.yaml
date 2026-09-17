@@ -138,7 +138,7 @@ components:
           type: array
           items:
             type: object
-            required: [day, start, end, dates, omitted, availableRooms, compatibleCount]
+            required: [day, start, end, dates, omitted, availableRooms, compatibleCount, alternatives]
             properties:
               day: { type: integer }
               start: { type: string }
@@ -155,6 +155,10 @@ components:
                     date: { type: string, format: date }
                     reason: { type: string, enum: [Receso, Feriado, Ya iniciada, Exclusión manual] }
               compatibleCount: { type: integer }
+              alternatives:
+                type: array
+                description: Informativas y nunca seleccionables. Vacío si hay aulas libres, no hay compatibles o no quedan fechas. Orden SPORADIC_ONLY por fechas esporádicas y minutos esporádicos; luego WITH_PERIODIC por minutos periódicos y fechas esporádicas. Desempate por capacidad e identificador. Los minutos son unión de intersecciones por modalidad y fecha efectiva; excluye canceladas, contiguas y fechas ajenas.
+                items: { $ref: '#/components/schemas/Alternative' }
               availableRooms:
                 type: array
                 items:
@@ -249,3 +253,49 @@ components:
               end: { type: string }
               room: { type: string }
               cancelled: { type: boolean }
+    Alternative:
+      type: object
+      required: [room, group, sporadicDates, sporadicMinutes, periodicMinutes, conflicts]
+      properties:
+        room:
+          type: object
+          required: [internalId, id, version, type, capacity]
+          properties:
+            internalId: { type: string }
+            id: { type: string }
+            version: { type: integer, format: int64 }
+            type: { type: string }
+            capacity: { type: integer }
+        group: { type: string, enum: [SPORADIC_ONLY, WITH_PERIODIC] }
+        sporadicDates: { type: integer, minimum: 0, description: Fechas distintas con conflicto esporádico }
+        sporadicMinutes: { type: integer, minimum: 0 }
+        periodicMinutes: { type: integer, minimum: 0 }
+        conflicts:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/PreparationConflict' }
+    PreparationConflict:
+      type: object
+      required: [reservationId, subject, course, modality, date, start, end, overlapStart, overlapEnd, overlapMinutes, teacher]
+      description: Contacto docente copiado al confirmar y datos actuales del registrador solo para Administrador o Bedel. Docente no recibe teacherEmail ni registrant, tampoco como null. Ningún contacto o acuerdo externo libera el aula; debe consultarse otra vez tras cambios efectivos.
+      properties:
+        reservationId: { type: string }
+        subject: { type: string }
+        course: { type: string }
+        modality: { type: string, enum: [sporadic, periodic] }
+        date: { type: string, format: date }
+        start: { type: string, description: Inicio de la clase registrada }
+        end: { type: string, description: Fin de la clase registrada }
+        overlapStart: { type: string, description: Inicio de la intersección con el pedido }
+        overlapEnd: { type: string, description: Fin de la intersección con el pedido }
+        overlapMinutes: { type: integer, minimum: 1 }
+        teacher: { type: string }
+        teacherEmail: { type: string, format: email }
+        registrant:
+          type: object
+          required: [userId, name, email, inactive]
+          properties:
+            userId: { type: string }
+            name: { type: string }
+            email: { type: string, format: email }
+            inactive: { type: boolean }

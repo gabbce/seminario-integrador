@@ -2,6 +2,34 @@ import { useEffect, useState } from "react";
 import { api } from "./api";
 import type { Room } from "./domain";
 
+export type PreparationConflict = {
+  reservationId: string;
+  subject: string;
+  course: string;
+  modality: "sporadic" | "periodic";
+  date: string;
+  start: string;
+  end: string;
+  overlapStart: string;
+  overlapEnd: string;
+  overlapMinutes: number;
+  teacher: string;
+  teacherEmail?: string;
+  registrant?: {
+    userId: string;
+    name: string;
+    email: string;
+    inactive: boolean;
+  };
+};
+export type PreparationAlternative = {
+  room: Room;
+  group: "SPORADIC_ONLY" | "WITH_PERIODIC";
+  sporadicDates: number;
+  sporadicMinutes: number;
+  periodicMinutes: number;
+  conflicts: PreparationConflict[];
+};
 export type PreparedPattern = {
   day: number;
   start: string;
@@ -10,6 +38,7 @@ export type PreparedPattern = {
   omitted: { date: string; reason: string }[];
   availableRooms: Room[];
   compatibleCount: number;
+  alternatives: PreparationAlternative[];
 };
 export type PeriodicPreparation = {
   year: number;

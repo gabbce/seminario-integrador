@@ -32,10 +32,11 @@ Referencia exacta con el calendario original `catalogos-i02-v1`, sin exclusiones
 
 ## Conflictos y roles
 
-1. Consultar una franja ocupada del dataset. Las alternativas aparecen separadas de las disponibles y no se pueden seleccionar para confirmar.
+1. Consultar una franja ocupada del dataset. Si ningún aula queda libre para todo el patrón, aparece «Requieren resolver conflictos»: tres alternativas iniciales y acceso a las restantes. No se pueden seleccionar para confirmar. Si no existen aulas compatibles, informar esa condición sin sugerir aulas insuficientes.
 2. Abrir el detalle del conflicto: fechas, horarios, curso y reserva. Admin/Bedel ven el registrador y solicitante diferenciados, con sus contactos disponibles.
 3. Como Docente, consultar disponibilidad y la reserva desde agenda/detalle. No debe poder confirmar ni acceder a emails o información administrativa restringida.
-4. Volver a consultar conserva los criterios y obtiene disponibilidad actualizada. Contactar por fuera de la app no libera un aula automáticamente.
+4. «Volver a consultar» conserva los criterios y obtiene disponibilidad actualizada. Contactar por fuera de la app no libera un aula automáticamente.
+5. Las alternativas se ordenan primero por conflictos exclusivamente esporádicos (menos fechas, luego menos minutos) y después por conflictos con periódicas (menos minutos periódicos, luego menos fechas esporádicas). Capacidad e identificador desempatan. Los casos esporádicos del ranking se verifican con fixtures automatizados, sin adelantar su formulario de alta de I-04.
 
 ## Protección administrativa
 

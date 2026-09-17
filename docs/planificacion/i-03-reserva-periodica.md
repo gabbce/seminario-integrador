@@ -1,6 +1,6 @@
 # I-03 · Reserva periódica persistente
 
-**Estado:** planificación detallada aprobada secuencialmente por el usuario el 17/09/2026. Implementación pendiente. I-02 aceptada y cerrada, incluidos ajustes visuales, el 17/09/2026.
+**Estado:** planificación detallada aprobada secuencialmente por el usuario el 17/09/2026. Implementación en ejecución; ver [avance y evidencia](avance-i-03.md). I-02 aceptada y cerrada, incluidos ajustes visuales, el 17/09/2026.
 
 ## Resultado acordado
 
@@ -100,4 +100,4 @@ Puntos revisados secuencialmente con el usuario:
 
 **Aprobado:** punto 3, alternativas informativas según la especificación, datos reproducibles 2026/2027 y checklist de cierre con QA manual, pruebas automatizadas y revisión visual.
 
-Los tres bloques del plan detallado están aprobados. Próximo corte: I-03.1. Esta aprobación cierra la planificación; no constituye evidencia de implementación ni de pruebas ejecutadas.
+Los tres bloques del plan detallado están aprobados. Los cortes se ejecutan bajo esta aprobación; la evidencia de implementación y las pruebas se registran en el documento de avance. La aceptación manual final corresponde al usuario.

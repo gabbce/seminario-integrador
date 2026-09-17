@@ -6,7 +6,7 @@ Comenzar por la [especificación de la aplicación](especificacion/00-especifica
 
 El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [prototipo navegable](diseno/validacion-prototipo.md) conserva esos recorridos con datos simulados. El siguiente trabajo sigue el [plan aprobado de integración I-01 a I-06](planificacion/integracion.md).
 
-[I-02](planificacion/i-02-administracion-y-catalogos.md) está implementada: administración y catálogos persistentes, con datos ficticios para 2026/2027. Ver [avance](planificacion/avance-i-02.md), [carga de datos](planificacion/datos-demo-i-02.md) y [QA manual](planificacion/qa-manual-i-02.md). I-02 fue aceptada y cerrada, incluidos los ajustes visuales. El [plan detallado de I-03](planificacion/i-03-reserva-periodica.md) está aprobado; el próximo corte es I-03.1, preparación y disponibilidad.
+[I-02](planificacion/i-02-administracion-y-catalogos.md) está implementada: administración y catálogos persistentes, con datos ficticios para 2026/2027. Ver [avance](planificacion/avance-i-02.md), [carga de datos](planificacion/datos-demo-i-02.md) y [QA manual](planificacion/qa-manual-i-02.md). I-02 fue aceptada y cerrada, incluidos los ajustes visuales. El [plan detallado de I-03](planificacion/i-03-reserva-periodica.md) está aprobado y en ejecución. Ver [avance y evidencia](planificacion/avance-i-03.md) y [QA manual](planificacion/qa-manual-i-03.md).
 
 ## Documentos de detalle
 
@@ -48,4 +48,4 @@ La síntesis 00 orienta la lectura. Los capítulos 01–11 desarrollan las regla
 
 Ante diferencias con la versión histórica, aplicar el ajuste DA documentado y el modelo/caso vigente. Las decisiones técnicas derivadas se identifican como tales; no son requisitos adicionales de negocio. Cambios futuros de alcance deben quedar registrados y actualizar los documentos afectados.
 
-Esta entrega constituye el estado final de la especificación v1.0. La validación del prototipo está documentada por separado; las pruebas del sistema persistente y su integración son trabajo de la siguiente etapa.
+Esta entrega constituye el estado final de la especificación v1.0. La validación del prototipo está documentada por separado; las pruebas del sistema persistente se registran por entrega en los documentos de avance de integración.

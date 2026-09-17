@@ -6,8 +6,8 @@ Plan: [reserva periódica persistente](i-03-reserva-periodica.md), aprobado el 1
 |---|---|
 | I-03.1 · Preparación y disponibilidad | Implementado y verificado |
 | I-03.2 · Confirmación y consulta | Implementado y verificado |
-| I-03.3 · Alternativas | En ejecución |
-| I-03.4 · Datos y QA | Pendiente |
+| I-03.3 · Alternativas | Implementado y verificado |
+| I-03.4 · Datos y QA | En ejecución |
 
 ## Evidencia
 
@@ -38,3 +38,13 @@ Ambas revisiones Terra high (especificación y estándares) aprobadas. Se corrig
 Verificación: 62 pruebas Java con PostgreSQL aislado (14 de confirmación), 64 unitarias frontend, build/lint y 29 recorridos offline aprobados. Las pruebas antiguas de ingreso/administración esperaban la fecha fija del prototipo; se actualizaron para esperar la agenda operativa, que utiliza la fecha institucional actual. Las pruebas del reloj comprueban el cambio de día/año en Córdoba. Capturas de éxito, detalle y conflicto inspeccionadas en escritorio/móvil (`/tmp/i032-*.png`). Los recorridos con respuestas simuladas prueban interfaz/recuperación; la atomicidad y las carreras de escritura se comprueban con PostgreSQL.
 
 V9 aplicada correctamente en Supabase. Recorrido real aprobado: Bedel confirmó una reserva ficticia de 33 clases (Álgebra, 005-A-2027, lunes/miércoles 07–09, aula 106), recargó el detalle y otra sesión Docente consultó el mismo ID y su agenda. La prueba comprobó que el JSON Docente omite los contactos restringidos. Se conserva la reserva 1 para QA; no se eliminaron registros anteriores.
+
+## I-03.3
+
+Preparación incorpora alternativas informativas solo para patrones sin aula libre y con espacios compatibles. Ranking lexicográfico por modalidad, fechas y minutos, con unión de intervalos por modalidad/fecha y desempate por capacidad/identificador. Las respuestas de Docente omiten contactos; Admin/Bedel reciben el solicitante guardado y el registrador actual, incluido su estado inactivo.
+
+React muestra tres alternativas, permite consultar el resto y desplegar conflictos por aula, sin controles de selección. «Volver a consultar» conserva los criterios y vuelve a Java; un contacto externo no cambia la disponibilidad. Los escenarios esporádicos necesarios para el ranking son fixtures de pruebas, sin formulario de alta esporádica.
+
+La inspección visual detectó un botón parcialmente fuera del ancho móvil pese a no aumentar el ancho del documento. Se corrigió la barra de acciones del asistente y se agregó una comprobación de posición visible. Capturas finales de escritorio/móvil y Docente inspeccionadas (`/tmp/i033-*.png`); teclado, axe y límites horizontales comprobados.
+
+Ambas revisiones Terra high aprobadas sin bloqueantes. Verificación final: 69 pruebas Java (siete nuevas, incluidas PostgreSQL/API), 64 unitarias frontend, build/lint/OpenAPI y 33 recorridos offline correctos. La consulta real de alternativas se verificará con el dataset cargado en I-03.4; este corte no introduce migraciones ni carga reservas remotas.

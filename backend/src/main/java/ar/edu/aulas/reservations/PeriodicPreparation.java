@@ -19,9 +19,8 @@ public class PeriodicPreparation {
     public record Omission(String date, String reason) {}
     public record Room(String internalId, String id, long version, String type, int capacity) {}
     public record PreparedPattern(int day, String start, String end, List<String> dates,
-                                  List<Omission> omitted, List<Room> availableRooms, int compatibleCount) {}
+                                  List<Omission> omitted, List<Room> availableRooms, int compatibleCount, List<AlternativeRanking.Alternative> alternatives) {}
     public record Preparation(int year, long calendarVersion, List<PreparedPattern> patterns) {}
-    private record Occupied(long room, LocalDate date, LocalTime start, int modules) {}
     private final JdbcTemplate db;
     private final CalendarManagement calendars;
     private final RoomsService rooms;
@@ -53,7 +52,9 @@ public class PeriodicPreparation {
         if(r.courseId()!=null && !r.courseId().matches("[1-9][0-9]{0,17}")) throw DomainError.invalid("Curso inválido.");
     }
     @Transactional(readOnly=true, isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
-    public Preparation prepare(Request r) {
+    public Preparation prepare(Request r) {return prepare(r,false);}
+    @Transactional(readOnly=true, isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public Preparation prepare(Request r,boolean operational) {
         validate(r);
         var yearIds=db.queryForList("select id_anio_lectivo from aulas.anio_lectivo where anio_calendario=?",Long.class,r.year());
         if(yearIds.isEmpty()) throw new DomainError(404,"NOT_FOUND","El año no existe.");
@@ -77,8 +78,10 @@ public class PeriodicPreparation {
         var compatible=rooms.references().stream().filter(room->room.state().equals("Habilitada") && room.type().equals(r.type())
             && room.capacity()>=r.students() && (r.board()==null || r.board().isEmpty() || r.board().equals(room.board()))
             && room.resources().containsAll(r.resources())).sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id)).toList();
-        var occupied=db.query("select id_aula,fecha,hora_inicio,cantidad_modulos from aulas.detalle_reserva where estado='CONFIRMADA' and fecha between ? and ?",
-            (rs,n)->new Occupied(rs.getLong(1),rs.getDate(2).toLocalDate(),rs.getTime(3).toLocalTime(),rs.getInt(4)),java.sql.Date.valueOf(start),java.sql.Date.valueOf(end));
+        // Contacts are omitted at the SQL projection and JSON boundary for non-operational callers.
+        String contacts=operational?"r.email_docente,u.id_usuario,u.nombre as registrant_name,u.apellido as registrant_surname,u.email as registrant_email,u.activo":"null::text as email_docente,null::bigint as id_usuario,null::text as registrant_name,null::text as registrant_surname,null::text as registrant_email,null::boolean as activo";
+        var occupied=db.query("select d.id_aula,d.fecha,d.hora_inicio,d.cantidad_modulos,r.id_reserva,m.nombre as subject,m.id_materia,c.comision,a.anio_calendario,case when p.id_reserva is null then 'sporadic' else 'periodic' end as modality,r.nombre_docente,r.apellido_docente,"+contacts+" from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.anio_lectivo a using(id_anio_lectivo) left join aulas.reserva_periodica p on p.id_reserva=r.id_reserva join aulas.usuario u on u.id_usuario=r.registrado_por where d.estado='CONFIRMADA' and d.fecha between ? and ?",
+            (rs,n)->new AlternativeRanking.Occupied(rs.getLong("id_aula"),rs.getDate("fecha").toLocalDate(),rs.getTime("hora_inicio").toLocalTime(),rs.getInt("cantidad_modulos"),rs.getString("id_reserva"),rs.getString("subject"),String.format("%03d-%s-%s",rs.getLong("id_materia"),rs.getString("comision"),rs.getInt("anio_calendario")),rs.getString("modality"),rs.getString("nombre_docente")+" "+rs.getString("apellido_docente"),rs.getString("email_docente"),operational?new AlternativeRanking.Registrant(rs.getString("id_usuario"),rs.getString("registrant_name")+" "+rs.getString("registrant_surname"),rs.getString("registrant_email"),!rs.getBoolean("activo")):null),java.sql.Date.valueOf(start),java.sql.Date.valueOf(end));
         var now=LocalDateTime.now(clock);
         var result=new ArrayList<PreparedPattern>();
         for(var pattern:r.patterns()) {
@@ -95,9 +98,10 @@ public class PeriodicPreparation {
             }
             Set<String> effective=new HashSet<>(dates);
             var available=dates.isEmpty()?List.<Room>of():compatible.stream().filter(room->occupied.stream().noneMatch(o->o.room()==Long.parseLong(room.internalId())
-                && effective.contains(o.date().toString()) && o.start().isBefore(finish) && time.isBefore(o.start().plusMinutes(o.modules()*30L))))
+                && AlternativeRanking.overlaps(o,effective,time,finish)))
                 .map(room->new Room(room.internalId(),room.id(),room.version(),room.type(),room.capacity())).toList();
-            result.add(new PreparedPattern(pattern.day(),pattern.start(),finish.toString(),dates,omitted,available,compatible.size()));
+            var alternatives=available.isEmpty() && !dates.isEmpty()?AlternativeRanking.rank(compatible.stream().map(room->new Room(room.internalId(),room.id(),room.version(),room.type(),room.capacity())).toList(),occupied,effective,time,finish):List.<AlternativeRanking.Alternative>of();
+            result.add(new PreparedPattern(pattern.day(),pattern.start(),finish.toString(),dates,omitted,available,compatible.size(),alternatives));
         }
         return new Preparation(r.year(),calendar.version(),result);
     }

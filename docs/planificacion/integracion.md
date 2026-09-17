@@ -1,6 +1,6 @@
 # Plan aprobado de integración
 
-**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 implementada y verificada automáticamente, pendiente de aceptación manual; I-03 a I-06 pendientes de implementación y de su planificación detallada previa. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
+**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 implementada y aceptada funcionalmente por el usuario el 17/09/2026, con seguimiento visual de alertas/calendario; I-03 a I-06 pendientes de implementación y de su planificación detallada previa. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
 
 ## Objetivo y alcance
 
@@ -92,8 +92,8 @@ No cerrar entregas con defectos que impidan recorridos o incumplan reglas acorda
 
 ## Detalle por entrega
 
-El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 está implementada y tiene QA manual pendiente; I-03 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
+El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 está implementada y aceptada funcionalmente; I-03 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
 
 Cada entrega posterior se detallará y acordará antes de implementarla. Este plan general no reemplaza ese trabajo. Los contratos técnicos exactos y la configuración se concretan en el subcorte correspondiente, sin cambiar las reglas funcionales aprobadas.
 
-El [plan de I-02](i-02-administracion-y-catalogos.md) tiene alcance y orden aprobados, con escenarios ficticios 2026/2027. I-02.1 a I-02.6 están implementados y verificados, con revisiones Terra high y commits por corte. Ver [avance](avance-i-02.md), [datos reproducibles](datos-demo-i-02.md) y [QA manual pendiente de aceptación](qa-manual-i-02.md).
+El [plan de I-02](i-02-administracion-y-catalogos.md) tiene alcance y orden aprobados, con escenarios ficticios 2026/2027. I-02.1 a I-02.6 están implementados y verificados, con revisiones Terra high y commits por corte. Ver [avance](avance-i-02.md), [datos reproducibles](datos-demo-i-02.md) y [QA manual y seguimiento visual](qa-manual-i-02.md).

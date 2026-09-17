@@ -1,6 +1,6 @@
 # I-02 · Administración y catálogos persistentes
 
-**Estado:** implementación I-02.1 a I-02.6 completada y verificada automáticamente, con revisión Terra high y commits por corte. QA manual del usuario pendiente; guía en [QA de I-02](qa-manual-i-02.md). I-01 está implementada y aceptada mediante QA manual.
+**Estado:** implementación I-02.1 a I-02.6 completada y verificada automáticamente, con revisión Terra high y commits por corte. Operación aceptada por el usuario el 17/09/2026; seguimiento visual de alertas/calendario registrado; guía en [QA de I-02](qa-manual-i-02.md). I-01 está implementada y aceptada mediante QA manual.
 
 ## Resultado acordado
 
@@ -159,4 +159,4 @@ Las siguientes casillas registran ejecución. Evidencia detallada en [avance](av
 - [x] Pruebas de API/PostgreSQL y navegador aprobadas, con evidencia de concurrencia y recuperación.
 - [x] Revisión Terra high y revisión visual completadas por corte; commits guardados.
 - [x] QA manual de I-02 entregado y límites de reservas/indicadores pendientes documentados.
-- [ ] Resultado de aceptación manual del usuario registrado cuando lo realice.
+- [x] Resultado de aceptación manual del usuario registrado cuando lo realice.

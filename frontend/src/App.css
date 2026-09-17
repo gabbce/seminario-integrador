@@ -450,7 +450,10 @@ label {
   color: #b42318;
   background: #fff0ed;
   border-radius: 8px;
-  padding: 12px;
+  padding: 16px 20px;
+  margin-block: 20px;
+  border: 1px solid #efc9c0;
+  line-height: 1.6;
 }
 .date-list {
   max-height: 300px;
@@ -1469,3 +1472,43 @@ body {
 .error-field-link { background: transparent; border: 0; color: inherit; padding: 4px 0; margin-right: 16px; text-decoration: underline; text-underline-offset: 3px; }
 .field-error { display: block; color: #b42318; font-size: 14px; line-height: 1.5; margin-top: 6px; font-weight: normal; }
 [aria-invalid="true"] { border-color: #b42318; }
+
+/* Calendar administration follows the same panel rhythm as the inventory. */
+.calendar-year-toolbar { padding: 24px; }
+.calendar-year-toolbar > label:first-child { flex: 2; }
+.calendar-year-toolbar > label:nth-child(2) { flex: 0 1 160px; min-width: 120px; }
+.calendar-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; margin-bottom: 24px; }
+.calendar-settings h2, .calendar-columns h2 { margin: 0 0 8px; }
+.calendar-settings .eyebrow { margin-top: 0; }
+.calendar-settings p:last-child { margin-bottom: 0; }
+.calendar-settings-fields { display: grid; grid-template-columns: minmax(100px, .6fr) minmax(180px, 1fr); gap: 20px; }
+.calendar-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.calendar-columns > .panel { min-width: 0; }
+.calendar-section-description { margin: 0 0 28px; line-height: 1.6; }
+.calendar-term { padding: 20px; border: 1px solid #d8dcd5; border-radius: 10px; margin: 0 0 24px; min-width: 0; }
+.calendar-term:last-of-type { margin-bottom: 0; }
+.calendar-term legend { padding: 0 8px; font-weight: 600; color: #194d3a; }
+.calendar-term .form-grid { margin: 4px 0 20px; gap: 16px; }
+.calendar-editor .holiday-row { padding-bottom: 24px; margin: 0 0 24px; border-bottom: 1px solid #e2e5df; align-items: end; }
+.calendar-editor .holiday-row > div { flex: 1; }
+.calendar-editor .holiday-row strong { display: block; margin-bottom: 14px; font-weight: 600; }
+.calendar-editor .holiday-row > button { flex-shrink: 0; }
+.calendar-add-date { padding: 20px; background: #f5f5ef; border: 1px solid #e2e5df; border-radius: 10px; }
+.calendar-add-date h3 { margin: 0; font-size: 16px; }
+.calendar-add-date .form-grid { margin: 20px 0; gap: 16px; grid-template-columns: 1fr; }
+.calendar-empty { padding: 20px; margin: 0 0 24px; color: #59665f; border: 1px dashed #cbd2c8; border-radius: 10px; line-height: 1.6; }
+.calendar-save-actions { padding: 24px 0; margin-top: 8px; border-top: 1px solid #d8dcd5; }
+@media (max-width: 1050px) {
+  .calendar-settings { grid-template-columns: 1fr; gap: 24px; }
+  .calendar-editor .holiday-row { align-items: stretch; flex-direction: column; }
+  .calendar-editor .holiday-row > button { align-self: start; }
+}
+@media (max-width: 760px) {
+  .calendar-columns { grid-template-columns: 1fr; }
+  .calendar-settings-fields { grid-template-columns: 1fr; }
+  .calendar-term { padding: 16px; }
+  .calendar-term .form-grid { grid-template-columns: 1fr; }
+  .calendar-year-toolbar > label:first-child { flex-basis: 100%; }
+  .calendar-save-actions { flex-wrap: wrap; gap: 12px; }
+  .calendar-save-actions > button { flex: 1 1 180px; }
+}

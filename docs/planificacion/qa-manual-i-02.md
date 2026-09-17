@@ -1,6 +1,6 @@
 # QA manual · I-02
 
-Estado: implementación verificada automáticamente; aceptación manual del usuario pendiente. Usar datos ficticios. Las credenciales se consultan en `backend/.env`, nunca se copian a capturas ni al repositorio.
+Estado: operación funcional aceptada por el usuario el 17/09/2026 tras QA manual. Observaciones visuales: separación de alertas de validación y presentación del calendario académico; ajustes realizados y pendientes de su apreciación visual. Usar datos ficticios. Las credenciales se consultan en `backend/.env`, nunca se copian a capturas ni al repositorio.
 
 ## Preparación y alcance
 
@@ -56,8 +56,8 @@ Esta entrega persiste cuentas, aulas, calendario y cursos. La lista académica d
 
 | Sección | Resultado del usuario | Observaciones |
 |---|---|---|
-| Cuentas/Auth | Pendiente | |
-| Aulas | Pendiente | |
-| Calendario | Pendiente | |
-| Referencias | Pendiente | |
-| Repetición de carga y presentación | Pendiente | |
+| Cuentas/Auth | Aceptado (17/09/2026) | |
+| Aulas | Aceptado (17/09/2026) | |
+| Calendario | Aceptado (17/09/2026) | |
+| Referencias | Aceptado (17/09/2026) | |
+| Repetición de carga y presentación | Operación aceptada (17/09/2026) | Seguimiento visual de alertas y calendario. |

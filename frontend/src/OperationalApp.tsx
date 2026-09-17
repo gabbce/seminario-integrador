@@ -136,15 +136,20 @@ export default function App({
   const [teachers, setTeachers] = useState<TeacherReference[]>([]);
   const [referencesLoading, setReferencesLoading] = useState(true);
   const [referencesError, setReferencesError] = useState("");
+  const referenceYears = calendars
+    .map((calendar) => calendar.year)
+    .sort((a, b) => a - b)
+    .join(",");
   useEffect(() => {
     let active = true;
     const load = () => {
       setReferencesLoading(true);
       void Promise.all([
         Promise.all(
-          calendars.map((calendar) =>
-            api<Course[]>(`/referencias/cursos?year=${calendar.year}`),
-          ),
+          referenceYears
+            .split(",")
+            .filter(Boolean)
+            .map((year) => api<Course[]>(`/referencias/cursos?year=${year}`)),
         ).then((rows) => rows.flat()),
         api<TeacherReference[]>("/referencias/docentes"),
       ])
@@ -168,7 +173,7 @@ export default function App({
       active = false;
       window.removeEventListener("aulas-references-refresh", load);
     };
-  }, [calendars]);
+  }, [referenceYears]);
   const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
 

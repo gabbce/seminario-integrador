@@ -130,6 +130,7 @@ export default function PersistedCalendar({
               return failureMessage(error);
             }
           }}
+          reload={() => void reload()}
           persisted
         />
       ) : (
@@ -178,9 +179,11 @@ export default function PersistedCalendar({
           {message}
         </p>
       )}
-      <Button variant="outline" onClick={() => void reload()}>
-        Recargar calendario
-      </Button>
+      {!selected && (
+        <Button variant="outline" onClick={() => void reload()}>
+          Recargar calendario
+        </Button>
+      )}
     </>
   );
 }

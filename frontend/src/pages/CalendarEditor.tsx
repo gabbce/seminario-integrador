@@ -14,6 +14,7 @@ export function CalendarEditor({
   preview,
   save,
   persisted = false,
+  reload,
 }: {
   calendar: CalendarConfig;
   calendars: CalendarConfig[];
@@ -30,6 +31,7 @@ export function CalendarEditor({
     stamp: string,
   ) => string | undefined | Promise<string | undefined>;
   persisted?: boolean;
+  reload?: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [newYear, setNewYear] = useState(calendar.year + 1);
@@ -74,10 +76,15 @@ export function CalendarEditor({
         <div>
           <p className="eyebrow">Administración · Año {calendar.year}</p>
           <h1>Calendario académico</h1>
-          <p>Cuatrimestres y fechas no lectivas</p>
+          <p>Organizá los períodos de cursado y las fechas sin clases.</p>
         </div>
+        {reload && (
+          <Button variant="outline" disabled={busy} onClick={reload}>
+            Recargar calendario
+          </Button>
+        )}
       </div>
-      <section className="panel year-selection">
+      <section className="panel year-selection calendar-year-toolbar">
         <label>
           Año lectivo
           <select
@@ -142,6 +149,7 @@ export function CalendarEditor({
       )}
       {error && <FormError message={error} />}
       <form
+        className="calendar-editor"
         onSubmit={async (e) => {
           e.preventDefault();
           if (persisted) {
@@ -162,43 +170,55 @@ export function CalendarEditor({
         }}
       >
         <fieldset disabled={busy || calendar.state === "Cerrado"}>
-          {persisted && (
-            <label>
-              Número de año
-              <input
-                type="number"
-                min="1"
-                max="9999"
-                required
-                value={draft.year}
-                onChange={(e) =>
-                  patch({ ...draft, year: Number(e.target.value) })
-                }
-              />
-            </label>
-          )}
-          <label>
-            Estado del año
-            <select
-              aria-label="Estado del año"
-              value={draft.state}
-              onChange={(e) =>
-                patch({
-                  ...draft,
-                  state: e.target.value as CalendarConfig["state"],
-                })
-              }
-            >
-              <option>En preparación</option>
-              <option>Habilitado</option>
-              <option>Cerrado</option>
-            </select>
-          </label>
-          <div className="cancellation-layout">
+          <section className="panel calendar-settings">
+            <div>
+              <p className="eyebrow">Año lectivo {calendar.year}</p>
+              <h2>Configuración del año</h2>
+              <p className="muted">Definí el año y su estado de operación.</p>
+            </div>
+            <div className="calendar-settings-fields">
+              {persisted && (
+                <label>
+                  Número de año
+                  <input
+                    type="number"
+                    min="1"
+                    max="9999"
+                    required
+                    value={draft.year}
+                    onChange={(e) =>
+                      patch({ ...draft, year: Number(e.target.value) })
+                    }
+                  />
+                </label>
+              )}
+              <label>
+                Estado del año
+                <select
+                  aria-label="Estado del año"
+                  value={draft.state}
+                  onChange={(e) =>
+                    patch({
+                      ...draft,
+                      state: e.target.value as CalendarConfig["state"],
+                    })
+                  }
+                >
+                  <option>En preparación</option>
+                  <option>Habilitado</option>
+                  <option>Cerrado</option>
+                </select>
+              </label>
+            </div>
+          </section>
+          <div className="calendar-columns">
             <section className="panel">
               <h2>Cuatrimestres</h2>
+              <p className="muted calendar-section-description">
+                Establecé el inicio y fin de cada período de cursado.
+              </p>
               {(["first", "second"] as const).map((period, index) => (
-                <fieldset key={period} className="reschedule-row">
+                <fieldset key={period} className="calendar-term">
                   <legend>{index + 1}.º cuatrimestre</legend>
                   <div className="form-grid">
                     <label>
@@ -272,6 +292,14 @@ export function CalendarEditor({
             </section>
             <section className="panel">
               <h2>Fechas no lectivas</h2>
+              <p className="muted calendar-section-description">
+                Las reservas periódicas omiten estas fechas.
+              </p>
+              {!draft.holidays.length && (
+                <p className="calendar-empty">
+                  Todavía no hay fechas no lectivas en este año.
+                </p>
+              )}
               {draft.holidays.map((day) => (
                 <div className="holiday-row" key={day}>
                   <div>
@@ -312,48 +340,51 @@ export function CalendarEditor({
                   </Button>
                 </div>
               ))}
-              <div className="form-grid">
-                <label>
-                  Nueva fecha no lectiva
-                  <input
-                    type="date"
-                    min={`${draft.year}-01-01`}
-                    max={`${draft.year}-12-31`}
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                  />
-                </label>
-                <label>
-                  Descripción nueva
-                  <input
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </label>
+              <div className="calendar-add-date">
+                <h3>Agregar una fecha</h3>
+                <div className="form-grid">
+                  <label>
+                    Nueva fecha no lectiva
+                    <input
+                      type="date"
+                      min={`${draft.year}-01-01`}
+                      max={`${draft.year}-12-31`}
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Descripción nueva
+                    <input
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </label>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!date || !description.trim()}
+                  onClick={() => {
+                    if (draft.holidays.includes(date)) {
+                      setError("Esa fecha ya existe.");
+                      return;
+                    }
+                    patch({
+                      ...draft,
+                      holidays: [...draft.holidays, date].sort(),
+                      descriptions: {
+                        ...draft.descriptions,
+                        [date]: description.trim(),
+                      },
+                    });
+                    setDate("");
+                    setDescription("");
+                  }}
+                >
+                  Agregar fecha
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!date || !description.trim()}
-                onClick={() => {
-                  if (draft.holidays.includes(date)) {
-                    setError("Esa fecha ya existe.");
-                    return;
-                  }
-                  patch({
-                    ...draft,
-                    holidays: [...draft.holidays, date].sort(),
-                    descriptions: {
-                      ...draft.descriptions,
-                      [date]: description.trim(),
-                    },
-                  });
-                  setDate("");
-                  setDescription("");
-                }}
-              >
-                Agregar fecha
-              </Button>
             </section>
           </div>
           {review && (
@@ -395,7 +426,7 @@ export function CalendarEditor({
               </Button>
             </section>
           )}
-          <div className="change-room-actions">
+          <div className="change-room-actions calendar-save-actions">
             <Button
               type="button"
               variant="outline"

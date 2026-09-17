@@ -1,5 +1,7 @@
 # Gestión y reservas de aulas
 
+**Para incorporarse al equipo:** [guía visual de onboarding y PDF](docs/onboarding/README.md).
+
 Aplicación para una institución educativa, destinada a una demostración académica con datos ficticios, ejecutable localmente o en la web con Supabase remoto.
 
 El repositorio contiene la **especificación funcional y técnica v1.0**, final y aprobada por el usuario. El prototipo navegable P-01 a P-06 está implementado y verificado en React, con datos en memoria. La integración conecta Supabase Auth/PostgreSQL y Java/Spring Boot con cuentas, catálogos y reservas periódicas persistentes.

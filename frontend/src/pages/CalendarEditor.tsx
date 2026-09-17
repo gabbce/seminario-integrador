@@ -84,64 +84,82 @@ export function CalendarEditor({
           </Button>
         )}
       </div>
-      <section className="panel year-selection calendar-year-toolbar">
-        <label>
-          Año lectivo
-          <select
-            aria-label="Año del calendario"
-            disabled={busy}
-            value={calendar.year}
-            onChange={(e) => selectYear(Number(e.target.value))}
-          >
-            {calendars.map((c) => (
-              <option key={c.year} value={c.year}>
-                {c.year} · {c.state}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Nuevo año
-          <input
-            type="number"
-            disabled={busy}
-            min="1"
-            max="9999"
-            value={newYear}
-            onChange={(e) => setNewYear(Number(e.target.value))}
-          />
-        </label>
-        <Button
-          disabled={busy}
-          onClick={() => void mutate(() => addYear(newYear))}
+      <div className="calendar-year-panels">
+        <section
+          className="panel calendar-year-current"
+          aria-labelledby="viewed-year-title"
         >
-          Crear año
-        </Button>
-        <Button
-          variant="outline"
-          disabled={busy || calendar.state === "Cerrado"}
-          onClick={() => setDeleting(true)}
-        >
-          Eliminar año
-        </Button>
-        {deleting && (
-          <div className="cancellation-warning">
-            <p>
-              Se eliminará el año {calendar.year} solo si no está cerrado y no
-              tiene datos asociados.
-            </p>
+          <h2 id="viewed-year-title">Año que estás consultando</h2>
+          <p className="muted">Elegí el calendario que querés ver o editar.</p>
+          <div className="calendar-year-controls">
+            <label>
+              Año lectivo
+              <select
+                aria-label="Año del calendario"
+                disabled={busy}
+                value={calendar.year}
+                onChange={(e) => selectYear(Number(e.target.value))}
+              >
+                {calendars.map((c) => (
+                  <option key={c.year} value={c.year}>
+                    {c.year} · {c.state}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Button
-              disabled={busy}
-              onClick={async () => {
-                await mutate(deleteYear);
-                setDeleting(false);
-              }}
+              variant="outline"
+              disabled={busy || calendar.state === "Cerrado"}
+              onClick={() => setDeleting(true)}
             >
-              Confirmar eliminación de año
+              Eliminar año
             </Button>
           </div>
-        )}
-      </section>
+          {deleting && (
+            <div className="cancellation-warning">
+              <p>
+                Se eliminará el año {calendar.year} solo si no está cerrado y no
+                tiene datos asociados.
+              </p>
+              <Button
+                disabled={busy}
+                onClick={async () => {
+                  await mutate(deleteYear);
+                  setDeleting(false);
+                }}
+              >
+                Confirmar eliminación de año
+              </Button>
+            </div>
+          )}
+        </section>
+        <section
+          className="panel calendar-year-create"
+          aria-labelledby="create-year-title"
+        >
+          <h2 id="create-year-title">Crear otro año lectivo</h2>
+          <p className="muted">Agregá un calendario nuevo en preparación.</p>
+          <div className="calendar-year-controls">
+            <label>
+              Nuevo año
+              <input
+                type="number"
+                disabled={busy}
+                min="1"
+                max="9999"
+                value={newYear}
+                onChange={(e) => setNewYear(Number(e.target.value))}
+              />
+            </label>
+            <Button
+              disabled={busy}
+              onClick={() => void mutate(() => addYear(newYear))}
+            >
+              Crear año
+            </Button>
+          </div>
+        </section>
+      </div>
       {message && (
         <p role="status" className="notice">
           {message}

@@ -1474,9 +1474,6 @@ body {
 [aria-invalid="true"] { border-color: #b42318; }
 
 /* Calendar administration follows the same panel rhythm as the inventory. */
-.calendar-year-toolbar { padding: 24px; }
-.calendar-year-toolbar > label:first-child { flex: 2; }
-.calendar-year-toolbar > label:nth-child(2) { flex: 0 1 160px; min-width: 120px; }
 .calendar-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; margin-bottom: 24px; }
 .calendar-settings h2, .calendar-columns h2 { margin: 0 0 8px; }
 .calendar-settings .eyebrow { margin-top: 0; }
@@ -1508,7 +1505,18 @@ body {
   .calendar-settings-fields { grid-template-columns: 1fr; }
   .calendar-term { padding: 16px; }
   .calendar-term .form-grid { grid-template-columns: 1fr; }
-  .calendar-year-toolbar > label:first-child { flex-basis: 100%; }
   .calendar-save-actions { flex-wrap: wrap; gap: 12px; }
   .calendar-save-actions > button { flex: 1 1 180px; }
+}
+
+.calendar-year-panels { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; margin-bottom: 24px; }
+.calendar-year-panels h2 { margin: 0 0 8px; }
+.calendar-year-panels p.muted { margin: 0 0 24px; line-height: 1.6; }
+.calendar-year-create { background: #f2f3ec; }
+.calendar-year-controls { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+.calendar-year-controls > label { flex: 1; min-width: 140px; }
+.calendar-year-create .calendar-year-controls > label { max-width: 180px; }
+.calendar-year-current .cancellation-warning { margin-top: 20px; }
+@media (max-width: 900px) {
+  .calendar-year-panels { grid-template-columns: 1fr; }
 }

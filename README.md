@@ -46,3 +46,5 @@ Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local`; contraseña en
 
 - [Carga reproducible de catálogos ficticios](docs/planificacion/datos-demo-i-02.md).
 - [QA manual de I-02](docs/planificacion/qa-manual-i-02.md).
+
+- [Carga reproducible de reservas 2026/2027](docs/planificacion/datos-demo-i-03.md).

@@ -1,6 +1,6 @@
 # Plan aprobado de integración
 
-**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 implementada, aceptada y cerrada por el usuario el 17/09/2026, incluidos los ajustes visuales; I-03 tiene su plan detallado aprobado y está en ejecución; I-04 a I-06 pendientes de planificación detallada e implementación. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
+**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 implementada, aceptada y cerrada por el usuario el 17/09/2026, incluidos los ajustes visuales; I-03 está implementada y verificada, pendiente de QA y aceptación del usuario; I-04 a I-06 pendientes de planificación detallada e implementación. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
 
 ## Objetivo y alcance
 
@@ -92,7 +92,7 @@ No cerrar entregas con defectos que impidan recorridos o incumplan reglas acorda
 
 ## Detalle por entrega
 
-El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 está implementada y aceptada, incluidos los ajustes visuales. El [plan detallado de I-03](i-03-reserva-periodica.md) está aprobado secuencialmente el 17/09/2026 y en ejecución; ver [avance y evidencia](avance-i-03.md). I-04 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
+El [plan detallado de I-01](i-01-base-e-ingreso.md) está aprobado: alcance, proyecto Supabase, preparación de cuentas, contrato de sesión, cuatro subcortes y validación. I-01 implementada y verificada; ver [avance y evidencia](avance-i-01.md). I-02 está implementada y aceptada, incluidos los ajustes visuales. El [plan detallado de I-03](i-03-reserva-periodica.md) fue aprobado secuencialmente el 17/09/2026 y está implementado y verificado, pendiente de QA y aceptación del usuario; ver [avance y evidencia](avance-i-03.md). I-04 a I-06 pendientes de sus planes detallados. No construir avisos temporales de módulos sin integrar; conectar el acceso sobre la interfaz existente.
 
 Cada entrega posterior se detallará y acordará antes de implementarla. Este plan general no reemplaza ese trabajo. Los contratos técnicos exactos y la configuración se concretan en el subcorte correspondiente, sin cambiar las reglas funcionales aprobadas.
 

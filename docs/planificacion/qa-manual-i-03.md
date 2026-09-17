@@ -1,12 +1,27 @@
 # QA manual · I-03
 
-**Estado:** guía en preparación durante la implementación. Todavía no acredita resultados ni aceptación del usuario.
+**Estado:** lista para ejecutar. Implementación y verificación automatizada terminadas; QA y aceptación del usuario pendientes.
 
 ## Preparación
 
 Usar las cuentas ficticias de I-01 y los catálogos de I-02. Arrancar frontend y backend según sus README; PostgreSQL y Auth están en Supabase. Las contraseñas permanecen en `backend/.env`. No incluir secretos en capturas.
 
-Abrir dos perfiles de navegador para sesiones independientes. La carga de reservas de I-03 y sus fechas de referencia se documentarán al completar I-03.4. No usar las cantidades del prototipo como resultado esperado.
+El dataset ya está cargado en Supabase: no hace falta repetir la carga.
+
+Abrir dos perfiles de navegador para sesiones independientes. Consultar [datos demo de I-03](datos-demo-i-03.md) para la carga explícita y las fechas de referencia. No usar las cantidades del prototipo como resultado esperado.
+
+## Recorrido sugerido sobre la carga demo
+
+Antes de crear reservas nuevas, recorrer las series cargadas. Las cantidades de [datos demo](datos-demo-i-03.md) corresponden a su conjunto identificado, no al total global: se conservan las reservas ficticias creadas durante pruebas anteriores y las que agregues manualmente.
+
+1. Como Bedel, abrir la agenda del **21/09/2026**, filtrar aula **105** y localizar Matemática I, 14–16. Abrir su detalle y comprobar el período 2026, las aulas por día y la ausencia del miércoles excluido **30/09/2026**. Esta carga explícita también contiene clases históricas; la interfaz no permite crear clases retroactivas.
+2. Abrir agenda del **15/03/2027**, aula **105**, Matemática I 09–11. Revisar su detalle: **32 clases** y exclusión del **17/03/2027**. Recargar y consultar desde otro perfil de navegador.
+3. Abrir la anual de **Estadística B 2027**: martes/jueves, 10–12, aula **203**, **58 clases**. No hay clases en el receso, el 25/05, el 12/10, el 23/11 ni en la exclusión del 16/09.
+4. En Disponibilidad, seleccionar año **2027**, **primer cuatrimestre**, **24 alumnos**, **Laboratorio**, pizarrón cualquiera, **Ventiladores** (sin otros recursos), solo **martes**, **14–16**. Con el catálogo original no hay laboratorio libre para todo el período: **Lab 2** aparece antes que **Lab1**, con **480** y **1920 minutos** de interferencia periódica respectivamente. Abrir los conflictos y revisar fechas y contactos.
+5. Repetir esa consulta para **16–17**: ambos laboratorios están libres respecto de las series demo porque los horarios contiguos no se solapan. Reservas manuales adicionales o cambios posteriores pueden modificar la disponibilidad; no se deben borrar para reproducir el ejemplo.
+6. Como Docente, repetir la consulta y abrir un detalle desde agenda. Ver información de clases sin contactos administrativos ni acciones de confirmación.
+
+Referencias calculadas con el calendario original y consultando antes de marzo de 2027. Si se agregaron aulas compatibles, puede haber disponibilidad adicional; si cambió el calendario o transcurrieron fechas, revisar las omisiones actuales. La aplicación usa el reloj real de Córdoba.
 
 ## Preparación de periódicas · Administrador y Bedel
 
@@ -23,7 +38,7 @@ Referencia exacta con el calendario original `catalogos-i02-v1`, sin exclusiones
 ## Confirmación y consulta
 
 1. Revisar curso, docente, alumnos, requisitos, aula por patrón, fechas incluidas y omitidas; confirmar. Ver éxito solo después del guardado.
-2. Abrir el detalle y luego la agenda en una fecha de la nueva reserva. Recargar y consultar desde la segunda sesión: misma reserva y asignaciones.
+2. Abrir el detalle y luego la agenda en una fecha de la nueva reserva. Alternar Día/Semana y filtrar su aula. Recargar y consultar desde la segunda sesión: misma reserva y asignaciones. En Reservas, acceder al mismo detalle.
 3. Buscar el mismo espacio/horario: la reserva confirmada ocupa sus fechas. Una preparación abandonada no ocupa aulas.
 4. Preparar dos propuestas coincidentes desde dos sesiones. Confirmar una y luego la otra: la segunda se rechaza sin guardar un subconjunto y permite corregir la propuesta.
 5. Un horario contiguo al final de una clase no es conflicto. Probar también una superposición parcial para contrastar.

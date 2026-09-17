@@ -7,7 +7,7 @@ Plan: [reserva periódica persistente](i-03-reserva-periodica.md), aprobado el 1
 | I-03.1 · Preparación y disponibilidad | Implementado y verificado |
 | I-03.2 · Confirmación y consulta | Implementado y verificado |
 | I-03.3 · Alternativas | Implementado y verificado |
-| I-03.4 · Datos y QA | En ejecución |
+| I-03.4 · Datos y QA | Implementado y verificado |
 
 ## Evidencia
 
@@ -48,3 +48,23 @@ React muestra tres alternativas, permite consultar el resto y desplegar conflict
 La inspección visual detectó un botón parcialmente fuera del ancho móvil pese a no aumentar el ancho del documento. Se corrigió la barra de acciones del asistente y se agregó una comprobación de posición visible. Capturas finales de escritorio/móvil y Docente inspeccionadas (`/tmp/i033-*.png`); teclado, axe y límites horizontales comprobados.
 
 Ambas revisiones Terra high aprobadas sin bloqueantes. Verificación final: 69 pruebas Java (siete nuevas, incluidas PostgreSQL/API), 64 unitarias frontend, build/lint/OpenAPI y 33 recorridos offline correctos. La consulta real de alternativas se verificará con el dataset cargado en I-03.4; este corte no introduce migraciones ni carga reservas remotas.
+
+Después de integrar I-03.3 se reinició Java y se repitió la preparación real con Supabase: aprobada, sin crear otra reserva. La confirmación real conservada corresponde al corte anterior.
+
+## I-03.4
+
+Dataset versionado con 12 series y 370 clases: cuatro del segundo cuatrimestre 2026 (93 clases), cuatro del primero 2027 y cuatro anuales 2027 (277 clases en 2027). Una comprobación independiente del JSON contra los catálogos de I-02 verificó fechas exactas, capacidad/tipo/recursos y ausencia de solapamientos entre las series. Las fechas esperadas quedan explícitas en la configuración para detectar modificaciones del calendario antes de nuevas altas.
+
+La carga usa un comando explícito y una identidad de dataset/entrada independiente del actor. La repetición conserva registros y detecta discrepancias sin restaurar cambios manuales. El reloj histórico configurado se utiliza solo durante la carga ficticia; la interfaz mantiene reloj institucional real y no permite altas retroactivas.
+
+Ambas revisiones Terra high de I-03.4 aprobadas sin bloqueantes. Suite final de Java: 76 pruebas PostgreSQL correctas; frontend: 64 unitarias, build y lint correctos. Los 33 recorridos offline del corte anterior siguen siendo la referencia de interfaz; I-03.4 no cambia React, añade el dataset y un recorrido real de lectura.
+
+V10 aplicada correctamente en Supabase. Primera carga explícita ejecutada: **12 reservas y 370 clases creadas; 0 conservadas**, sin discrepancias y con salida correcta. Se conserva la reserva ficticia 1 del recorrido real de confirmación.
+
+Segunda ejecución en Supabase: **0 reservas y 0 clases creadas; 12 reservas conservadas**, sin discrepancias. El arranque normal posterior respondió `UP` y no ejecutó el comando de carga.
+
+La primera ejecución del recorrido real de I-03.4 se interrumpió al detectar lecturas demasiado lentas con el dataset completo. Se sustituyó el listado N+1 por seis consultas agrupadas, compartiendo el mapeo con el detalle y manteniendo una instantánea consistente y la privacidad por rol. El ajuste pasó ambas revisiones Terra high y una prueba que cuenta consultas para 12 reservas/370 clases y compara listado/detalle. Medición puntual del mismo listado remoto (13 reservas/403 clases): 19.864 ms antes y 2.693 ms después; no representa una garantía de latencia de Supabase.
+
+Recorrido real final de I-03.4 aprobado contra Supabase (57,9 s): recuentos de las doce series, agenda 2026, detalle anual móvil, ranking de laboratorios y proyección sin contactos en una segunda sesión Docente. Se corrigió un selector del test para localizar el tipo de aula por su rol accesible. Las aulas QA anteriores tienen disponibilidad propia; se agregó Ventiladores como requisito del escenario para comprobar los dos laboratorios sin modificar esos datos. Capturas reales de agenda, detalle móvil y alternativas inspeccionadas (`/tmp/i034-real-*.png`). La ejecución es de lectura y no agrega reservas.
+
+**I-03 implementada y verificada; pendiente de QA y aceptación del usuario.** La guía manual está lista. I-04 a I-06 conservan su planificación detallada pendiente; no se adelantaron sus funcionalidades.

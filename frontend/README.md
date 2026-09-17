@@ -58,3 +58,5 @@ Cuentas, Aulas y Calendario guardan por API Java. Nueva reserva consulta y crea 
 ## Reservas periódicas (I-03)
 
 [Plan](../docs/planificacion/i-03-reserva-periodica.md), [evidencia](../docs/planificacion/avance-i-03.md) y [QA manual](../docs/planificacion/qa-manual-i-03.md). La fecha operativa usa el reloj institucional de Córdoba. Confirmar requiere disponibilidad actual para todas las fechas del patrón; una respuesta incierta conserva la identidad de la operación para comprobarla o reintentar sin duplicar.
+
+Para recorrer reservas existentes y alternativas reales, cargar el [dataset I-03](../docs/planificacion/datos-demo-i-03.md). La prueba real de ese dataset es de lectura y supone las fechas/series originales de la carga; los casos automatizados de ranking esporádico usan fixtures separados.

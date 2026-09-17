@@ -69,3 +69,5 @@ La carga explícita de I-02 prepara 20 aulas, 2026/2027 y 40 cursos sin modifica
 ## Reservas periódicas (I-03)
 
 [Contrato OpenAPI](../docs/api/reservas.openapi.yaml) y [transacciones, bloqueos y reintentos](../docs/api/reservas-concurrencia.md). La disponibilidad y la confirmación se calculan en Java; el cliente no aporta identidad del registrador ni datos libres del docente. [Avance verificable](../docs/planificacion/avance-i-03.md) y [guía de QA](../docs/planificacion/qa-manual-i-03.md).
+
+La carga explícita de [reservas demo 2026/2027](../docs/planificacion/datos-demo-i-03.md) amplía los catálogos: 12 series y 370 clases. Su repetición detecta diferencias sin duplicar ni restaurar datos. El arranque normal nunca ejecuta esa carga.

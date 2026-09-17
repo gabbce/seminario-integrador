@@ -35,7 +35,7 @@ for (const width of [390, 1440])
     });
     await page.goto("/");
     await login(page, "bedel");
-    await expect(page.getByRole("heading",{name:"8 de septiembre de 2026"})).toBeVisible();
+    await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
     await page.goto("/aulas");
     await page.getByRole("button", { name: "Nueva aula", exact: true }).click();
     await page.getByLabel("Identificador", { exact: true }).fill("QA-101");

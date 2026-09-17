@@ -127,9 +127,7 @@ for (const width of [390, 768, 1440])
     await page.keyboard.press("Tab");
     await page.keyboard.type("Prueba123");
     await page.keyboard.press("Enter");
-    await expect(
-      page.getByRole("heading", { name: "8 de septiembre de 2026" }),
-    ).toBeVisible();
+    await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
     if (width <= 768)
       await page.getByRole("button", { name: "Menú", exact: true }).click();
     await expect(

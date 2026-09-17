@@ -1,4 +1,4 @@
-import { demoNow } from "../calendar";
+import { institutionalNow } from "../institutional-time";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
@@ -99,7 +99,7 @@ export function Agenda({
           </Button>
           <Button
             variant="outline"
-            onClick={() => setDate(demoNow.slice(0, 10))}
+            onClick={() => setDate(institutionalNow().slice(0, 10))}
           >
             Hoy
           </Button>

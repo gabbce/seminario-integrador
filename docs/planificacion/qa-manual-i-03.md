@@ -27,6 +27,8 @@ Referencia exacta con el calendario original `catalogos-i02-v1`, sin exclusiones
 3. Buscar el mismo espacio/horario: la reserva confirmada ocupa sus fechas. Una preparación abandonada no ocupa aulas.
 4. Preparar dos propuestas coincidentes desde dos sesiones. Confirmar una y luego la otra: la segunda se rechaza sin guardar un subconjunto y permite corregir la propuesta.
 5. Un horario contiguo al final de una clase no es conflicto. Probar también una superposición parcial para contrastar.
+6. Si aparece «No pudimos confirmar el resultado», usar «Comprobar estado de la reserva». Si todavía no figura confirmada, «Reintentar la misma operación» conserva su identidad y evita duplicados. No interpretar una respuesta perdida como una reserva rechazada. Este flujo también cuenta con pruebas de red simulada.
+7. Desde el éxito, «Ver en la agenda» abre la primera fecha guardada. En el detalle persistido no se ofrecen todavía acciones de edición o cancelación.
 
 ## Conflictos y roles
 

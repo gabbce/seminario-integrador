@@ -25,6 +25,74 @@ paths:
         '404': { description: Año inexistente }
         '409': { description: Año no habilitado }
         '503': { description: Consulta no disponible }
+  /api/reservas/periodicas/confirmacion:
+    post:
+      summary: Confirmar atómicamente una propuesta periódica revisada
+      description: Admin y Bedel. UUID por actor e intento lógico. Mismo contenido canónico devuelve la reserva previa antes de volver a comprobar ocupación; otro contenido devuelve 409. Orden de recursos, patrones, exclusiones y fechas no cambia la identidad. Se revalidan calendario, fechas, versiones de aulas y disponibilidad bajo bloqueo. Ninguna fecha se descarta silenciosamente.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConfirmationRequest' }
+      responses:
+        '200':
+          description: Reserva confirmada o resultado recuperado de la misma operación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Booking' }
+        '400': { description: Solicitud inválida; no se guardó }
+        '401': { description: Sesión requerida }
+        '403': { description: El rol actual no permite confirmar }
+        '404': { description: Año inexistente }
+        '409': { description: Propuesta desactualizada, ocupación o reutilización de clave con otro contenido; mensaje incluye fechas concretas cuando corresponde }
+        '503': { description: Resultado incierto; comprobar operación o reintentar exactamente misma clave y contenido }
+  /api/reservas/operaciones/{key}:
+    get:
+      summary: Comprobar resultado de una operación del actor autenticado
+      description: found=false no demuestra que una petición concurrente haya fallado. Se puede repetir exactamente la misma operación; no generar otra clave mientras el resultado sea incierto. Otros actores no pueden recuperar la operación.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Estado observable de la operación
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [found]
+                properties:
+                  found: { type: boolean }
+                  booking: { $ref: '#/components/schemas/Booking' }
+        '401': { description: Sesión requerida }
+        '403': { description: Cuenta inactiva }
+  /api/reservas:
+    get:
+      summary: Lectura mínima de reservas persistidas para agenda y listado
+      description: Colección sin paginar de I-03. Las consultas completas, filtros y paginación pertenecen a I-05. Nunca combina reservas simuladas.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Reservas con sus ocurrencias, incluyendo estados históricos
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Booking' } }
+        '401': { description: Sesión requerida }
+  /api/reservas/{id}:
+    get:
+      summary: Consultar directamente una reserva por ID
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: Datos permitidos para el rol actual
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Booking' }
+        '401': { description: Sesión requerida }
+        '404': { description: Reserva inexistente }
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
@@ -98,3 +166,86 @@ components:
                     version: { type: integer, format: int64 }
                     type: { type: string }
                     capacity: { type: integer }
+    ConfirmationRequest:
+      type: object
+      required: [operationId, proposal, teacherId, calendarVersion, selections]
+      properties:
+        operationId: { type: string, format: uuid }
+        proposal:
+          allOf:
+            - { $ref: '#/components/schemas/Request' }
+            - { required: [courseId] }
+        teacherId: { type: string, description: ID de la lista fija de docentes; el servidor copia sus datos }
+        calendarVersion: { type: integer, format: int64, minimum: 0 }
+        selections:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: object
+            required: [day, roomId, roomVersion, dates]
+            properties:
+              day: { type: integer, minimum: 1, maximum: 5 }
+              roomId: { type: string, description: ID interno de aula, no identificador visible }
+              roomVersion: { type: integer, format: int64, minimum: 0 }
+              dates:
+                type: array
+                minItems: 1
+                maxItems: 366
+                uniqueItems: true
+                items: { type: string, format: date }
+    Booking:
+      type: object
+      required: [id, version, subject, course, courseId, teacher, teacherId, students, type, board, resources, occurrences]
+      description: teacherEmail y registrant se omiten completamente para Docente. No hay escritura esporádica, edición ni cancelación en I-03.
+      properties:
+        id: { type: string }
+        version: { type: integer, format: int64 }
+        subject: { type: string }
+        course: { type: string }
+        courseId: { type: string }
+        teacher: { type: string }
+        teacherId: { type: string }
+        teacherEmail: { type: string, format: email }
+        registrant:
+          type: object
+          required: [userId, name, email, inactive]
+          properties:
+            userId: { type: string }
+            name: { type: string }
+            email: { type: string, format: email }
+            inactive: { type: boolean }
+        students: { type: integer }
+        type: { type: string }
+        board: { type: string }
+        resources: { type: array, items: { type: string } }
+        schedule:
+          type: object
+          required: [year, period, excluded]
+          properties:
+            year: { type: integer }
+            period: { type: string, enum: [first, second, annual] }
+            excluded: { type: array, items: { type: string, format: date } }
+        patterns:
+          type: array
+          items:
+            type: object
+            required: [day, start, end, room]
+            properties:
+              day: { type: integer }
+              start: { type: string }
+              end: { type: string }
+              room: { type: string }
+        occurrences:
+          type: array
+          items:
+            type: object
+            required: [id, date, start, end, room, cancelled]
+            properties:
+              id: { type: string }
+              date: { type: string, format: date }
+              originalDate: { type: string, format: date }
+              start: { type: string }
+              end: { type: string }
+              room: { type: string }
+              cancelled: { type: boolean }

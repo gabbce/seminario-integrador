@@ -63,9 +63,7 @@ for (const width of [390, 1440])
     });
     await page.goto("/");
     await login(page, "admin");
-    await expect(
-      page.getByRole("heading", { name: "8 de septiembre de 2026" }),
-    ).toBeVisible();
+    await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
     await page.goto("/administracion/calendario");
     await expect(
       page.getByText("No hay años lectivos registrados."),

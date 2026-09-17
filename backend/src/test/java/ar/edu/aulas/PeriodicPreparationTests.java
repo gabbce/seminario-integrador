@@ -91,7 +91,6 @@ class PeriodicPreparationTests {
    mvc.perform(post("/api/reservas/periodicas/preparacion").with(session(actor)).contentType("application/json").content(json)).andExpect(status().isOk()).andExpect(jsonPath("$.patterns[0].dates").isArray()).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("email"))));
   }
   mvc.perform(post("/api/reservas/periodicas/preparacion").contentType("application/json").content(json)).andExpect(status().isUnauthorized());
-  mvc.perform(post("/api/reservas/periodicas/confirmacion").with(session(admin)).contentType("application/json").content(json)).andExpect(status().isForbidden());
  }
  @Test void resourcesStateAndCapacityDetermineEligibilityButComputerCountDoesNot() {
   rooms.save(admin,null,new RoomsService.Room(null,"Lab-A",null,"Laboratorio",30,"Habilitada","A",0,"Tiza",List.of("fans"),0,List.of()));

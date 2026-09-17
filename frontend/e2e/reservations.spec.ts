@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { fakeAuth, login } from "./auth-fixture";
+import type { Booking } from "../src/domain";
 
 const calendar = {
   id: "7",
@@ -62,6 +63,12 @@ async function setup(page: Page, role = "bedel") {
   const control = {
     fail: false,
     calls: 0,
+    confirmations: 0,
+    confirmationMode: "normal" as
+      "normal" | "conflict" | "lost" | "lost-before",
+    bookings: [] as Booking[],
+    operationId: "",
+    operationIds: [] as string[],
     requests: [] as Record<string, unknown>[],
   };
   await page.route("**/api/reservas/periodicas/preparacion", async (r) => {
@@ -104,13 +111,116 @@ async function setup(page: Page, role = "bedel") {
     );
     return r.fulfill({ json: { year: 2027, calendarVersion: 4, patterns } });
   });
+  await page.route("**/api/reservas", (r) =>
+    r.fulfill({ json: control.bookings }),
+  );
+  await page.route(/\/api\/reservas\/\d+$/, (r) => {
+    const booking = control.bookings.find((b) =>
+      r.request().url().endsWith(`/${b.id}`),
+    );
+    return booking
+      ? r.fulfill({ json: booking })
+      : r.fulfill({
+          status: 404,
+          json: { code: "NOT_FOUND", message: "Reserva no encontrada." },
+        });
+  });
+  await page.route("**/api/reservas/operaciones/*", (r) =>
+    r.fulfill({
+      json: {
+        found: control.bookings.length > 0,
+        booking: control.bookings[0],
+      },
+    }),
+  );
+  await page.route("**/api/reservas/periodicas/confirmacion", async (r) => {
+    control.confirmations++;
+    const body = r.request().postDataJSON();
+    control.operationId = body.operationId;
+    control.operationIds.push(body.operationId);
+    if (control.confirmationMode === "lost-before")
+      return r.abort("connectionfailed");
+    if (control.confirmationMode === "conflict")
+      return r.fulfill({
+        status: 409,
+        json: {
+          code: "CONFLICT",
+          message: "El aula se ocupó para el 15/03/2027. Volvé a consultar.",
+        },
+      });
+    const proposal = body.proposal;
+    const patterns = proposal.patterns.map(
+      (p: { day: number; start: string; modules: number }) => {
+        const selected = body.selections.find(
+          (s: { day: number }) => s.day === p.day,
+        );
+        const end =
+          Number(p.start.slice(0, 2)) * 60 +
+          Number(p.start.slice(3)) +
+          p.modules * 30;
+        return {
+          day: p.day,
+          start: p.start,
+          end: `${String(Math.floor(end / 60)).padStart(2, "0")}:${String(end % 60).padStart(2, "0")}`,
+          room: inventory.find((room) => room.internalId === selected.roomId)!
+            .id,
+        };
+      },
+    );
+    const booking: Booking = {
+      id: "901",
+      version: 0,
+      subject: "Matemática QA",
+      course: "001-A-2027",
+      courseId: "80",
+      teacher: "Docente QA",
+      teacherId: "D-01",
+      students: proposal.students,
+      type: proposal.type,
+      resources: proposal.resources,
+      board: proposal.board,
+      schedule: {
+        year: proposal.year,
+        period: proposal.period,
+        excluded: proposal.excluded,
+      },
+      patterns,
+      occurrences: patterns.flatMap(
+        (p: { day: number; start: string; end: string; room: string }) =>
+          body.selections
+            .find((s: { day: number }) => s.day === p.day)
+            .dates.map((date: string) => ({
+              date,
+              originalDate: date,
+              start: p.start,
+              end: p.end,
+              room: p.room,
+            })),
+      ),
+      ...(role !== "docente"
+        ? {
+            teacherEmail: "qa@example.test",
+            registrant: {
+              name: "Bedel Demo",
+              email: "bedel@demo.local",
+              userId: "2",
+            },
+          }
+        : {}),
+    };
+    control.bookings = [booking];
+    if (control.confirmationMode === "lost") return r.abort("connectionfailed");
+    return r.fulfill({ status: 201, json: booking });
+  });
   await page.goto("/");
   await login(page, role);
   return control;
 }
 
 for (const width of [390, 1440])
-  test(`preparación periódica usa respuesta API a ${width}px`, async ({ page }) => {
+  test(`preparación periódica usa respuesta API a ${width}px`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height: 1000 });
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -236,4 +346,159 @@ test("exclusión total exige corregir y cambiar criterios invalida aulas elegida
   await expect(
     page.getByRole("button", { name: "Revisar reserva" }),
   ).toBeDisabled();
+});
+
+async function prepareFirst(page: Page) {
+  await page.goto("/reservas/nueva");
+  await page.getByLabel("Período", { exact: true }).selectOption("first");
+  await page.getByRole("button", { name: "Buscar aulas" }).click();
+  await page
+    .getByRole("radio", { name: /Aula QA-1/ })
+    .first()
+    .check();
+  await page
+    .getByRole("radio", { name: /Aula QA-2/ })
+    .nth(1)
+    .check();
+  await page.getByRole("button", { name: "Revisar reserva" }).click();
+}
+for (const width of [390, 1440])
+  test(`confirmación y detalle persistido a ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    const control = await setup(page);
+    await prepareFirst(page);
+    await page
+      .getByRole("button", { name: "Confirmar reserva", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Reserva confirmada" }),
+    ).toBeVisible();
+    expect(control.confirmations).toBe(1);
+    expect(control.operationId).toMatch(/^[0-9a-f-]{36}$/);
+    await page.screenshot({
+      path: `/tmp/i032-exito-${width}.png`,
+      fullPage: true,
+    });
+    await page
+      .getByRole("button", { name: "Ver detalle", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/reservas\/901$/);
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Matemática QA", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: /Cancelar clases|Reprogramar|Cambiar aula|Editar datos/,
+      }),
+    ).toHaveCount(0);
+    await page.screenshot({
+      path: `/tmp/i032-detalle-${width}.png`,
+      fullPage: true,
+    });
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
+
+test("conflicto al confirmar conserva la propuesta", async ({ page }) => {
+  const control = await setup(page);
+  await prepareFirst(page);
+  control.confirmationMode = "conflict";
+  await page
+    .getByRole("button", { name: "Confirmar reserva", exact: true })
+    .click();
+  await expect(
+    page.getByText("El aula se ocupó para el 15/03/2027. Volvé a consultar."),
+  ).toBeVisible();
+  expect(control.bookings).toHaveLength(0);
+  await expect(
+    page.getByRole("heading", { name: "Reserva confirmada" }),
+  ).toHaveCount(0);
+  await expect(page.locator('input[name="room-1"]').first()).toBeVisible();
+  await page.screenshot({ path: "/tmp/i032-conflicto.png", fullPage: true });
+});
+
+test("respuesta perdida recupera la operación sin otro alta", async ({
+  page,
+}) => {
+  const control = await setup(page);
+  await prepareFirst(page);
+  control.confirmationMode = "lost";
+  await page
+    .getByRole("button", { name: "Confirmar reserva", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /Comprobar estado/ }).click();
+  await expect(
+    page.getByRole("heading", { name: "Reserva confirmada" }),
+  ).toBeVisible();
+  expect(control.confirmations).toBe(1);
+  expect(control.bookings).toHaveLength(1);
+});
+
+test("resultado aún no encontrado reintenta con la misma identidad", async ({
+  page,
+}) => {
+  const control = await setup(page);
+  await prepareFirst(page);
+  control.confirmationMode = "lost-before";
+  await page
+    .getByRole("button", { name: "Confirmar reserva", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /Comprobar estado/ }).click();
+  control.confirmationMode = "normal";
+  await page.getByRole("button", { name: /Reintentar/ }).click();
+  await expect(
+    page.getByRole("heading", { name: "Reserva confirmada" }),
+  ).toBeVisible();
+  expect(control.confirmations).toBe(2);
+  expect(new Set(control.operationIds).size).toBe(1);
+});
+
+test("listado previo demorado no borra una confirmación nueva de la agenda", async ({
+  page,
+}) => {
+  await setup(page);
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/reservas", async (route) => {
+    await gate;
+    await route.fulfill({ json: [] });
+  });
+  try {
+    await prepareFirst(page);
+    await page
+      .getByRole("button", { name: "Confirmar reserva", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Reserva confirmada" }),
+    ).toBeVisible();
+    release();
+    await page
+      .getByRole("button", { name: "Ver en la agenda", exact: true })
+      .click();
+    await expect(page.getByLabel("Fecha de agenda")).toHaveValue("2027-03-15");
+    await expect(
+      page.getByText("Matemática QA", { exact: true }).first(),
+    ).toBeVisible();
+  } finally {
+    release();
+  }
 });

@@ -40,13 +40,14 @@ public class ReferenceManagement {
         if(!inserted.isEmpty()) db.update("insert into aulas.evento_auditoria(actor,operacion,entidad,entidad_id,resultado,detalle) values (?,'CREAR_CURSO','CURSO',?,'CONFIRMADO',?)",actor,Long.parseLong(saved.id()),saved.toString());
         return saved;
     }
-    private record Teacher(String id,String name,String email) {}
+    public record Teacher(String id,String name,String surname,String email) {}
     private static final List<Teacher> TEACHERS=List.of(
-        new Teacher("D-01","Laura Gómez","laura.gomez@example.test"),
-        new Teacher("D-02","Ana Ruiz","ana.ruiz@example.test"),
-        new Teacher("D-03","Martín Díaz","martin.diaz@example.test"),
-        new Teacher("D-04","Sofía Paz","sofia.paz@example.test"),
-        new Teacher("D-05","Diego Luna","diego.luna@example.test")
+        new Teacher("D-01","Laura","Gómez","laura.gomez@example.test"),
+        new Teacher("D-02","Ana","Ruiz","ana.ruiz@example.test"),
+        new Teacher("D-03","Martín","Díaz","martin.diaz@example.test"),
+        new Teacher("D-04","Sofía","Paz","sofia.paz@example.test"),
+        new Teacher("D-05","Diego","Luna","diego.luna@example.test")
     );
-    public List<Map<String,String>> teachers(boolean operational) {return TEACHERS.stream().map(teacher->operational?Map.of("id",teacher.id(),"name",teacher.name(),"email",teacher.email()):Map.of("id",teacher.id(),"name",teacher.name())).toList();}
+    public Teacher teacher(String id) {return TEACHERS.stream().filter(t->t.id().equals(id)).findFirst().orElseThrow(()->DomainError.invalid("Seleccioná un docente de la lista."));}
+    public List<Map<String,String>> teachers(boolean operational) {return TEACHERS.stream().map(teacher->operational?Map.of("id",teacher.id(),"name",teacher.name()+" "+teacher.surname(),"email",teacher.email()):Map.of("id",teacher.id(),"name",teacher.name()+" "+teacher.surname())).toList();}
 }

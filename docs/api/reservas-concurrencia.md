@@ -1,0 +1,13 @@
+# Confirmación periódica: integridad y concurrencia
+
+La confirmación usa una transacción READ COMMITTED. Todas las escrituras que compiten por elegibilidad comparten este orden de bloqueo: fila `control_cuentas`, año lectivo, aulas por ID ascendente, operación/reserva. Las operaciones que no utilizan un recurso omiten ese paso, sin invertir el orden. La edición de aula adquiere primero `control_cuentas` y después su aula; calendario ya adquiría permisos y año. La administración de identidad mantiene su bloqueo de permisos. La serialización de estas mutaciones es deliberada para este volumen; no se agrega infraestructura.
+
+Bajo el bloqueo de permisos, se valida nuevamente el rol activo. Se busca una operación ya confirmada por `(actor, UUID)` antes de recalcular fechas u ocupación: el reintento no entra en conflicto con su propia reserva. El contenido canónico normaliza listas por orden y pizarrón vacío; la clave no puede representar otro pedido. El resultado y su referencia se guardan en la misma transacción que cabecera, períodos, patrones, exclusiones, detalles y auditoría. El registro de operación no almacena credenciales.
+
+Después de bloquear año y aulas se repite la preparación dentro de esa misma transacción READ COMMITTED. Deben coincidir versión del calendario, fechas revisadas por patrón, versión del aula elegida y disponibilidad. El tiempo institucional puede invalidar una fecha, pero nunca reduce silenciosamente el conjunto confirmado. Los detalles y exclusiones se insertan en lotes. V8 aporta exclusión GiST con extremos `[inicio, fin)` e invariantes diferidas; V9 agrega la identidad de operación sin modificar la migración aplicada.
+
+GET de operación se limita al actor autenticado. `found=false` también puede significar que otro POST sigue pendiente; el cliente mantiene clave y cuerpo inmóviles y permite comprobar o repetir la misma operación. Solo un rechazo conocido libera el intento para revisar una propuesta nueva. Un timeout o error técnico no se presenta como fracaso confirmado.
+
+Las modificaciones administrativas comprueban requisitos de clases futuras/en curso y relaciones históricas. Para calendario, la transición aprobada en I-03 rechaza cambios que exigirían nuevas clases; no guarda una ampliación incompleta. Los cambios sin ese efecto y sin invalidar detalles registrados siguen permitidos. La generación conjunta de series pertenece a I-04.
+
+Las lecturas I-03 son una colección mínima sin paginación más consulta directa por ID. El servidor omite contactos y registrador del JSON de Docente. I-05 conserva consultas completas y paginación; I-04 conserva edición y cancelación.

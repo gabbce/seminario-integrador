@@ -88,6 +88,7 @@ public class CalendarManagement {
     @Transactional public Config edit(long actor,long id,Edit edit) {
         authorize(actor);if(edit==null)throw DomainError.invalid("Completá el calendario.");Config current=lock(id,edit.version());validate(edit,current);
         if(current.year()!=edit.year() && db.queryForObject("select count(*) from aulas.curso where id_anio_lectivo=?",Long.class,id)>0) throw DomainError.conflict("No se puede cambiar el número de un año con cursos asociados.");
+        new ar.edu.aulas.reservations.ReservationGuards(db,clock).calendar(id,current,edit);
         db.update("update aulas.anio_lectivo set anio_calendario=?,estado=?,version=version+1 where id_anio_lectivo=?",edit.year(),state(edit.state()),id);
         for(int number=1;number<=2;number++) {
             var range=edit.terms().get(number==1?"first":"second");

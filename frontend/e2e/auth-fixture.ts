@@ -6,6 +6,7 @@ const ids = {
   inhabilitado: "44444444-4444-4444-8444-444444444444",
 };
 export async function fakeAuth(page: Page) {
+  await page.route("**/api/reservas", (route) => route.fulfill({ json: [] }));
   // Tests that exercise preparation replace this route with their own fixture.
   // Other offline tests must never send their synthetic token to a real backend.
   await page.route("**/api/reservas/periodicas/preparacion", (route) =>

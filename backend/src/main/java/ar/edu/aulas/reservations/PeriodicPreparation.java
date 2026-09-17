@@ -33,7 +33,7 @@ public class PeriodicPreparation {
         this.db=db; this.calendars=calendars; this.rooms=rooms;
         this.clock=clock.withZone(ZoneId.of("America/Argentina/Cordoba"));
     }
-    private void validate(Request r) {
+    void validate(Request r) {
         if (r==null || r.year()==null || r.year()<1 || r.year()>9999 || r.period()==null || !List.of("first","second","annual").contains(r.period())
             || r.students()==null || r.students()<1 || r.type()==null || !List.of("General","Multimedios","Laboratorio").contains(r.type())
             || r.resources()==null || r.excluded()==null || r.patterns()==null || r.patterns().isEmpty() || r.patterns().size()>5)

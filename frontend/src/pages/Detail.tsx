@@ -1,3 +1,4 @@
+import { institutionalNow } from "../institutional-time";
 import { FormError } from "../components/FormError";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
@@ -26,7 +27,9 @@ export function Detail({
   courses,
   addCourse,
   changeHeader,
+  readOnly = false,
 }: {
+  readOnly?: boolean;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -44,6 +47,7 @@ export function Detail({
     <BookingDetail
       key={b.id}
       booking={b}
+      readOnly={readOnly}
       consultedDate={search.get("fecha")}
       consultedTime={search.get("hora")}
       role={role}
@@ -69,10 +73,12 @@ function BookingDetail({
   courses,
   addCourse,
   changeHeader,
+  readOnly = false,
 }: {
   booking: Booking;
   consultedDate: string | null;
   consultedTime: string | null;
+  readOnly?: boolean;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -103,7 +109,7 @@ function BookingDetail({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const future = b.occurrences.flatMap((o, i) =>
-    !o.cancelled && isFuture(o) ? [i] : [],
+    !o.cancelled && isFuture(o, institutionalNow()) ? [i] : [],
   );
   const operator = role !== "Docente";
   if (editingHeader)
@@ -184,6 +190,7 @@ function BookingDetail({
           </p>
         </div>
         {!editing &&
+          !readOnly &&
           operator &&
           calendar.state === "Habilitado" &&
           headerEditable(b) && (
@@ -192,6 +199,7 @@ function BookingDetail({
             </Button>
           )}
         {!editing &&
+          !readOnly &&
           operator &&
           calendar.state === "Habilitado" &&
           future.length > 0 && (
@@ -200,6 +208,7 @@ function BookingDetail({
             </Button>
           )}
         {!editing &&
+          !readOnly &&
           operator &&
           calendar.state === "Habilitado" &&
           future.length > 0 && (
@@ -208,6 +217,7 @@ function BookingDetail({
             </Button>
           )}
         {!editing &&
+          !readOnly &&
           operator &&
           calendar.state === "Habilitado" &&
           future.length > 0 && (
@@ -247,7 +257,7 @@ function BookingDetail({
                 ·{" "}
                 {consulted.cancelled
                   ? "Cancelada"
-                  : isFuture(consulted)
+                  : isFuture(consulted, institutionalNow())
                     ? "Confirmada"
                     : "Iniciada / pasada"}
               </p>
@@ -306,7 +316,7 @@ function BookingDetail({
                   <span className="eyebrow">
                     {o.cancelled
                       ? "Cancelada"
-                      : isFuture(o)
+                      : isFuture(o, institutionalNow())
                         ? "Confirmada"
                         : "Iniciada / pasada"}
                   </span>
@@ -421,9 +431,7 @@ function BookingDetail({
                 El horario del aula quedará disponible. No se puede reactivar
                 una clase cancelada.
               </p>
-              {error && (
-                <FormError message={error} />
-              )}
+              {error && <FormError message={error} />}
               <Button
                 type="submit"
                 className="cancel-confirm"

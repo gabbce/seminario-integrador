@@ -12,7 +12,10 @@ public class RoomsService {
  public record Room(String internalId,String id,Long version,String type,Integer capacity,String state,String location,Integer floor,String board,List<String> resources,Integer computers,List<History> history) {}
  public record Page(List<Room> items,long total,int page,int size,long enabled) {}
  private final JdbcTemplate db;
- public RoomsService(JdbcTemplate db){this.db=db;}
+ private final Clock clock;
+ @org.springframework.beans.factory.annotation.Autowired
+ public RoomsService(JdbcTemplate db,org.springframework.beans.factory.ObjectProvider<Clock> clocks){this(db,clocks.getIfAvailable(Clock::systemUTC));}
+ public RoomsService(JdbcTemplate db,Clock clock){this.db=db;this.clock=clock;}
  private static final String SELECT="select a.*,m.televisor,m.proyector,m.computadora,l.cantidad_pc from aulas.aula a left join aulas.aula_multimedios m using(id_aula) left join aulas.aula_laboratorio l using(id_aula)";
  private Room map(java.sql.ResultSet r,int row)throws java.sql.SQLException {
   List<String> resources=new ArrayList<>();for(var pair:Map.of("ventiladores","fans","aire","air","proyector","projector","televisor","television","computadora","computer").entrySet()) if(r.getBoolean(pair.getKey()))resources.add(pair.getValue());
@@ -56,12 +59,14 @@ public class RoomsService {
   if(r.type().equals("Laboratorio")&&(r.computers()==null||r.computers()<0))throw DomainError.invalid("Cantidad de PC debe ser un entero no negativo.");
  }
  @Transactional public Room save(long actor,Long key,Room r) {
+  db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);
   Boolean permitted=db.queryForObject("select activo and rol in ('ADMINISTRADOR','BEDEL') from aulas.usuario where id_usuario=?",Boolean.class,actor);
   if(!Boolean.TRUE.equals(permitted))throw new DomainError(403,"FORBIDDEN","Tu cuenta no permite gestionar aulas.");
   validate(r,key==null);Room before=null;
   if(key!=null){if(db.queryForList("select id_aula from aulas.aula where id_aula=? for update",Long.class,key).isEmpty())throw new DomainError(404,"NOT_FOUND","El aula no existe.");before=get(key);if(r.version()==null||!before.version().equals(r.version()))throw DomainError.conflict("El aula cambió. Volvé a abrirla para revisar la versión actual.");if(before.state().equals("Baja"))throw DomainError.conflict("Un aula dada de baja no se puede restaurar ni modificar.");if(!before.id().equals(r.id().strip()))throw DomainError.invalid("El identificador del aula no se modifica.");}
+  if(key!=null)new ar.edu.aulas.reservations.ReservationGuards(db,clock).room(key,r);
   var resources=r.resources()==null?List.<String>of():r.resources();String state=r.state().equals("Baja")?before.state():r.state();
-  Instant now=Instant.now();var instant=java.sql.Timestamp.from(now);
+  Instant now=clock.instant();var instant=java.sql.Timestamp.from(now);
   if(key==null)key=db.queryForObject("insert into aulas.aula(identificador,tipo,capacidad,estado,ubicacion,piso,pizarron,ventiladores,aire) values (?,?,?,?,?,?,?,?,?) returning id_aula",Long.class,r.id().strip(),r.type(),r.capacity(),state,r.location().strip(),r.floor(),r.board(),resources.contains("fans"),resources.contains("air"));
   else db.update("update aulas.aula set tipo=?,capacidad=?,estado=?,ubicacion=?,piso=?,pizarron=?,ventiladores=?,aire=?,baja_en=?,version=version+1 where id_aula=?",r.type(),r.capacity(),state,r.location().strip(),r.floor(),r.board(),resources.contains("fans"),resources.contains("air"),r.state().equals("Baja")?instant:null,key);
   db.update("delete from aulas.aula_multimedios where id_aula=?",key);db.update("delete from aulas.aula_laboratorio where id_aula=?",key);

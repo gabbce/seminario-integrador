@@ -1,3 +1,4 @@
+import { institutionalNow } from "../institutional-time";
 import { useRooms } from "../room-context";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,7 @@ export function Listing({ bookings }: { bookings: Booking[] }) {
   const go = useNavigate();
   const [filters, setFilters] = useState<ListFilters>({
     mode: "day",
-    date: "2026-09-14",
+    date: institutionalNow().slice(0, 10),
     course: bookings[0]?.course ?? "",
     room: "",
     type: "",

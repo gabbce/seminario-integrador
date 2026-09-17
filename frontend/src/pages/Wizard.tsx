@@ -1,3 +1,5 @@
+import { usePeriodicPreparation } from "../periodic-preparation";
+import { PreparedRoomChoices } from "../components/PreparedRoomChoices";
 import { FormError, FieldError } from "../components/FormError";
 import { DemoQueryContext, useDemoQuery } from "../demo-query";
 import { useCalendar, useCalendars } from "../calendar-context";
@@ -19,7 +21,6 @@ import { RoomChoices } from "../components/RoomChoices";
 import { ScheduleDates } from "../components/ScheduleDates";
 import {
   defaultSchedule,
-  omittedDates,
   periodLabels as defaultPeriodLabels,
   type Period,
   type Schedule,
@@ -29,9 +30,7 @@ import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import {
   available,
-  datesFor,
   dayNames,
-  expand,
   minutes,
   validateBooking,
   type Pattern,
@@ -130,10 +129,45 @@ export function Wizard({
   const [schedule, setSchedule] = useState<Schedule>(
     initial?.schedule ?? { ...defaultSchedule, year },
   );
+  const preparationKey =
+    mode === "periodic"
+      ? JSON.stringify({
+          year,
+          courseId: queryOnly ? undefined : course || undefined,
+          period: schedule.period,
+          students,
+          type,
+          board,
+          resources,
+          excluded: schedule.excluded,
+          patterns: patterns.map((p) => ({
+            day: p.day,
+            start: p.start,
+            modules: (minutes(p.end) - minutes(p.start)) / 30,
+          })),
+        })
+      : null;
+  const preparation = usePeriodicPreparation(preparationKey);
+  const [selectionKey, setSelectionKey] = useState<string | null>(null);
   const occurrences =
-    mode === "periodic" ? expand(patterns, schedule, calendar) : dates;
+    mode === "periodic"
+      ? (preparation.data?.patterns.flatMap((p) =>
+          p.dates.map((date) => ({
+            date,
+            start: p.start,
+            end: p.end,
+            room:
+              selectionKey === preparationKey
+                ? (patterns.find((pattern) => pattern.day === p.day)?.room ??
+                  "")
+                : "",
+          })),
+        ) ?? [])
+      : dates;
   const omitted =
-    mode === "periodic" ? omittedDates(patterns, schedule, calendar) : [];
+    mode === "periodic"
+      ? (preparation.data?.patterns.flatMap((p) => p.omitted) ?? [])
+      : [];
   const endTime = (start: string, duration: number) => {
     const total = minutes(start) + duration;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
@@ -156,7 +190,7 @@ export function Wizard({
     occurrences,
     ...(mode === "periodic" ? { schedule, patterns } : {}),
   };
-  const response = useDemoQuery(
+  const demoResponse = useDemoQuery(
     JSON.stringify([
       step,
       mode,
@@ -172,6 +206,7 @@ export function Wizard({
       calendar,
     ]),
   );
+  const response = mode === "periodic" ? preparation : demoResponse;
   const latest = useRef({ save, booking, bookings, rooms, calendar });
   useEffect(() => {
     latest.current = { save, booking, bookings, rooms, calendar };
@@ -184,30 +219,54 @@ export function Wizard({
     if (saving || uncertain || (step === 2 && response.status !== "ready"))
       return;
     setError("");
-    if (
-      mode === "periodic" &&
-      (!patterns.length ||
-        patterns.some(
-          (p) =>
-            !Number.isFinite(minutes(p.start)) ||
-            minutes(p.start) >= minutes(p.end) ||
-            minutes(p.end) > 1380,
-        ))
-    ) {
-      setError(
-        "Seleccioná al menos un día y un horario de inicio anterior al final.",
-      );
-      return;
-    }
-    if (
-      mode === "periodic" &&
-      patterns.some(
-        (p) => datesFor(p.day, schedule, p.start, calendar).length === 0,
-      )
-    ) {
-      setError(
-        "Cada día semanal seleccionado debe tener al menos una clase futura. Ajustá el período, los días o las exclusiones.",
-      );
+    if (mode === "periodic") {
+      if (preparation.status !== "ready") return;
+      if (!queryOnly && (!course || !teacher)) {
+        setError("Seleccioná curso y docente.");
+        return;
+      }
+      if (
+        !preparation.data?.patterns.length ||
+        preparation.data.patterns.some((p) => !p.dates.length)
+      ) {
+        setError(
+          "Cada día semanal seleccionado debe tener al menos una clase futura. Ajustá el período, los días o las exclusiones.",
+        );
+        return;
+      }
+      if (step === 1) {
+        setPatterns((current) =>
+          current.map((p) => ({
+            ...p,
+            room:
+              selectionKey === preparationKey &&
+              preparation.data?.patterns
+                .find((candidate) => candidate.day === p.day)
+                ?.availableRooms.some((room) => room.id === p.room)
+                ? p.room
+                : "",
+          })),
+        );
+        setSelectionKey(preparationKey);
+        setStep(2);
+        return;
+      }
+      if (!queryOnly && step === 2) {
+        if (
+          preparation.data.patterns.some(
+            (p) =>
+              !p.availableRooms.some(
+                (room) =>
+                  room.id ===
+                  patterns.find((pattern) => pattern.day === p.day)?.room,
+              ),
+          )
+        ) {
+          setError("Elegí un aula disponible para cada día semanal.");
+          return;
+        }
+        setStep(3);
+      }
       return;
     }
     if (calendar.state !== "Habilitado") {
@@ -363,7 +422,11 @@ export function Wizard({
       <ol className="steps">
         {(queryOnly
           ? ["Criterios y fechas", "Resultados"]
-          : ["Datos y horarios", "Elegir aulas", "Revisar y confirmar"]
+          : [
+              "Datos y horarios",
+              "Elegir aulas",
+              mode === "periodic" ? "Revisar" : "Revisar y confirmar",
+            ]
         ).map((s, i) => (
           <li
             key={s}
@@ -398,7 +461,7 @@ export function Wizard({
                   ? mode === "periodic"
                     ? "El aula elegida se mantiene en todas las clases de ese día durante el período."
                     : "Elegí un aula disponible para cada fecha y horario."
-                  : "La disponibilidad se verifica nuevamente al confirmar."}
+                  : "Esta consulta no ocupa las aulas."}
             </p>
             {step === 1 ? (
               <>
@@ -533,6 +596,7 @@ export function Wizard({
                         value={schedule.period}
                         onChange={(e) =>
                           setSchedule({
+                            year,
                             period: e.target.value as Period,
                             excluded: [],
                           })
@@ -603,7 +667,17 @@ export function Wizard({
                           <input
                             type="checkbox"
                             checked={patterns.some((p) => p.day === day)}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              if (!e.target.checked)
+                                setSchedule((current) => ({
+                                  ...current,
+                                  excluded: current.excluded.filter(
+                                    (date) =>
+                                      new Date(
+                                        `${date}T12:00:00Z`,
+                                      ).getUTCDay() !== day,
+                                  ),
+                                }));
                               setPatterns((old) =>
                                 e.target.checked
                                   ? [
@@ -616,8 +690,8 @@ export function Wizard({
                                       },
                                     ].sort((a, b) => a.day - b.day)
                                   : old.filter((p) => p.day !== day),
-                              )
-                            }
+                              );
+                            }}
                           />
                           {dayNames[day]}
                         </label>
@@ -676,6 +750,7 @@ export function Wizard({
                       patterns={patterns}
                       schedule={schedule}
                       change={setSchedule}
+                      prepared={preparation.data ?? null}
                     />
                   </div>
                 )}
@@ -731,22 +806,28 @@ export function Wizard({
                     <legend>
                       {dayNames[p.day]} · {p.start}–{p.end}{" "}
                       <small>
-                        {datesFor(p.day, schedule, p.start, calendar).length}{" "}
-                        clases
+                        {preparation.data?.patterns.find(
+                          (pattern) => pattern.day === p.day,
+                        )?.dates.length ?? 0}{" "}
+                        {preparation.data?.patterns.find(
+                          (pattern) => pattern.day === p.day,
+                        )?.dates.length === 1
+                          ? "clase"
+                          : "clases"}
                       </small>
                     </legend>
-                    <RoomChoices
-                      readOnly={queryOnly}
-                      privateContacts={role !== "Docente"}
-                      request={expand([p], schedule, calendar)}
-                      candidates={rooms.filter((r) =>
-                        compatible(r, requirements),
-                      )}
-                      bookings={bookings}
-                      selected={p.room}
-                      onSelect={(room) => update(p.day, { room })}
-                      name={`room-${p.day}`}
-                    />
+                    {preparation.data?.patterns.find(
+                      (pattern) => pattern.day === p.day,
+                    ) && (
+                      <PreparedRoomChoices
+                        readOnly={queryOnly}
+                        pattern={preparation.data.patterns.find(
+                          (pattern) => pattern.day === p.day,
+                        )!}
+                        selected={selectionKey === preparationKey ? p.room : ""}
+                        onSelect={(room) => update(p.day, { room })}
+                      />
+                    )}
                   </fieldset>
                 ))
               )
@@ -764,8 +845,14 @@ export function Wizard({
                       <p key={p.day}>
                         <strong>{dayNames[p.day]}</strong> · {p.start}–{p.end} ·
                         Aula {p.room} ·{" "}
-                        {datesFor(p.day, schedule, p.start, calendar).length}{" "}
-                        clases
+                        {preparation.data?.patterns.find(
+                          (pattern) => pattern.day === p.day,
+                        )?.dates.length ?? 0}{" "}
+                        {preparation.data?.patterns.find(
+                          (pattern) => pattern.day === p.day,
+                        )?.dates.length === 1
+                          ? "clase"
+                          : "clases"}
                       </p>
                     ))}
                 </div>
@@ -793,6 +880,25 @@ export function Wizard({
                 </details>
               </>
             )}
+            {mode === "periodic" &&
+              step === 1 &&
+              preparation.status !== "ready" && (
+                <div role={preparation.error ? "alert" : "status"}>
+                  <p>
+                    {preparation.error ??
+                      "Consultando fechas y disponibilidad…"}
+                  </p>
+                  {preparation.error && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={preparation.retry}
+                    >
+                      Reintentar consulta
+                    </Button>
+                  )}
+                </div>
+              )}
             {error && (
               <FormError
                 message={error}
@@ -839,11 +945,12 @@ export function Wizard({
                     Preparar reserva
                   </Button>
                 )
-              ) : (
+              ) : mode === "periodic" && step === 3 ? null : (
                 <Button
                   type="submit"
                   disabled={
                     saving ||
+                    (mode === "periodic" && preparation.status !== "ready") ||
                     (step === 2 &&
                       (response.status !== "ready" ||
                         occurrences.some((p) => !p.room)))
@@ -879,8 +986,12 @@ export function Wizard({
           </p>
           <hr />
           <p className="big-number">
-            {occurrences.length}
-            <span>clases previstas</span>
+            {mode === "periodic" && preparation.status !== "ready"
+              ? "—"
+              : occurrences.length}
+            <span>
+              {occurrences.length === 1 ? "clase prevista" : "clases previstas"}
+            </span>
           </p>
           <p>
             {mode === "periodic"

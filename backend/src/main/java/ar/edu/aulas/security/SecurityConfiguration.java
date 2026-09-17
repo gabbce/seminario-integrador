@@ -39,6 +39,7 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(rules->rules
                 .requestMatchers("/api/health", "/api/health/**").permitAll()
                 .requestMatchers("/api/me").authenticated()
+                .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/reservas/periodicas/preparacion").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/aulas","/api/referencias/**").authenticated()
                 .requestMatchers("/api/aulas","/api/aulas/**").hasAnyRole("ADMINISTRADOR","BEDEL")
                 .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/referencias/cursos").hasAnyRole("ADMINISTRADOR","BEDEL")

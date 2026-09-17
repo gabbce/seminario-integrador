@@ -1,6 +1,6 @@
 # QA manual · I-02
 
-Estado: operación funcional aceptada por el usuario el 17/09/2026 tras QA manual. Observaciones visuales: separación de alertas de validación y presentación del calendario académico; ajustes realizados y pendientes de su apreciación visual. Usar datos ficticios. Las credenciales se consultan en `backend/.env`, nunca se copian a capturas ni al repositorio.
+Estado: fase aceptada y cerrada por el usuario el 17/09/2026 tras QA manual y aprobación de los ajustes visuales de alertas y calendario, incluida la separación entre consultar y crear años lectivos. Usar datos ficticios. Las credenciales se consultan en `backend/.env`, nunca se copian a capturas ni al repositorio.
 
 ## Preparación y alcance
 
@@ -60,4 +60,4 @@ Esta entrega persiste cuentas, aulas, calendario y cursos. La lista académica d
 | Aulas | Aceptado (17/09/2026) | |
 | Calendario | Aceptado (17/09/2026) | |
 | Referencias | Aceptado (17/09/2026) | |
-| Repetición de carga y presentación | Operación aceptada (17/09/2026) | Seguimiento visual de alertas y calendario. |
+| Repetición de carga y presentación | Aceptado (17/09/2026) | Ajustes visuales aprobados. |

@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: ["**/prototype/**", "**/auth-real.spec.ts"],
+  testIgnore: ["**/prototype/**", "**/*-real.spec.ts"],
   use: {
     locale: "es-AR",
     baseURL: "http://127.0.0.1:5174",

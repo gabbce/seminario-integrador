@@ -6,6 +6,17 @@ const ids = {
   inhabilitado: "44444444-4444-4444-8444-444444444444",
 };
 export async function fakeAuth(page: Page) {
+  // Tests that exercise preparation replace this route with their own fixture.
+  // Other offline tests must never send their synthetic token to a real backend.
+  await page.route("**/api/reservas/periodicas/preparacion", (route) =>
+    route.fulfill({
+      status: 503,
+      json: {
+        code: "SERVICE_UNAVAILABLE",
+        message: "Disponibilidad no preparada en este escenario de prueba.",
+      },
+    }),
+  );
   await page.route("**/api/referencias/aulas", (route) =>
     route.fulfill({ json: [] }),
   );

@@ -5,14 +5,31 @@ export function ScheduleDates({
   patterns,
   schedule,
   change,
+  prepared,
 }: {
+  prepared?: import("../periodic-preparation").PeriodicPreparation | null;
   patterns: Pattern[];
   schedule: Schedule;
   change: (schedule: Schedule) => void;
 }) {
   const calendar = useCalendar(schedule.year);
-  const eligible = expand(patterns, { ...schedule, excluded: [] }, calendar);
-  const omitted = omittedDates(patterns, schedule, calendar);
+  const eligible =
+    prepared !== undefined
+      ? (prepared?.patterns.flatMap((p) =>
+          [
+            ...p.dates,
+            ...p.omitted
+              .filter((o) => o.reason === "Exclusión manual")
+              .map((o) => o.date),
+          ]
+            .sort()
+            .map((date) => ({ date, start: p.start, end: p.end })),
+        ) ?? [])
+      : expand(patterns, { ...schedule, excluded: [] }, calendar);
+  const omitted =
+    prepared !== undefined
+      ? (prepared?.patterns.flatMap((p) => p.omitted) ?? [])
+      : omittedDates(patterns, schedule, calendar);
   return (
     <details className="schedule-dates">
       <summary>Revisar fechas y exclusiones</summary>
@@ -41,6 +58,8 @@ export function ScheduleDates({
               </span>
             </label>
           ))
+        ) : prepared === null ? (
+          <p>Consultando las fechas del período…</p>
         ) : (
           <p>No quedan fechas futuras lectivas en el período seleccionado.</p>
         )}

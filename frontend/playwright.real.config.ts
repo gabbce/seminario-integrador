@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: "auth-real.spec.ts",
+  testMatch: "*-real.spec.ts",
   workers: 1,
   timeout: 120000,
   expect: { timeout: 30000 },

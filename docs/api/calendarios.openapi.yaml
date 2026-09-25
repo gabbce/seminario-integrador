@@ -10,8 +10,9 @@ info:
     Cuatrimestres ausentes se representan ["", ""], incompletos se admiten en preparación.
     Quitar un cuatrimestre de un año habilitado exige enviar En preparación en el mismo PUT.
     El agregado no pierde IDs de cuatrimestres conservados. Fechas sin cambios conservan su ID interno.
-    No existen reservas persistidas en I-02: bloqueos y generación conjunta de clases
-    se integrarán antes de habilitar confirmaciones persistidas I-03/I-04.
+    Con reservas persistidas, el PUT conserva guardias de dependencias y rechaza nuevas clases
+    pendientes de generar. La UI usa revisión y confirmación atómica definidas en
+    calendario-impacto.openapi.yaml (I-04.5), con recuperación por actor/UUID.
 security:
   - bearerAuth: []
 paths:

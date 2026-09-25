@@ -1,6 +1,6 @@
 # Avance de I-04
 
-Plan vinculante: [operación completa](i-04-operacion-completa.md), aprobado el 25/09/2026. Objetivo activo: implementar y verificar los seis cortes y dejar QA manual listo; aceptación exclusiva del usuario.
+Plan vinculante: [operación completa](i-04-operacion-completa.md), aprobado el 25/09/2026. **Estado: I-04 implementada y verificada, pendiente de QA del usuario.** Se completaron los seis cortes, los datos demo y la guía manual; aceptación exclusiva del usuario. Ver cierre técnico al final para evidencia vigente.
 
 ## Base y método
 
@@ -12,14 +12,14 @@ Cada fila requiere: contrato concreto antes de código; backend/PostgreSQL e int
 
 | Tarea | Contrato y aceptación a cubrir | Depende de | Estado / evidencia pendiente |
 |---|---|---|---|
-| Preparación | Lectura completa de fuentes, contraste de código, revisión de este desglose, pruebas base | I-03 | Verificada base y revisión inicial aprobada; contratos por corte pendientes |
+| Preparación | Lectura completa de fuentes, contraste de código, revisión de este desglose, pruebas base | I-03 | Verificada base y revisión inicial aprobada; contratos de todos los cortes completados |
 | I-04.1 | POST preparación/confirmación esporádica y GET operación/resultado; cabecera común, fechas del mismo año habilitado, receso, apertura, módulos, feriados, pasado, recursos; candidatas por capacidad/ID y alternativas por minutos; conjunto atómico e idempotente. CA-R01–03, 07, 13–18 | Preparación | Implementado y verificado: 86 backend, 64 unitarias, 44 navegador aislado, 1 recorrido remoto, capturas y revisión gpt-6-luna high sin bloqueantes. Ver evidencia final. |
 | I-04.2 | Cancelación por IDs explícitos y versión, motivo obligatorio, revisión de cantidad/fechas/aulas; estados derivados y cese explícito solo al cancelar toda continuidad; no reactivación. CA-R04–08, 21–23, 28 | I-04.1 | Implementado y verificado: 96 backend, 65 unitarias, 53 regresión navegador + 10 dirigidas finales, 1 real, capturas/revisiones sin bloqueantes; carrera con API de edición se completa en I-04.3a |
 | I-04.3a | Edición de cabecera antes de cualquier inicio, versión, curso del año, docente de referencia compartido, revalidación de todas las aulas; rechazo total de incompatibles. DA-83, CA-R19–23 | I-04.2 | Implementado y verificado: 105 backend, 65 unitarias, 63 navegador y 1 real; capturas y ambos revisores exactos sin bloqueantes |
 | I-04.3b | Revisión/confirmación de aulas: esporádicas por detalle; periódicas por patrón completo con todas las futuras vigentes, incluso reprogramadas; conservar iniciadas/canceladas. CA-R22–23, 37 | I-04.3a | Implementado y verificado: 114 backend, 65 unitarias, 74 regresión navegador + 12 dirigidas finales, 2 reales, opciones corregidas comprobadas sin escritura, ambos revisores sin bloqueantes |
 | I-04.4 | Reprogramación de IDs y versión con fecha/inicio/módulos, aula fija; esporádicas mismo año, periódicas períodos asignados; origen inmutable y patrón intacto; conflictos internos/externos. DA-84, CA-R22–23, 29 | I-04.3b | Implementado y verificado: 124 backend, 65 unitarias, 87 navegador, 2 reales; capturas y revisores exactos sin hallazgos |
 | I-04.5 | Preparación de impacto sin escritura y confirmación conjunta de calendario/series; comparar resumen/versiones, revalidar tiempo, requisitos y ocupación; ampliación/quitar feriado, pasado/exclusiones/cancelaciones/continuidad/orígenes; fin natural extensible. CA-R24–30, 35–37; DA-54/55, 57–60 | I-04.2–4 | Implementado y verificado: 137 backend, 65 unitarias, 99 navegador, 1 real; ambos revisores sin hallazgos, capturas inspeccionadas |
-| I-04.6 | Dataset explícito repetible sin sobrescrituras, 2026 segundo/2027 primero/anuales; guía QA con roles/fechas/resultados, regresión integral y cierre técnico | Todos | Pendiente: datos-demo-i-04.md, qa-manual-i-04.md, pruebas/revisión final, commits y limpieza de procesos propios |
+| I-04.6 | Dataset explícito repetible sin sobrescrituras, 2026 segundo/2027 primero/anuales; guía QA con roles/fechas/resultados, regresión integral y cierre técnico | Todos | Implementado y verificado: 144 backend, 65 unitarias, 99 navegador, carga/repetición Supabase y lectura real; guías listas, revisiones sin hallazgos, servicios propios detenidos |
 
 ## Decisiones técnicas iniciales
 
@@ -61,9 +61,9 @@ La primera ejecución de pruebas nuevas fue roja por ausencia de `SporadicConfir
 
 ## Punto de recuperación actual
 
-Commit inicial de desglose: `b028ea6`. Implementación local I-04.1: `f8b86c2`. La comprobación remota posterior completó su evidencia. Continuar con I-04.6 según la matriz, sin hacer push ni desplegar. Pendiente I-04.6, dataset final y guía QA completa.
+Los seis cortes están técnicamente completos. Guía vigente: [QA manual I-04](qa-manual-i-04.md); dataset y reservasQA: [datos demo](datos-demo-i-04.md). Continuación funcional: QA del usuario. No se hizo push ni despliegue; `prototype/v1` se conserva.
 
-Servicios propios de verificación detenidos: Java (PID 73954) finalizó por SIGTERM y Playwright cerró Vite; 8080/5175 libres. El servicio previo en 5432 no fue alterado. Para levantar: desde `backend/`, `./mvnw spring-boot:run`; desde `frontend/`, `npm run dev` (revisar puertos antes).
+Servicios propios detenidos; puertos8080/5173/5174/5175 libres al cierre. Para levantar: desde `backend/`, `./mvnw spring-boot:run`; desde `frontend/`, `npm run dev`. No se detuvieron procesos ajenos. Las secciones siguientes conservan la cronología de verificación; sus pendientes interinos fueron resueltos según el cierre final.
 
 ### Acceso restablecido por autorización del usuario
 
@@ -138,3 +138,36 @@ Navegador dirigido **14/14** (`/tmp/i045-browser.log`): Admin, ambas anchuras, r
 Cierre técnico I-04.5: **137/137 backend** (`/tmp/i045-backend-all.log`), **65 unitarias**, build/lint y **99/99 navegador** (`/tmp/i045-browser-all.log`) aprobados. Capturas finales revisión/confirmación/error/interferencia/incertidumbre a 390/1440 inspeccionadas, incluido texto de bloqueo corregido. Revisores funcional/estándares `gpt-6-luna` high sobre `/tmp/i045-review.diff`, SHA256 `5f820e363765975de80f1cbae300d499f236c131d7b696938b39ccf810323232`: sin hallazgos confirmados. Estándares retiró el falso positivo sobre PUT de año cerrado al comprobar que `lock()` ya rechaza Cerrado; no se necesitó cambio de código.
 
 Real **1/1** (`/tmp/i045-real-browser.log`): año QA nuevo **2029**, ID **4**, curso **90**, reserva **23**, «QA I04 Impacto calendario», aula103 lunes18–19. Primera clase05/03; quitar feriado12/03 y ampliar al19/03 agregó exactamente **2 clases**, todas guardadas con calendario e historial. Se preservaron años2026/2027/2028 existentes y toda la QA anterior. Recarga y segunda sesión Docente verificaron tres fechas, patrón igual y ausencia de contactos/historial en JSON. Capturas `/tmp/i045-real-review.png`, `history.png`, `docente-390.png` inspeccionadas. V14 aplicada por Flyway. Java propio PID42292 detenido tras verificar; Vite cerrado por Playwright. Continuar I-04.6, sin aceptación del usuario ni cierre global.
+
+## I-04.6 en curso
+
+Base `872f44d` cierra calendario. Contrato previo [carga-demo-i-04.md](../api/carga-demo-i-04.md). Dataset independiente `operacion-i04` v1:8 reservas/69 detalles,18 cancelados/51 vigentes;5 esporádicas y3 periódicas, con receso, cancelación parcial/total/cese, aula por patrón/esporádica y dos orígenes reprogramados. Usa V10 sin reinterpretar I-03. Comando no web explícito, transacción exterior real y reloj histórico limitado a instancias del cargador, conservando reloj institucional de servicios operativos. Recupera identidad antes de interpretar calendarios/ocupación y reporta discrepancias sin sobreescribir.
+
+Backend dirigido `DemoOperationTests`: **6/6**, PostgreSQL aislado (`/tmp/i046-backend.log`): coexiste con370 clases I-03, repetición con otro actor sin duplicación, snapshots y cambios manuales, claves retiradas/definición, referencias/calendario/ocupación/auditoría con rollback, sin carga ni Auth al arrancar. Guías [datos](datos-demo-i-04.md) y [QA manual](qa-manual-i-04.md) preparadas. Carga real, repetición, regresión completa y revisión exacta final en curso; no completar objetivo todavía.
+
+
+I-04.6: carga remota primera **8 reservas/69 clases** y repetición **0 creadas/8 conservadas**, sin discrepancias. Reservas24–31 con identidades descritas en datos-demo. Lectura real integrada **1/1** (`/tmp/i046-real-browser.log`): todas las fechas/estados/orígenes/patrón, 18 canceladas, cese explícito, QA15–23 conservada; segunda sesión Docente sin contactos/registrante/historial/actor de cancelación en JSON. Capturas `/tmp/i046-real-periodic-1440.png`, `/tmp/i046-real-partial-390.png`, `/tmp/i046-real-docente-390.png` inspeccionadas: sin recortes, historia y origen legibles, roles respetados. Java propio PID54124 detenido después; Vite real cerrado por Playwright. Comandos de carga terminaron normalmente sin servidor web.
+
+Regresión backend inicial **143/143** (`/tmp/i046-backend-all.log`); se agregó competencia concurrente real calendario/reasignación de patrón como cierre integrado: **14/14 CalendarImpactTests** (`/tmp/i046-calendar-race.log`), un único ganador y aula de cada nueva clase coherente con patrón. Regresión total final **144/144**, sin fallos/errores/omitidas (`/tmp/i046-backend-final.log`). Frontend sin cambios funcionales desde I-04.5: últimos **65 unitarias**, build, **99/99 browser**, lint final I-04.6 aprobado. No se repitió QA manual del usuario ni verificaciones fuera de alcance I-05/I-06.
+
+Revisores funcional y estándares `gpt-6-luna` high, diff SHA256 `bf80d90ea177caff39f36fea4280d4ac9536a9043a46a6b9b0bcca55afefaa32`, base `872f44d`: sin hallazgos. Revisión final de ambos ejes sobre diff SHA256 `7657d5d027869167bb60a1831b4879bafeec6e9581604420fabcdc85f2d45d6d`: sin hallazgos ni bloqueantes. Ambos leyeron resultado144/144, carga/repetición y recorrido real1/1; aprobaron coherencia de la evidencia y prueba concurrente añadida. Se actualizó el estado documental interino con estos resultados.
+
+
+## Cierre técnico · 25/09/2026
+
+**I-04 implementada y verificada, pendiente de QA del usuario.** Contratos, seis cortes, datos demo aditivos y QA manual completados. La aprobación de revisores y las pruebas no constituyen aceptación del usuario.
+
+| Corte | Commit de implementación | Resultado |
+|---|---|---|
+|Desglose|`b028ea6`|Plan y criterios revisados antes de implementar|
+|I-04.1|`f8b86c2`, evidencia/acceso `194ff4d`|Esporádicas completas|
+|I-04.2|`e818133`|Cancelación/continuidad/historia|
+|I-04.3a|`126461f`|Cabecera compartida antes de inicio|
+|I-04.3b|`b7e7b99`|Aulas por clase/patrón, intercambios atómicos|
+|I-04.4|`d76b58f`|Reprogramación/origen/patrón|
+|I-04.5|`872f44d`|Impacto calendario y nuevas clases atómicos|
+|I-04.6|Commit de cierre que contiene este documento|Carga explícita, regresión integrada y guía QA|
+
+Evidencia final: **144 pruebas backend PostgreSQL17.6 aislado;65 unitarias frontend;99 recorridos de navegador**, build/lint aprobados. Verificaciones remotas por todas las operaciones, lectura desde segunda sesión y capturas390/1440 según cada sección; última lectura integrada1/1. Dataset nuevo8reservas/69detalles; repetir no duplica y conserva8. Las cuentas configuradas con `.env` tienen acceso restablecido; nunca se imprimieron/versionaron contraseñas. Migraciones nuevasV11–V14, sin modificar aplicadas anteriores. No hubo cambios a `prototype/v1`.
+
+Límites explícitos: QA manual del usuario pendiente; no se ejecutaron indicadores persistentes, consultas/impresión completas ni empaquetado de I-05/I-06. Escenarios exactos de pasado/fin natural y espera de bloqueo se comprobaron con reloj controlado **solo en PostgreSQL aislado**; no se alteró el reloj operativo para simularlos en Supabase. La pérdida de red antes/después del commit se simula en navegador; las pruebas PostgreSQL acreditan idempotencia/transacciones, y los recorridos reales acreditan persistencia normal. Historial de demo usa únicamente el mecanismo explícito de reloj fijo de carga aprobado.

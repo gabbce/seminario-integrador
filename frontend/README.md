@@ -17,7 +17,7 @@ El proxy /api apunta a Java en 8080; AULAS_API_TARGET permite cambiarlo en .env.
 
 ## Alcance actual
 
-Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Aulas, cursos, calendario, preparación y confirmación periódica, agenda/listado mínimos y detalle usan PostgreSQL a través de Java. Los datos ficticios de esos módulos persisten al recargar. El alta esporádica de I-04.1 está implementada con verificación remota pendiente; edición y cancelación corresponden a los cortes siguientes de I-04. Los indicadores aún usan el conjunto separado del prototipo hasta I-05. La identidad de acceso no se puede cambiar mediante controles de demostración.
+Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Aulas, cursos, calendario, preparación y confirmación periódica, agenda/listado mínimos y detalle usan PostgreSQL a través de Java. Los datos ficticios de esos módulos persisten al recargar. I-04 incorpora altas esporádicas, cancelación, cabecera, aulas, reprogramación e impacto atómico de calendario, con verificación remota por operación. Los indicadores aún usan el conjunto separado del prototipo hasta I-05. La identidad de acceso no se puede cambiar mediante controles de demostración.
 
 El prototipo completo, con escenarios y controles de fallos, permanece en prototype/v1. Los documentos de diseño y su QA describen esa referencia. No constituyen evidencia de integración persistente.
 
@@ -82,3 +82,5 @@ Opciones y revisión por Java; confirmación atómica de clases esporádicas sel
 Selección individual/múltiple, revisión antes/después y confirmación por Java. Conserva aula, patrón y origen incluso en cambios sucesivos; V13 permite origen esporádico y lo protege después de fijarlo. Se comparan versiones de reserva/calendario/aulas y se recuperan respuestas inciertas con la misma operación. [Contrato](../docs/api/reprogramacion.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).
 
 I-04.5: Calendario académico usa revisión de impacto del backend antes de confirmar. Muestra clases e interferencias/alternativas informativas; la incertidumbre conserva UUID/propuesta en sessionStorage por actor y permite consultar/reintentar tras recarga. Pruebas `calendar-impact.spec.ts`; recorrido remoto explícito `npm run test:e2e:real -- e2e/calendar-impact-real.spec.ts` crea un año QA nuevo y conserva sus datos, sin editar calendarios 2026/2027.
+
+La [guía QA I-04](../docs/planificacion/qa-manual-i-04.md) detalla roles, fechas y resultados esperados; el estado técnico y la evidencia están en [avance](../docs/planificacion/avance-i-04.md).

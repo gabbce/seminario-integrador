@@ -196,4 +196,22 @@ class CalendarImpactTests {
   calendars.delete(admin,id,1L);assertThat(impact.confirm(admin,id,req)).isEqualTo(result);
  }
 
+ @Test void calendarAndPatternReassignmentCompeteWithoutPartialPattern() throws Exception {
+  var b=confirmation.confirm(admin,request());long id=key(b);var extension=impactRequest(extension());long before=count("detalle_reserva");
+  var target=rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
+  @SuppressWarnings("unchecked") var groups=(List<Map<String,Object>>)roomChanges.options(bedel,id,new RoomMutationService.Version(0L)).get("groups");
+  var selections=groups.stream().map(g->{@SuppressWarnings("unchecked") var details=(List<String>)g.get("detailIds");return new RoomMutationService.Selection(g.get("groupId").toString(),details,target.internalId(),target.version());}).toList();
+  var reassignment=new RoomMutationService.Request(UUID.randomUUID(),0L,selections);
+  boolean calendarWon;
+  try(var executor=Executors.newFixedThreadPool(2)){
+   var gate=new CountDownLatch(1);
+   var a=executor.submit(()->{gate.await();try{impact.confirm(admin,year,extension);return true;}catch(DomainError e){return false;}});
+   var c=executor.submit(()->{gate.await();try{roomChanges.confirm(bedel,id,reassignment);return true;}catch(DomainError e){return false;}});
+   gate.countDown();calendarWon=a.get(20,TimeUnit.SECONDS);assertThat(c.get(20,TimeUnit.SECONDS)).isNotEqualTo(calendarWon);
+  }
+  assertThat(count("detalle_reserva")).isEqualTo(before+(calendarWon?3:0));
+  assertThat(db.queryForObject("select count(*) from aulas.detalle_reserva d join aulas.patron_semanal p using(id_patron) where d.id_reserva=? and d.estado='CONFIRMADA' and d.id_aula<>p.id_aula",Long.class,id)).isZero();
+  assertThat(db.queryForObject("select version from aulas.reserva where id_reserva=?",Long.class,id)).isOne();
+ }
+
 }

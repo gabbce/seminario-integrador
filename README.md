@@ -23,7 +23,7 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.
 
-Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 e I-02 implementadas; cuentas, aulas, calendario y cursos persistentes. I-03 conecta preparación, confirmación y consulta mínima de reservas periódicas. Las operaciones restantes se completan en I-04; los indicadores aún usan el conjunto del prototipo hasta I-05.
+Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 e I-02 implementadas; cuentas, aulas, calendario y cursos persistentes. I-03 conecta preparación, confirmación y consulta mínima de reservas periódicas. I-04 conecta esporádicas, cancelación, edición, reprogramación e impacto de calendario; los indicadores aún usan el conjunto del prototipo hasta I-05.
 
 ## Ejecutar la integración
 
@@ -53,4 +53,4 @@ Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local`; contraseña en
 
 ## Próxima entrega aprobada
 
-[Plan detallado I-04 · Operación completa](docs/planificacion/i-04-operacion-completa.md), aprobado el 25/09/2026 y pendiente de implementación.
+[Plan detallado I-04 · Operación completa](docs/planificacion/i-04-operacion-completa.md), aprobado el 25/09/2026; **implementada y verificada, pendiente de QA del usuario**. [Avance](docs/planificacion/avance-i-04.md), [datos demo](docs/planificacion/datos-demo-i-04.md) y [QA manual](docs/planificacion/qa-manual-i-04.md).

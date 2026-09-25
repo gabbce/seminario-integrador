@@ -39,7 +39,7 @@ public class DemoReservationSeed {
     private String normalize(String value) {return value.replaceAll("(?U)\\s+"," ").strip().toUpperCase(Locale.ROOT);}
     private String definition(Dataset data,Entry entry) {return json.writeValueAsString(Map.of("version",data.version(),"clock",data.clock(),"entry",entry));}
     // Complete persisted aggregate, including cancellation metadata, excluding mutable user profiles.
-    private String snapshot(long id) {
+    String snapshot(long id) {
         return db.queryForObject("""
             select jsonb_build_object('reserva',to_jsonb(r),
               'periodica',(select to_jsonb(p) from aulas.reserva_periodica p where p.id_reserva=r.id_reserva),

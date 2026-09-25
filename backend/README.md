@@ -1,6 +1,6 @@
 # Backend Aulas
 
-Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. I-03 incorpora reservas periódicas persistentes; las operaciones restantes e indicadores se completan en I-04 e I-05.
+Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. I-03 incorpora reservas periódicas persistentes; I-04 incorpora esporádicas, cancelación, edición, reprogramación e impacto atómico de calendario; indicadores persistentes corresponden a I-05.
 
 ## Configuración local
 
@@ -93,3 +93,7 @@ Opciones y revisión por Java; confirmación atómica de clases esporádicas sel
 Selección individual/múltiple, revisión antes/después y confirmación por Java. Conserva aula, patrón y origen incluso en cambios sucesivos; V13 permite origen esporádico y lo protege después de fijarlo. Se comparan versiones de reserva/calendario/aulas y se recuperan respuestas inciertas con la misma operación. [Contrato](../docs/api/reprogramacion.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).
 
 I-04.5: revisión/confirmación Admin en [calendario-impacto.openapi.yaml](../docs/api/calendario-impacto.openapi.yaml), con V14 para recuperación por actor/UUID. `CalendarImpactTests` usa PostgreSQL aislado para ampliaciones, dependencias, conflictos, concurrencia y rollback. El PUT previo permanece protegido ante generación pendiente; las operaciones completas pasan por revisión y guardado atómico.
+
+## Demostración I-04
+
+Carga aditiva explícita `seed-operacion-i04`, separada del arranque. [Datos y comando](../docs/planificacion/datos-demo-i-04.md), [contrato](../docs/api/carga-demo-i-04.md) y [QA manual](../docs/planificacion/qa-manual-i-04.md). Conserva los datasets y QA anteriores; informa discrepancias sin restaurar cambios manuales.

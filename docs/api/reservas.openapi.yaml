@@ -201,10 +201,12 @@ components:
     Booking:
       type: object
       required: [id, version, subject, course, courseId, teacher, teacherId, students, type, board, resources, occurrences]
-      description: teacherEmail y registrant se omiten completamente para Docente. Alta esporádica documentada en esporadicas.openapi.yaml (I-04.1). Edición y cancelación corresponden a cortes posteriores.
+      description: teacherEmail y registrant se omiten completamente para Docente. Alta esporádica documentada en esporadicas.openapi.yaml (I-04.1). Cancelación en cancelaciones.openapi.yaml (I-04.2); motivo y fecha visibles para Docente, actor omitido.
       properties:
         id: { type: string }
         version: { type: integer, format: int64 }
+        state: { type: string, enum: [CONFIRMADA, CANCELADA] }
+        continuityCancelledAt: { type: string, format: date-time }
         subject: { type: string }
         course: { type: string }
         courseId: { type: string }
@@ -253,6 +255,13 @@ components:
               end: { type: string }
               room: { type: string }
               cancelled: { type: boolean }
+              cancellation:
+                type: object
+                required: [reason, at]
+                properties:
+                  reason: { type: string }
+                  at: { type: string, format: date-time }
+                  actor: { type: string, description: Solo Admin y Bedel; sin correo }
     Alternative:
       type: object
       required: [room, group, sporadicDates, sporadicMinutes, periodicMinutes, conflicts]

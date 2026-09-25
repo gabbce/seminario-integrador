@@ -13,3 +13,11 @@ describe("hora institucional", () => {
     );
   });
 });
+
+import { institutionalTimestamp } from "./institutional-time";
+it("presents persisted UTC audit instants in institutional time without microseconds", () => {
+  expect(institutionalTimestamp("2026-09-25T07:33:05.002203Z")).toBe(
+    "25/9/26, 04:33",
+  );
+  expect(institutionalTimestamp("2026-09-25T04:33")).toBe("2026-09-25 04:33");
+});

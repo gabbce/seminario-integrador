@@ -31,13 +31,18 @@ public class ReservationQueries {
         String where=id==null?"":" where r.id_reserva=?";
         String privateColumns=operational?",r.email_docente,r.registrado_por,u.nombre as registrador_nombre,u.apellido as registrador_apellido,u.email as registrador_email,u.activo":"";
         String privateJoin=operational?" join aulas.usuario u on u.id_usuario=r.registrado_por":"";
-        var rows=db.queryForList("select r.id_reserva,r.version,r.id_curso,r.nombre_docente,r.apellido_docente,r.docente_externo_id,r.cantidad_alumnos,r.tipo_aula,r.pizarron,m.nombre as materia,m.id_materia,c.comision,a.anio_calendario"+privateColumns+" from aulas.reserva r join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.anio_lectivo a using(id_anio_lectivo)"+privateJoin+where+" order by r.id_reserva desc",args);
+        var rows=db.queryForList("select r.id_reserva,r.version,r.estado,rp.continuidad_cancelada_en,r.id_curso,r.nombre_docente,r.apellido_docente,r.docente_externo_id,r.cantidad_alumnos,r.tipo_aula,r.pizarron,m.nombre as materia,m.id_materia,c.comision,a.anio_calendario"+privateColumns+" from aulas.reserva r join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.anio_lectivo a using(id_anio_lectivo) left join aulas.reserva_periodica rp on rp.id_reserva=r.id_reserva"+privateJoin+where+" order by r.id_reserva desc",args);
         if(rows.isEmpty()) return List.of();
         var resources=children("select r.id_reserva,x.resource from aulas.reserva r cross join lateral unnest(r.recursos) with ordinality x(resource,position)"+where+" order by r.id_reserva,x.position",args,(rs,n)->rs.getString("resource"));
-        var occurrences=children("select r.id_reserva,r.id_detalle,r.fecha,r.hora_inicio,r.cantidad_modulos,r.estado,r.fecha_original,a.identificador from aulas.detalle_reserva r join aulas.aula a using(id_aula)"+where+" order by r.id_reserva,r.fecha,r.hora_inicio,r.id_detalle",args,(rs,n)->{
+        var occurrences=children("select r.id_reserva,r.id_detalle,r.fecha,r.hora_inicio,r.cantidad_modulos,r.estado,r.fecha_original,r.motivo_cancelacion,r.cancelado_en"+(operational?",cancelador.nombre as cancelador_nombre,cancelador.apellido as cancelador_apellido":"")+",a.identificador from aulas.detalle_reserva r join aulas.aula a using(id_aula)"+(operational?" left join aulas.usuario cancelador on cancelador.id_usuario=r.cancelado_por":"")+where+" order by r.id_reserva,r.fecha,r.hora_inicio,r.id_detalle",args,(rs,n)->{
             var detail=new LinkedHashMap<String,Object>();detail.put("id",rs.getString("id_detalle"));detail.put("date",rs.getDate("fecha").toString());
             var start=rs.getTime("hora_inicio").toLocalTime();detail.put("start",start.toString());detail.put("end",start.plusMinutes(rs.getInt("cantidad_modulos")*30L).toString());
             detail.put("room",rs.getString("identificador"));detail.put("cancelled",rs.getString("estado").equals("CANCELADA"));
+            if(rs.getString("motivo_cancelacion")!=null) {
+                var cancellation=new LinkedHashMap<String,Object>();cancellation.put("reason",rs.getString("motivo_cancelacion"));cancellation.put("at",rs.getObject("cancelado_en",java.time.OffsetDateTime.class).toInstant().toString());
+                if(operational) cancellation.put("actor",rs.getString("cancelador_nombre")+" "+rs.getString("cancelador_apellido"));
+                detail.put("cancellation",cancellation);
+            }
             if(rs.getDate("fecha_original")!=null) detail.put("originalDate",rs.getDate("fecha_original").toString());
             return detail;
         });
@@ -47,7 +52,8 @@ public class ReservationQueries {
         var results=new ArrayList<Map<String,Object>>();
         for(var r:rows) {
             long key=((Number)r.get("id_reserva")).longValue();var result=new LinkedHashMap<String,Object>();
-            result.put("id",Long.toString(key));result.put("version",r.get("version"));result.put("subject",r.get("materia"));result.put("courseId",r.get("id_curso").toString());
+            result.put("id",Long.toString(key));result.put("state",r.get("estado"));
+            if(r.get("continuidad_cancelada_en")!=null) result.put("continuityCancelledAt",((java.sql.Timestamp)r.get("continuidad_cancelada_en")).toInstant().toString());result.put("version",r.get("version"));result.put("subject",r.get("materia"));result.put("courseId",r.get("id_curso").toString());
             result.put("course",String.format("%03d-%s-%s",((Number)r.get("id_materia")).longValue(),r.get("comision"),r.get("anio_calendario")));
             result.put("teacher",r.get("nombre_docente")+" "+r.get("apellido_docente"));result.put("teacherId",r.get("docente_externo_id"));
             result.put("students",r.get("cantidad_alumnos"));result.put("type",r.get("tipo_aula"));result.put("board",Objects.toString(r.get("pizarron"),""));result.put("resources",resources.getOrDefault(key,List.of()));

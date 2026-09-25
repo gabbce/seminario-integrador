@@ -75,3 +75,7 @@ La carga explícita de [reservas demo 2026/2027](../docs/planificacion/datos-dem
 ## Esporádicas (I-04.1 en verificación)
 
 Preparación y confirmación persistentes: [OpenAPI](../docs/api/esporadicas.openapi.yaml). Reutiliza V8/V9, sin nueva migración para el alta; transacción completa, protección de ocupación y UUID por actor. [Avance I-04](../docs/planificacion/avance-i-04.md) registra pruebas PostgreSQL aisladas y el acceso remoto pendiente. Una autenticación PostgreSQL rechazada exige corregir `AULAS_DB_PASSWORD` en `.env`; nunca incluirla en logs ni Git.
+
+### I-04.2 · Cancelaciones
+
+Preparación y confirmación por IDs, versión y motivo: [contrato](../docs/api/cancelaciones.openapi.yaml). V11 incorpora el registro de múltiples mutaciones por reserva; V9 conserva altas. Las cancelaciones son atómicas, liberan ocupación y conservan motivo/actor/instante. La UI recupera respuestas inciertas con la misma operación incluso tras recarga. Evidencia actual en [avance I-04](../docs/planificacion/avance-i-04.md).

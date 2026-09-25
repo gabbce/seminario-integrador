@@ -366,7 +366,13 @@ export default function App({
                     />
                     <Route
                       path="/reservas/:id"
-                      element={<PersistedDetail role={role} />}
+                      element={
+                        <PersistedDetail
+                          key={location.pathname}
+                          role={role}
+                          actorId={currentUser.id}
+                        />
+                      }
                     />
                     <Route
                       path="/reservas"

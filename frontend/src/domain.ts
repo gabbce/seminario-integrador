@@ -26,13 +26,14 @@ export type Room = {
   board?: string;
 };
 export type Occurrence = {
+  id?: string;
   originalDate?: string;
   date: string;
   start: string;
   end: string;
   room: string;
   cancelled?: boolean;
-  cancellation?: { reason: string; actor: string; at: string };
+  cancellation?: { reason: string; actor?: string; at: string };
 };
 export type Booking = {
   changes?: { at: string; actor: string; description: string }[];

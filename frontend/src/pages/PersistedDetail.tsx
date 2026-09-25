@@ -1,11 +1,22 @@
+import { PersistedCancellation } from "./PersistedCancellation";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
 import type { Booking, Role } from "../domain";
 import { Detail } from "./Detail";
 import { Button } from "../components/ui/button";
-export function PersistedDetail({ role }: { role: Role }) {
+export function PersistedDetail({
+  role,
+  actorId,
+}: {
+  role: Role;
+  actorId: string;
+}) {
   const { id } = useParams();
+  const storageKey = `aulas-cancellation:${actorId}:${id}`;
+  const [cancelling, setCancelling] = useState(
+    () => !!sessionStorage.getItem(storageKey),
+  );
   const [attempt, retry] = useState(0);
   const [result, setResult] = useState<{
     id?: string;
@@ -43,8 +54,22 @@ export function PersistedDetail({ role }: { role: Role }) {
       </section>
     );
   if (!result.booking) return null;
+  if (cancelling && role !== "Docente")
+    return (
+      <PersistedCancellation
+        key={storageKey}
+        booking={result.booking}
+        storageKey={storageKey}
+        back={() => {
+          setCancelling(false);
+          setResult(undefined);
+          retry((old) => old + 1);
+        }}
+      />
+    );
   return (
     <Detail
+      cancelPersisted={() => setCancelling(true)}
       readOnly
       bookings={[result.booking]}
       role={role}

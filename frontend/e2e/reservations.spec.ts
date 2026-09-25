@@ -432,9 +432,12 @@ for (const width of [390, 1440])
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: /Cancelar clases|Reprogramar|Cambiar aula|Editar datos/,
+        name: /Reprogramar|Cambiar aula|Editar datos/,
       }),
     ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Cancelar clases", exact: true }),
+    ).toBeVisible();
     await page.screenshot({
       path: `/tmp/i032-detalle-${width}.png`,
       fullPage: true,

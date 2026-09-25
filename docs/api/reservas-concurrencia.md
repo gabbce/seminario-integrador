@@ -15,3 +15,9 @@ Las lecturas I-03 son una colección mínima sin paginación más consulta direc
 ## Esporádicas (I-04.1)
 
 [Contrato esporádico](esporadicas.openapi.yaml): preparación por fecha concreta y confirmación atómica con el mismo orden de bloqueo e identidad `(actor, UUID)` de las altas periódicas. El contenido canónico empieza por `SPORADIC` y ordena fechas, selecciones y recursos. La confirmación revalida fecha/inicio futuro, apertura, feriados, año, requisitos, versiones y disponibilidad; receso permitido. Se guarda la especialización esporádica y sus detalles junto con operación y auditoría, sin patrones. GET de operación y lecturas existentes recuperan el resultado con la privacidad vigente. Las pruebas concurrentes y de rollback usan PostgreSQL aislado; ver evidencia y limitación de acceso real en [avance I-04](../planificacion/avance-i-04.md).
+
+## I-04.2 · Cancelación
+
+Contrato: `cancelaciones.openapi.yaml`. La selección usa IDs persistidos y versión, nunca índices ni un filtro dinámico «todas». Una revisión coherente muestra fechas/aulas y cese de continuidad; no escribe. La confirmación serializa con `control_cuentas → año → aulas ascendentes → reserva`, revalida permisos y tiempo tras bloquear y guarda detalles, cabecera, auditoría y resultado juntos. La cancelación libera espacio aun si el año dejó de estar habilitado; no altera calendario ni requisitos.
+
+V11 crea `mutacion_reserva`, separado del ledger de altas V9 (que limita una operación por reserva). Un actor/UUID identifica tipo, reserva y contenido normalizado; múltiples mutaciones de una reserva tienen claves distintas. Recuperación devuelve el resultado inmutable sin contactos, no una copia obsoleta de la reserva. La UI consulta el detalle actual tras éxito. Una respuesta incierta conserva UUID y cuerpo: `found=false` no habilita una nueva clave ni edición silenciosa. Cancelar la última futura de una periódica registra continuidad cancelada; terminar naturalmente no lo hace.

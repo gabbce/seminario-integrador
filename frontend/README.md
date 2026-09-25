@@ -64,3 +64,7 @@ Para recorrer reservas existentes y alternativas reales, cargar el [dataset I-03
 ## Esporádicas (I-04.1 en verificación)
 
 El selector Modalidad del asistente permite preparar y confirmar fechas concretas por Java, incluso en receso. El resultado utiliza agenda/listado/detalle persistidos y la recuperación de respuesta incierta. [Avance y limitaciones de verificación](../docs/planificacion/avance-i-04.md). Recorrido real explícito (crea dos clases QA y las conserva): `npm run test:e2e:real -- e2e/sporadic-real.spec.ts`; requiere backend conectado y credencial de PostgreSQL válida. No ejecutarlo como restablecimiento de datos.
+
+### I-04.2 · Cancelaciones
+
+El detalle operativo permite seleccionar clases futuras, indicar motivo, revisar fechas/aulas y confirmar. El servidor revalida permisos, tiempo y versión. Una respuesta incierta conserva UUID y propuesta en sessionStorage por cuenta/reserva; se puede consultar o reintentar la misma operación tras recargar. La lectura actual del detalle se consulta después de confirmar. Contrato: [cancelaciones](../docs/api/cancelaciones.openapi.yaml); verificación: [avance I-04](../docs/planificacion/avance-i-04.md).

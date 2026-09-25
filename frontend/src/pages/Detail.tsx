@@ -1,4 +1,7 @@
-import { institutionalNow } from "../institutional-time";
+import {
+  institutionalNow,
+  institutionalTimestamp,
+} from "../institutional-time";
 import { FormError } from "../components/FormError";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
@@ -28,8 +31,10 @@ export function Detail({
   addCourse,
   changeHeader,
   readOnly = false,
+  cancelPersisted,
 }: {
   readOnly?: boolean;
+  cancelPersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -48,6 +53,7 @@ export function Detail({
       key={b.id}
       booking={b}
       readOnly={readOnly}
+      cancelPersisted={cancelPersisted}
       consultedDate={search.get("fecha")}
       consultedTime={search.get("hora")}
       role={role}
@@ -74,11 +80,13 @@ function BookingDetail({
   addCourse,
   changeHeader,
   readOnly = false,
+  cancelPersisted,
 }: {
   booking: Booking;
   consultedDate: string | null;
   consultedTime: string | null;
   readOnly?: boolean;
+  cancelPersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -217,13 +225,17 @@ function BookingDetail({
             </Button>
           )}
         {!editing &&
-          !readOnly &&
+          (!readOnly || cancelPersisted) &&
           operator &&
-          calendar.state === "Habilitado" &&
+          (cancelPersisted || calendar.state === "Habilitado") &&
           future.length > 0 && (
             <Button
               variant="outline"
               onClick={() => {
+                if (cancelPersisted) {
+                  cancelPersisted();
+                  return;
+                }
                 setEditing(true);
                 setVersion(b.version ?? 0);
                 setIndices([]);
@@ -327,7 +339,7 @@ function BookingDetail({
                         <>
                           <br />
                           {o.cancellation.actor} ·{" "}
-                          {o.cancellation.at.replace("T", " ")}
+                          {institutionalTimestamp(o.cancellation.at)}
                         </>
                       )}
                     </p>

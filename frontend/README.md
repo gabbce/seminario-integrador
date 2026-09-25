@@ -17,7 +17,7 @@ El proxy /api apunta a Java en 8080; AULAS_API_TARGET permite cambiarlo en .env.
 
 ## Alcance actual
 
-Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Aulas, cursos, calendario, preparación y confirmación periódica, agenda/listado mínimos y detalle usan PostgreSQL a través de Java. Los datos ficticios de esos módulos persisten al recargar. Edición, cancelación y alta esporádica corresponden a I-04. Los indicadores aún usan el conjunto separado del prototipo hasta I-05. La identidad de acceso no se puede cambiar mediante controles de demostración.
+Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Aulas, cursos, calendario, preparación y confirmación periódica, agenda/listado mínimos y detalle usan PostgreSQL a través de Java. Los datos ficticios de esos módulos persisten al recargar. El alta esporádica de I-04.1 está implementada con verificación remota pendiente; edición y cancelación corresponden a los cortes siguientes de I-04. Los indicadores aún usan el conjunto separado del prototipo hasta I-05. La identidad de acceso no se puede cambiar mediante controles de demostración.
 
 El prototipo completo, con escenarios y controles de fallos, permanece en prototype/v1. Los documentos de diseño y su QA describen esa referencia. No constituyen evidencia de integración persistente.
 
@@ -60,3 +60,7 @@ Cuentas, Aulas y Calendario guardan por API Java. Nueva reserva consulta y crea 
 [Plan](../docs/planificacion/i-03-reserva-periodica.md), [evidencia](../docs/planificacion/avance-i-03.md) y [QA manual](../docs/planificacion/qa-manual-i-03.md). La fecha operativa usa el reloj institucional de Córdoba. Confirmar requiere disponibilidad actual para todas las fechas del patrón; una respuesta incierta conserva la identidad de la operación para comprobarla o reintentar sin duplicar.
 
 Para recorrer reservas existentes y alternativas reales, cargar el [dataset I-03](../docs/planificacion/datos-demo-i-03.md). La prueba real de ese dataset es de lectura y supone las fechas/series originales de la carga; los casos automatizados de ranking esporádico usan fixtures separados.
+
+## Esporádicas (I-04.1 en verificación)
+
+El selector Modalidad del asistente permite preparar y confirmar fechas concretas por Java, incluso en receso. El resultado utiliza agenda/listado/detalle persistidos y la recuperación de respuesta incierta. [Avance y limitaciones de verificación](../docs/planificacion/avance-i-04.md). Recorrido real explícito (crea dos clases QA y las conserva): `npm run test:e2e:real -- e2e/sporadic-real.spec.ts`; requiere backend conectado y credencial de PostgreSQL válida. No ejecutarlo como restablecimiento de datos.

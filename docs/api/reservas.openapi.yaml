@@ -201,7 +201,7 @@ components:
     Booking:
       type: object
       required: [id, version, subject, course, courseId, teacher, teacherId, students, type, board, resources, occurrences]
-      description: teacherEmail y registrant se omiten completamente para Docente. No hay escritura esporádica, edición ni cancelación en I-03.
+      description: teacherEmail y registrant se omiten completamente para Docente. Alta esporádica documentada en esporadicas.openapi.yaml (I-04.1). Edición y cancelación corresponden a cortes posteriores.
       properties:
         id: { type: string }
         version: { type: integer, format: int64 }

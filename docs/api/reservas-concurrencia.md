@@ -11,3 +11,7 @@ GET de operación se limita al actor autenticado. `found=false` también puede s
 Las modificaciones administrativas comprueban requisitos de clases futuras/en curso y relaciones históricas. Para calendario, la transición aprobada en I-03 rechaza cambios que exigirían nuevas clases; no guarda una ampliación incompleta. Los cambios sin ese efecto y sin invalidar detalles registrados siguen permitidos. La generación conjunta de series pertenece a I-04.
 
 Las lecturas I-03 son una colección mínima sin paginación más consulta directa por ID. El servidor omite contactos y registrador del JSON de Docente. I-05 conserva consultas completas y paginación; I-04 conserva edición y cancelación.
+
+## Esporádicas (I-04.1)
+
+[Contrato esporádico](esporadicas.openapi.yaml): preparación por fecha concreta y confirmación atómica con el mismo orden de bloqueo e identidad `(actor, UUID)` de las altas periódicas. El contenido canónico empieza por `SPORADIC` y ordena fechas, selecciones y recursos. La confirmación revalida fecha/inicio futuro, apertura, feriados, año, requisitos, versiones y disponibilidad; receso permitido. Se guarda la especialización esporádica y sus detalles junto con operación y auditoría, sin patrones. GET de operación y lecturas existentes recuperan el resultado con la privacidad vigente. Las pruebas concurrentes y de rollback usan PostgreSQL aislado; ver evidencia y limitación de acceso real en [avance I-04](../planificacion/avance-i-04.md).

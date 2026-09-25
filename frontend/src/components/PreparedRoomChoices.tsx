@@ -9,7 +9,9 @@ export function PreparedRoomChoices({
   onSelect,
   readOnly,
   showContacts,
+  mode = "periodic",
 }: {
+  mode?: "periodic" | "sporadic";
   pattern: PreparedPattern;
   selected: string;
   onSelect: (room: string) => void;
@@ -35,9 +37,11 @@ export function PreparedRoomChoices({
         <div className="conflict-notice">
           <h3>Requieren resolver conflictos</h3>
           <p>
-            No hay un aula libre durante todo el período. Estas alternativas son
-            informativas: revisá las reservas afectadas y contactá a las
-            personas involucradas fuera de la app.
+            {mode === "periodic"
+              ? "No hay un aula libre durante todo el período."
+              : "No hay un aula libre para esta fecha y horario."}{" "}
+            Estas alternativas son informativas: revisá las reservas afectadas y
+            contactá a las personas involucradas fuera de la app.
           </p>
         </div>
       ) : null}
@@ -50,9 +54,11 @@ export function PreparedRoomChoices({
             </small>
           </h3>
           <p>
-            {alternative.group === "WITH_PERIODIC"
-              ? `${alternative.periodicMinutes} minutos con periódicas · ${alternative.sporadicDates} ${alternative.sporadicDates === 1 ? "fecha" : "fechas"} con esporádicas`
-              : `${alternative.sporadicDates} ${alternative.sporadicDates === 1 ? "fecha afectada" : "fechas afectadas"} · ${alternative.sporadicMinutes} minutos con esporádicas`}
+            {mode === "sporadic"
+              ? `${alternative.periodicMinutes + alternative.sporadicMinutes} minutos de interferencia`
+              : alternative.group === "WITH_PERIODIC"
+                ? `${alternative.periodicMinutes} minutos con periódicas · ${alternative.sporadicDates} ${alternative.sporadicDates === 1 ? "fecha" : "fechas"} con esporádicas`
+                : `${alternative.sporadicDates} ${alternative.sporadicDates === 1 ? "fecha afectada" : "fechas afectadas"} · ${alternative.sporadicMinutes} minutos con esporádicas`}
           </p>
           <details>
             <summary>Ver conflictos del aula {alternative.room.id}</summary>
@@ -129,7 +135,9 @@ export function PreparedRoomChoices({
               {room.capacity} personas · {room.type}
             </small>
           </div>
-          <span className="availability">Disponible todo el período</span>
+          <span className="availability">
+            {mode === "periodic" ? "Disponible todo el período" : "Disponible"}
+          </span>
         </label>
       ))}
       {rooms.length > 3 && (

@@ -5,17 +5,20 @@ export type ConfirmationRequest = {
   proposal: Record<string, unknown>;
   teacherId: string;
   calendarVersion: number;
-  selections: {
-    day: number;
-    roomId: string;
-    roomVersion: number;
-    dates: string[];
-  }[];
+  selections: ({ roomId: string; roomVersion: number } & (
+    { day: number; dates: string[] } | { date: string }
+  ))[];
 };
-export const confirmPeriodic = (request: ConfirmationRequest) =>
-  api<Booking>("/reservas/periodicas/confirmacion", {
-    method: "POST",
-    body: JSON.stringify(request),
-  });
+export const confirmReservation = (
+  request: ConfirmationRequest,
+  mode: "periodic" | "sporadic" = "periodic",
+) =>
+  api<Booking>(
+    `/reservas/${mode === "periodic" ? "periodicas" : "esporadicas"}/confirmacion`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    },
+  );
 export const operationResult = (key: string) =>
   api<{ found: boolean; booking?: Booking }>(`/reservas/operaciones/${key}`);

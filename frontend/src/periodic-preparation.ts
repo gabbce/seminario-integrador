@@ -45,7 +45,17 @@ export type PeriodicPreparation = {
   calendarVersion: number;
   patterns: PreparedPattern[];
 };
-export function usePeriodicPreparation(request: string | null) {
+type SporadicPreparation = {
+  year: number;
+  calendarVersion: number;
+  dates: (Omit<PreparedPattern, "day" | "dates" | "omitted"> & {
+    date: string;
+  })[];
+};
+export function useReservationPreparation(
+  request: string | null,
+  mode: "periodic" | "sporadic" = "periodic",
+) {
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState<{
     key: string | null;
@@ -57,17 +67,42 @@ export function usePeriodicPreparation(request: string | null) {
     if (!request) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      api<PeriodicPreparation>("/reservas/periodicas/preparacion", {
-        method: "POST",
-        body: request,
-        signal: AbortSignal.any([
-          controller.signal,
-          AbortSignal.timeout(30000),
-        ]),
-      }).then(
+      api<PeriodicPreparation | SporadicPreparation>(
+        `/reservas/${mode === "periodic" ? "periodicas" : "esporadicas"}/preparacion`,
+        {
+          method: "POST",
+          body: request,
+          signal: AbortSignal.any([
+            controller.signal,
+            AbortSignal.timeout(30000),
+          ]),
+        },
+      ).then(
         (data) => {
+          // Preserve input group identity even though Java sorts results by date.
+          const inputDates: { date: string }[] =
+            "patterns" in data ? [] : JSON.parse(request).dates;
           if (!controller.signal.aborted)
-            setResult({ key: request, attempt, data });
+            setResult({
+              key: request,
+              attempt,
+              data:
+                "patterns" in data
+                  ? data
+                  : {
+                      year: data.year,
+                      calendarVersion: data.calendarVersion,
+                      patterns: data.dates.map((date) => ({
+                        ...date,
+                        day:
+                          inputDates.findIndex(
+                            (slot) => slot.date === date.date,
+                          ) + 1,
+                        dates: [date.date],
+                        omitted: [],
+                      })),
+                    },
+            });
         },
         (error: unknown) => {
           if (!controller.signal.aborted)
@@ -86,7 +121,7 @@ export function usePeriodicPreparation(request: string | null) {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [request, attempt]);
+  }, [request, attempt, mode]);
   const current =
     result?.key === request && result?.attempt === attempt ? result : undefined;
   return {

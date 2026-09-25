@@ -2,6 +2,23 @@ import { type CalendarConfig, candidateDates, demoNow } from "./calendar";
 import { type Booking, type Room, type Role, overlaps } from "./domain";
 import { compatible } from "./equipment";
 export type CalendarImpact = {
+  canConfirm?: boolean;
+  conflicts?: {
+    booking: string;
+    date: string;
+    room: string;
+    reason: string;
+    occupants: {
+      reservation: string;
+      subject: string;
+      teacher: string;
+      teacherEmail: string;
+      registrantEmail: string;
+      start: string;
+      end: string;
+    }[];
+    alternatives: string[];
+  }[];
   calendar: CalendarConfig;
   bookings: Booking[];
   added: {

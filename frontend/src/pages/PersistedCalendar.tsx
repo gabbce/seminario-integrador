@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api, ApiError } from "../api";
+import type { CalendarImpact } from "../calendar-management";
+import { dateLabel } from "../domain";
 import type { CalendarConfig } from "../calendar";
 import { AdminNav } from "../components/AdminNav";
 import { FormError } from "../components/FormError";
@@ -10,9 +12,41 @@ export type PersistedCalendarConfig = CalendarConfig & { id: string };
 const failureMessage = (error: unknown) =>
   error instanceof Error ? error.message : "No se pudo completar la operación.";
 
+type Review = Omit<CalendarImpact, "bookings"> & { stamp: string };
+type Pending = {
+  id: string;
+  request: { operationId: string; proposal: CalendarConfig; stamp: string };
+  review: Review;
+};
+type Result = { calendar: PersistedCalendarConfig };
 export default function PersistedCalendar({
   onChanged,
-}: { onChanged?: () => void } = {}) {
+  actorId,
+}: {
+  onChanged?: () => void;
+  actorId: string;
+}) {
+  const storageKey = `aulas-calendar:${actorId}`;
+  const [restored] = useState<Pending | undefined>(() => {
+    try {
+      return (
+        JSON.parse(sessionStorage.getItem(storageKey) ?? "null") ?? undefined
+      );
+    } catch {
+      return undefined;
+    }
+  });
+  const [pending, setPending] = useState(restored);
+  const [reviewed, setReviewed] = useState<Review>();
+  const [restoredProposal, setRestoredProposal] = useState(
+    restored?.request.proposal,
+  );
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
+  function clearPending() {
+    sessionStorage.removeItem(storageKey);
+    setPending(undefined);
+  }
+
   const [calendars, setCalendars] = useState<PersistedCalendarConfig[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
   const [loading, setLoading] = useState(true);
@@ -26,7 +60,7 @@ export default function PersistedCalendar({
       .then((items) => {
         if (active) {
           setCalendars(items);
-          setSelectedId(items.at(-1)?.id);
+          setSelectedId(restored?.id ?? items.at(-1)?.id);
         }
       })
       .catch((error: unknown) => {
@@ -38,7 +72,7 @@ export default function PersistedCalendar({
     return () => {
       active = false;
     };
-  }, []);
+  }, [restored]);
   const selected =
     calendars.find((calendar) => calendar.id === selectedId) ?? calendars[0];
   function changed(items: PersistedCalendarConfig[], id?: string) {
@@ -77,6 +111,94 @@ export default function PersistedCalendar({
       setLoading(false);
     }
   }
+  function completed(result: Result) {
+    clearPending();
+    setRestoredProposal(undefined);
+    setReviewed(undefined);
+    changed(
+      calendars.map((c) => (c.id === result.calendar.id ? result.calendar : c)),
+      result.calendar.id,
+    );
+    setMessage("Calendario y clases actualizados.");
+  }
+  async function confirm(operation: Pending) {
+    setRecoveryBusy(true);
+    setError("");
+    try {
+      completed(
+        await api<Result>(
+          `/administracion/calendarios/${operation.id}/confirmacion`,
+          { method: "POST", body: JSON.stringify(operation.request) },
+        ),
+      );
+    } catch (error) {
+      const message = failureMessage(error);
+      setError(message);
+      if (error instanceof ApiError && [400, 404, 409].includes(error.status)) {
+        clearPending();
+        setRestoredProposal(operation.request.proposal);
+        setReviewed(undefined);
+      }
+      return message;
+    } finally {
+      setRecoveryBusy(false);
+    }
+  }
+  if (pending)
+    return (
+      <>
+        <AdminNav />
+        <h1>Comprobar cambio de calendario</h1>
+        <section className="panel calendar-impact">
+          <h2>
+            Año {pending.request.proposal.year} · {pending.review.added.length}{" "}
+            clases nuevas
+          </h2>
+          <p>
+            La propuesta enviada permanece fija hasta comprobar el resultado.
+          </p>
+          {pending.review.added.map((a) => (
+            <p key={`${a.booking}-${a.date}`}>
+              Reserva {a.booking} · {dateLabel(a.date)} · {a.start}–{a.end} ·
+              Aula {a.room}
+            </p>
+          ))}
+          <div className="change-room-actions">
+            <Button
+              variant="outline"
+              disabled={recoveryBusy || loading}
+              onClick={async () => {
+                setRecoveryBusy(true);
+                setError("");
+                try {
+                  const result = await api<{ found: boolean; result?: Result }>(
+                    `/administracion/calendarios/operaciones/${pending.request.operationId}`,
+                  );
+                  if (result.found && result.result) completed(result.result);
+                  else
+                    setError(
+                      "Todavía no hay resultado registrado. Conservá esta propuesta y reintentá la misma operación.",
+                    );
+                } catch (error) {
+                  setError(failureMessage(error));
+                } finally {
+                  setRecoveryBusy(false);
+                }
+              }}
+            >
+              Consultar resultado
+            </Button>
+            <Button
+              disabled={recoveryBusy || loading}
+              onClick={() => void confirm(pending)}
+            >
+              Reintentar mismo cambio
+            </Button>
+          </div>
+        </section>
+        {error && <FormError message={error} />}
+      </>
+    );
   if (loading)
     return (
       <>
@@ -113,22 +235,41 @@ export default function PersistedCalendar({
               return failureMessage(error);
             }
           }}
-          save={async (proposal) => {
+          initial={
+            restoredProposal?.year === selected.year
+              ? restoredProposal
+              : undefined
+          }
+          preview={async (proposal) => {
             try {
-              const saved = await api<PersistedCalendarConfig>(
-                `/administracion/calendarios/${selected.id}`,
-                { method: "PUT", body: JSON.stringify(proposal) },
+              const result = await api<Review>(
+                `/administracion/calendarios/${selected.id}/impacto`,
+                { method: "POST", body: JSON.stringify(proposal) },
               );
-              changed(
-                calendars.map((calendar) =>
-                  calendar.id === saved.id ? saved : calendar,
-                ),
-                saved.id,
-              );
-              setMessage("Calendario actualizado.");
+              setReviewed(result);
+              return {
+                impact: { ...result, bookings: [] },
+                stamp: result.stamp,
+              };
             } catch (error) {
-              return failureMessage(error);
+              return { error: failureMessage(error), stamp: "" };
             }
+          }}
+          save={async (proposal, stamp) => {
+            if (!reviewed || reviewed.stamp !== stamp)
+              return "Revisá el impacto antes de confirmar.";
+            const operation: Pending = {
+              id: selected.id,
+              request: { operationId: crypto.randomUUID(), proposal, stamp },
+              review: reviewed,
+            };
+            try {
+              sessionStorage.setItem(storageKey, JSON.stringify(operation));
+            } catch {
+              return "No se pudo conservar la operación. Habilitá el almacenamiento de sesión antes de confirmar.";
+            }
+            setPending(operation);
+            return await confirm(operation);
           }}
           reload={() => void reload()}
           persisted

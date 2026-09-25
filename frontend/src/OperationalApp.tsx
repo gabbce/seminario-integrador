@@ -423,7 +423,7 @@ export default function App({
                       path="/administracion/calendario"
                       element={
                         role === "Administrador" ? (
-                          <PersistedCalendar />
+                          <PersistedCalendar actorId={currentUser.id} />
                         ) : (
                           <Navigate to="/agenda" replace />
                         )

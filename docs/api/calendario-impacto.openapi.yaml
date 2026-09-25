@@ -1,0 +1,74 @@
+openapi: 3.1.0
+info:
+  title: Impacto transaccional de calendario I-04.5
+  version: 1.0.0
+servers: [{url: /api}]
+security: [{bearerAuth: []}]
+paths:
+  /administracion/calendarios/{id}/impacto:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    post:
+      description: Solo Admin activo. Snapshot sin escritura; valida propuesta y dependencias, genera únicamente futuras no representadas ni excluidas, con patrón/aula actuales. Devuelve clases, conflictos y alternativas informativas, canConfirm y stamp SHA256 de propuesta/versiones/resumen. No retiene espacios.
+      requestBody: {$ref: '#/components/requestBodies/Edit'}
+      responses:
+        '200': {description: 'calendar, added (booking/pattern/date/start/end/roomId/room/modules), conflicts, canConfirm, stamp; conflictos impiden confirmar todo el conjunto'}
+        '400': {description: Datos inválidos}
+        '403': {description: Admin activo requerido}
+        '404': {description: Año inexistente}
+        '409': {description: Versión o dependencias invalidan la propuesta}
+  /administracion/calendarios/{id}/confirmacion:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    post:
+      description: Requiere operationId UUID, proposal (Edit) y stamp revisado. Locks control_cuentas/año/aulas/reservas en orden ascendente; revalida permisos, reloj, todas las versiones y resumen. Calendario, clases nuevas, versiones, auditoría y resultado se guardan atómicamente. Misma clave/cuerpo devuelve resultado original aun después de cambios posteriores; distinto cuerpo se rechaza.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [operationId, proposal, stamp]
+              properties:
+                operationId: {type: string, format: uuid}
+                proposal: {$ref: '#/components/schemas/Edit'}
+                stamp: {type: string, pattern: '^[a-f0-9]{64}$'}
+      responses:
+        '200': {description: 'operationId, calendar actualizado, added, at'}
+        '400': {description: Cuerpo incompleto}
+        '403': {description: Admin activo requerido}
+        '404': {description: Año inexistente}
+        '409': {description: 'Conflicto/versiones/resumen/tiempo cambiaron; nada guardado, revisar nuevamente'}
+  /administracion/calendarios/operaciones/{key}:
+    get:
+      parameters: [{name: key, in: path, required: true, schema: {type: string, format: uuid}}]
+      description: Resultado inmutable propio por actor/UUID. Admin activo. found=false no acredita rechazo; conservar cuerpo/UUID y consultar o reintentar misma operación.
+      responses:
+        '200': {description: 'found y result si existe'}
+        '403': {description: Admin activo requerido}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    Id: {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+  requestBodies:
+    Edit:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Edit'}
+  schemas:
+    Edit:
+      type: object
+      required: [version, year, state, terms, holidays, descriptions]
+      properties:
+        version: {type: integer, minimum: 0}
+        year: {type: integer, minimum: 1, maximum: 9999}
+        state: {enum: ['En preparación', Habilitado, Cerrado]}
+        terms:
+          type: object
+          required: [first, second]
+          additionalProperties: false
+          properties:
+            first: {type: array, minItems: 2, maxItems: 2, items: {type: string}}
+            second: {type: array, minItems: 2, maxItems: 2, items: {type: string}}
+        holidays: {type: array, uniqueItems: true, items: {type: string, format: date}}
+        descriptions: {type: object, additionalProperties: {type: string}}

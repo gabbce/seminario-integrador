@@ -5,6 +5,7 @@ import { type CalendarImpact } from "../calendar-management";
 import { dateLabel } from "../domain";
 import { Button } from "../components/ui/button";
 import { AdminNav } from "../components/AdminNav";
+type Preview = { impact?: CalendarImpact; error?: string; stamp: string };
 export function CalendarEditor({
   calendar,
   calendars,
@@ -15,17 +16,15 @@ export function CalendarEditor({
   save,
   persisted = false,
   reload,
+  initial,
 }: {
   calendar: CalendarConfig;
   calendars: CalendarConfig[];
   selectYear: (year: number) => void;
   addYear: (year: number) => string | undefined | Promise<string | undefined>;
   deleteYear: () => string | undefined | Promise<string | undefined>;
-  preview?: (proposal: CalendarConfig) => {
-    impact?: CalendarImpact;
-    error?: string;
-    stamp: string;
-  };
+  preview?: (proposal: CalendarConfig) => Preview | Promise<Preview>;
+  initial?: CalendarConfig;
   save: (
     proposal: CalendarConfig,
     stamp: string,
@@ -37,7 +36,7 @@ export function CalendarEditor({
   const [newYear, setNewYear] = useState(calendar.year + 1);
   const [deleting, setDeleting] = useState(false);
   const [draft, setDraft] = useState<CalendarConfig>(() =>
-    structuredClone(calendar),
+    structuredClone(initial ?? calendar),
   );
   const [review, setReview] = useState<CalendarImpact>();
   const [stamp, setStamp] = useState("");
@@ -170,12 +169,20 @@ export function CalendarEditor({
         className="calendar-editor"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (persisted) {
+          if (persisted && !preview) {
             const failure = await mutate(() => save(draft, ""));
             if (!failure) setMessage("Calendario actualizado.");
             return;
           }
-          const result = preview?.(draft);
+          setBusy(true);
+          let result: Preview | undefined;
+          try {
+            result = await preview?.(draft);
+          } catch {
+            setError("No se pudo revisar el impacto. Reintentá la consulta.");
+          } finally {
+            setBusy(false);
+          }
           if (!result) return;
           if (result.error) {
             setError(result.error);
@@ -409,8 +416,10 @@ export function CalendarEditor({
             <section className="panel calendar-impact">
               <h2>Impacto del cambio</h2>
               <p>
-                Clases nuevas: {review.added.length}. Se guardarán junto con el
-                calendario.
+                Clases nuevas: {review.added.length}.{" "}
+                {review.canConfirm === false
+                  ? "El cambio está bloqueado por las interferencias indicadas."
+                  : "Se guardarán junto con el calendario."}
               </p>
               {review.added.length ? (
                 <div className="date-list">
@@ -426,8 +435,46 @@ export function CalendarEditor({
                   No se agregarán clases. Se conserva la programación existente.
                 </p>
               )}
+              {review.conflicts?.length ? (
+                <div className="cancellation-warning" role="alert">
+                  <h3>El conjunto tiene interferencias</h3>
+                  <p>
+                    Resolvé las reservas indicadas y volvé a revisar el impacto.
+                    Las alternativas son informativas para esta fecha; el cambio
+                    de aula periódico debe abarcar todo el patrón.
+                  </p>
+                  {review.conflicts.map((conflict) => (
+                    <div key={`${conflict.booking}-${conflict.date}`}>
+                      <p>
+                        <strong>
+                          Reserva {conflict.booking} ·{" "}
+                          {dateLabel(conflict.date)} · Aula {conflict.room}
+                        </strong>
+                        <br />
+                        {conflict.reason}
+                      </p>
+                      {conflict.occupants.map((o) => (
+                        <p key={`${o.reservation}-${o.start}`}>
+                          Reserva {o.reservation} · {o.subject} · {o.start}–
+                          {o.end}
+                          <br />
+                          Docente: {o.teacher} · {o.teacherEmail}
+                          <br />
+                          Registrante: {o.registrantEmail}
+                        </p>
+                      ))}
+                      <p>
+                        {conflict.alternatives.length
+                          ? `Aulas compatibles libres en ese horario: ${conflict.alternatives.join(", ")}.`
+                          : "No hay otras aulas compatibles libres en ese horario."}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <Button
                 type="button"
+                disabled={review.canConfirm === false}
                 onClick={async () => {
                   const failure = await mutate(() => save(draft, stamp));
                   if (failure) {
@@ -459,7 +506,7 @@ export function CalendarEditor({
             <Button type="submit">
               {busy
                 ? "Guardando…"
-                : persisted
+                : persisted && !preview
                   ? "Guardar calendario"
                   : "Revisar impacto"}
             </Button>

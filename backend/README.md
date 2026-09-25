@@ -91,3 +91,5 @@ Opciones y revisión por Java; confirmación atómica de clases esporádicas sel
 ### I-04.4 · Reprogramación
 
 Selección individual/múltiple, revisión antes/después y confirmación por Java. Conserva aula, patrón y origen incluso en cambios sucesivos; V13 permite origen esporádico y lo protege después de fijarlo. Se comparan versiones de reserva/calendario/aulas y se recuperan respuestas inciertas con la misma operación. [Contrato](../docs/api/reprogramacion.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).
+
+I-04.5: revisión/confirmación Admin en [calendario-impacto.openapi.yaml](../docs/api/calendario-impacto.openapi.yaml), con V14 para recuperación por actor/UUID. `CalendarImpactTests` usa PostgreSQL aislado para ampliaciones, dependencias, conflictos, concurrencia y rollback. El PUT previo permanece protegido ante generación pendiente; las operaciones completas pasan por revisión y guardado atómico.

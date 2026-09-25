@@ -61,7 +61,7 @@ public class CalendarManagement {
         try {LocalDate parsed=LocalDate.parse(value);if(parsed.getYear()!=year || !parsed.toString().equals(value)) throw new IllegalArgumentException();return parsed;}
         catch(RuntimeException e) {throw DomainError.invalid("Las fechas deben ser válidas y pertenecer al año indicado.");}
     }
-    private void validate(Edit edit,Config current) {
+    void validate(Edit edit,Config current) {
         year(edit.year());state(edit.state());
         if(edit.terms()==null || !edit.terms().keySet().equals(Set.of("first","second")) || edit.holidays()==null || edit.descriptions()==null) throw DomainError.invalid("Completá cuatrimestres y fechas no lectivas.");
         LocalDate previousEnd=null;
@@ -89,6 +89,10 @@ public class CalendarManagement {
         authorize(actor);if(edit==null)throw DomainError.invalid("Completá el calendario.");Config current=lock(id,edit.version());validate(edit,current);
         if(current.year()!=edit.year() && db.queryForObject("select count(*) from aulas.curso where id_anio_lectivo=?",Long.class,id)>0) throw DomainError.conflict("No se puede cambiar el número de un año con cursos asociados.");
         new ar.edu.aulas.reservations.ReservationGuards(db,clock).calendar(id,current,edit);
+        return persist(actor,id,current,edit);
+    }
+    // Caller must hold the aggregate locks and validate dependencies/impact first.
+    Config persist(long actor,long id,Config current,Edit edit) {
         db.update("update aulas.anio_lectivo set anio_calendario=?,estado=?,version=version+1 where id_anio_lectivo=?",edit.year(),state(edit.state()),id);
         for(int number=1;number<=2;number++) {
             var range=edit.terms().get(number==1?"first":"second");

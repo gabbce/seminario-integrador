@@ -80,3 +80,5 @@ Opciones y revisión por Java; confirmación atómica de clases esporádicas sel
 ### I-04.4 · Reprogramación
 
 Selección individual/múltiple, revisión antes/después y confirmación por Java. Conserva aula, patrón y origen incluso en cambios sucesivos; V13 permite origen esporádico y lo protege después de fijarlo. Se comparan versiones de reserva/calendario/aulas y se recuperan respuestas inciertas con la misma operación. [Contrato](../docs/api/reprogramacion.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).
+
+I-04.5: Calendario académico usa revisión de impacto del backend antes de confirmar. Muestra clases e interferencias/alternativas informativas; la incertidumbre conserva UUID/propuesta en sessionStorage por actor y permite consultar/reintentar tras recarga. Pruebas `calendar-impact.spec.ts`; recorrido remoto explícito `npm run test:e2e:real -- e2e/calendar-impact-real.spec.ts` crea un año QA nuevo y conserva sus datos, sin editar calendarios 2026/2027.

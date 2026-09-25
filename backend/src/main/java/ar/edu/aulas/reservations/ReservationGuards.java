@@ -24,6 +24,12 @@ public class ReservationGuards {
         }
     }
     public void calendar(long year,CalendarManagement.Config current,CalendarManagement.Edit edit) {
+        calendar(year,current,edit,false);
+    }
+    public void calendarDependencies(long year,CalendarManagement.Config current,CalendarManagement.Edit edit) {
+        calendar(year,current,edit,true);
+    }
+    private void calendar(long year,CalendarManagement.Config current,CalendarManagement.Edit edit,boolean impactHandled) {
         var now=LocalDateTime.now(clock);
         var active=db.queryForList("select d.id_reserva,d.fecha,d.hora_inicio,d.cantidad_modulos from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=? and d.estado='CONFIRMADA' and d.fecha+d.hora_inicio+d.cantidad_modulos*interval '30 minutes'>?",year,now);
         if(!edit.state().equals("Habilitado") && !active.isEmpty()) throw DomainError.conflict("El año tiene clases futuras o en curso; no se puede cerrar ni volver a preparación.");
@@ -44,7 +50,8 @@ public class ReservationGuards {
                 if(entry.getValue().stream().noneMatch(range->date.compareTo(range.getFirst())>=0 && date.compareTo(range.getLast())<=0))
                     throw DomainError.conflict("El recorte dejaría clases registradas de la reserva "+entry.getKey()+" fuera de sus períodos.");
             }
-            // Transitional I-03 rule: never save a calendar that silently omits newly required classes.
+            if(impactHandled) continue;
+            // Legacy direct PUT rule: never save a calendar that silently omits newly required classes.
             var eligible=db.queryForList("select r.id_reserva from aulas.reserva_periodica p join aulas.reserva r using(id_reserva) where r.id_reserva=? and r.estado='CONFIRMADA' and p.continuidad_cancelada_en is null",Long.class,entry.getKey());
             if(eligible.isEmpty()) continue;
             Set<String> represented=new HashSet<>(db.queryForList("select fecha_original::text from aulas.detalle_reserva where id_reserva=?",String.class,entry.getKey()));

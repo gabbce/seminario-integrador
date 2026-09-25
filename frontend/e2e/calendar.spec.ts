@@ -16,6 +16,35 @@ for (const width of [390, 1440])
     );
     await page.route("**/api/administracion/calendarios**", async (route) => {
       const request = route.request();
+      const path = new URL(request.url()).pathname;
+      if (path.endsWith("/impacto")) {
+        if (stale)
+          return route.fulfill({
+            status: 409,
+            json: {
+              message:
+                "El calendario cambió. Volvé a cargarlo antes de guardar.",
+            },
+          });
+        return route.fulfill({
+          json: {
+            calendar: request.postDataJSON(),
+            added: [],
+            conflicts: [],
+            canConfirm: true,
+            stamp: "a".repeat(64),
+          },
+        });
+      }
+      if (path.endsWith("/confirmacion")) {
+        const body = request.postDataJSON().proposal;
+        expect(Object.keys(body.descriptions).sort()).toEqual(
+          [...body.holidays].sort(),
+        );
+        const saved = { ...body, id: "101", version: body.version + 1 };
+        calendars = [saved];
+        return route.fulfill({ json: { calendar: saved } });
+      }
       if (request.method() === "POST") {
         const { year } = request.postDataJSON();
         if (calendars.some((calendar) => calendar.year === year)) {
@@ -89,10 +118,19 @@ for (const width of [390, 1440])
       .getByLabel("Estado del año", { exact: true })
       .selectOption("Habilitado");
     await page
-      .getByRole("button", { name: "Guardar calendario", exact: true })
+      .getByRole("button", { name: "Revisar impacto", exact: true })
+      .click();
+    await page
+      .getByRole("button", {
+        name: "Confirmar cambio de calendario",
+        exact: true,
+      })
       .click();
     await expect(
-      page.getByText("Calendario actualizado.", { exact: true }),
+      page.getByText("Calendario y clases actualizados.", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Calendario y clases actualizados.", { exact: true }),
     ).toBeVisible();
     await page.reload();
     await expect(
@@ -103,7 +141,7 @@ for (const width of [390, 1440])
     ).toHaveValue("Fecha ficticia de prueba");
     await expect(
       page.getByRole("button", { name: "Revisar impacto", exact: true }),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     await page.screenshot({
       path: `/tmp/i024-calendario-${width}.png`,
       fullPage: true,
@@ -125,7 +163,7 @@ for (const width of [390, 1440])
       .getByLabel("Descripción 2027-10-12", { exact: true })
       .fill("Cambio desactualizado");
     await page
-      .getByRole("button", { name: "Guardar calendario", exact: true })
+      .getByRole("button", { name: "Revisar impacto", exact: true })
       .click();
     await expect(
       page.getByText(
@@ -146,8 +184,17 @@ for (const width of [390, 1440])
       .getByRole("button", { name: "Quitar cuatrimestre 2", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Guardar calendario", exact: true })
+      .getByRole("button", { name: "Revisar impacto", exact: true })
       .click();
+    await page
+      .getByRole("button", {
+        name: "Confirmar cambio de calendario",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByText("Calendario y clases actualizados.", { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByLabel("Estado del año", { exact: true }),
     ).toHaveValue("En preparación");
@@ -156,8 +203,17 @@ for (const width of [390, 1440])
       .getByRole("button", { name: "Quitar cuatrimestre 1", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Guardar calendario", exact: true })
+      .getByRole("button", { name: "Revisar impacto", exact: true })
       .click();
+    await page
+      .getByRole("button", {
+        name: "Confirmar cambio de calendario",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByText("Calendario y clases actualizados.", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByLabel("Inicio 1", { exact: true })).toHaveValue("");
     await page
       .getByRole("button", { name: "Eliminar año", exact: true })
@@ -180,8 +236,17 @@ for (const width of [390, 1440])
       .getByLabel("Estado del año", { exact: true })
       .selectOption("Cerrado");
     await page
-      .getByRole("button", { name: "Guardar calendario", exact: true })
+      .getByRole("button", { name: "Revisar impacto", exact: true })
       .click();
+    await page
+      .getByRole("button", {
+        name: "Confirmar cambio de calendario",
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByText("Calendario y clases actualizados.", { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByLabel("Estado del año", { exact: true }),
     ).toBeDisabled();

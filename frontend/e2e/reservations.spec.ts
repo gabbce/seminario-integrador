@@ -432,9 +432,10 @@ for (const width of [390, 1440])
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: /Reprogramar|Editar datos/,
+        name: "Reprogramar clases",
+        exact: true,
       }),
-    ).toHaveCount(0);
+    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Cancelar clases", exact: true }),
     ).toBeVisible();

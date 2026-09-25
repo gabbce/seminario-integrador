@@ -34,11 +34,13 @@ export function Detail({
   cancelPersisted,
   editHeaderPersisted,
   changeRoomPersisted,
+  reschedulePersisted,
 }: {
   readOnly?: boolean;
   cancelPersisted?: () => void;
   editHeaderPersisted?: () => void;
   changeRoomPersisted?: () => void;
+  reschedulePersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -60,6 +62,7 @@ export function Detail({
       cancelPersisted={cancelPersisted}
       editHeaderPersisted={editHeaderPersisted}
       changeRoomPersisted={changeRoomPersisted}
+      reschedulePersisted={reschedulePersisted}
       consultedDate={search.get("fecha")}
       consultedTime={search.get("hora")}
       role={role}
@@ -89,6 +92,7 @@ function BookingDetail({
   cancelPersisted,
   editHeaderPersisted,
   changeRoomPersisted,
+  reschedulePersisted,
 }: {
   booking: Booking;
   consultedDate: string | null;
@@ -97,6 +101,7 @@ function BookingDetail({
   cancelPersisted?: () => void;
   editHeaderPersisted?: () => void;
   changeRoomPersisted?: () => void;
+  reschedulePersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -227,11 +232,18 @@ function BookingDetail({
             </Button>
           )}
         {!editing &&
-          !readOnly &&
+          (!readOnly || reschedulePersisted) &&
           operator &&
           calendar.state === "Habilitado" &&
           future.length > 0 && (
-            <Button variant="outline" onClick={() => setRescheduling(true)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                reschedulePersisted
+                  ? reschedulePersisted()
+                  : setRescheduling(true)
+              }
+            >
               Reprogramar clases
             </Button>
           )}
@@ -345,6 +357,11 @@ function BookingDetail({
                   <div>
                     {o === consulted && <small>Clase consultada</small>}
                     <strong>{dateLabel(o.date)}</strong>
+                    {o.originalDate && o.originalDate !== o.date && (
+                      <small className="original-date">
+                        Fecha original: {dateLabel(o.originalDate)}
+                      </small>
+                    )}
                     <span>
                       {o.start}–{o.end} ·{" "}
                       <strong>

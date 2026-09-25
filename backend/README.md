@@ -87,3 +87,7 @@ Antes de la primera clase, Admin/Bedel pueden editar curso del mismo año, docen
 ### I-04.3b · Cambio de aulas
 
 Opciones y revisión por Java; confirmación atómica de clases esporádicas seleccionadas o de patrones periódicos completos con todas sus futuras vigentes. Conserva pasado, canceladas, fechas y orígenes; incluye clases reprogramadas por pertenencia persistida al patrón. V12 conserva la exclusión de ocupación, ahora diferible para intercambios atómicos. UI recupera respuesta incierta sin regenerar UUID. [Contrato](../docs/api/cambio-aulas.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).
+
+### I-04.4 · Reprogramación
+
+Selección individual/múltiple, revisión antes/después y confirmación por Java. Conserva aula, patrón y origen incluso en cambios sucesivos; V13 permite origen esporádico y lo protege después de fijarlo. Se comparan versiones de reserva/calendario/aulas y se recuperan respuestas inciertas con la misma operación. [Contrato](../docs/api/reprogramacion.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).

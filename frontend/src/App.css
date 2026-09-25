@@ -1535,3 +1535,8 @@ body {
   gap: 16px;
   margin: 20px 0;
 }
+
+.booking-occurrences .original-date {
+  display: block;
+  margin-top: 4px;
+}

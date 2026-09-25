@@ -201,7 +201,7 @@ components:
     Booking:
       type: object
       required: [id, version, subject, course, courseId, teacher, teacherId, students, type, board, resources, occurrences]
-      description: teacherEmail y registrant se omiten completamente para Docente. Alta esporádica documentada en esporadicas.openapi.yaml (I-04.1). Cancelación en cancelaciones.openapi.yaml (I-04.2); motivo y fecha visibles para Docente, actor omitido. changes contiene historial de cabecera y aulas solo para Admin/Bedel y se omite completamente para Docente.
+      description: teacherEmail y registrant se omiten completamente para Docente. Alta esporádica documentada en esporadicas.openapi.yaml (I-04.1). Cancelación en cancelaciones.openapi.yaml (I-04.2); motivo y fecha visibles para Docente, actor omitido. changes contiene historial de cabecera, aulas y reprogramaciones solo para Admin/Bedel y se omite completamente para Docente.
       properties:
         id: { type: string }
         version: { type: integer, format: int64 }
@@ -223,7 +223,7 @@ components:
             inactive: { type: boolean }
         changes:
           type: array
-          description: Historial de cabecera y aulas, omitido para Docente y cuando está vacío.
+          description: Historial de cabecera, aulas y reprogramaciones, omitido para Docente y cuando está vacío.
           items:
             type: object
             required: [at, actor, description]
@@ -260,7 +260,7 @@ components:
             properties:
               id: { type: string }
               date: { type: string, format: date }
-              originalDate: { type: string, format: date }
+              originalDate: { type: string, format: date, description: Origen inmutable; periódicas desde alta y esporádicas desde primera reprogramación }
               start: { type: string }
               end: { type: string }
               room: { type: string }

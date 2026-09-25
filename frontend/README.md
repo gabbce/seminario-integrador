@@ -61,10 +61,14 @@ Cuentas, Aulas y Calendario guardan por API Java. Nueva reserva consulta y crea 
 
 Para recorrer reservas existentes y alternativas reales, cargar el [dataset I-03](../docs/planificacion/datos-demo-i-03.md). La prueba real de ese dataset es de lectura y supone las fechas/series originales de la carga; los casos automatizados de ranking esporádico usan fixtures separados.
 
-## Esporádicas (I-04.1 en verificación)
+## Esporádicas (I-04.1)
 
 El selector Modalidad del asistente permite preparar y confirmar fechas concretas por Java, incluso en receso. El resultado utiliza agenda/listado/detalle persistidos y la recuperación de respuesta incierta. [Avance y limitaciones de verificación](../docs/planificacion/avance-i-04.md). Recorrido real explícito (crea dos clases QA y las conserva): `npm run test:e2e:real -- e2e/sporadic-real.spec.ts`; requiere backend conectado y credencial de PostgreSQL válida. No ejecutarlo como restablecimiento de datos.
 
 ### I-04.2 · Cancelaciones
 
 El detalle operativo permite seleccionar clases futuras, indicar motivo, revisar fechas/aulas y confirmar. El servidor revalida permisos, tiempo y versión. Una respuesta incierta conserva UUID y propuesta en sessionStorage por cuenta/reserva; se puede consultar o reintentar la misma operación tras recargar. La lectura actual del detalle se consulta después de confirmar. Contrato: [cancelaciones](../docs/api/cancelaciones.openapi.yaml); verificación: [avance I-04](../docs/planificacion/avance-i-04.md).
+
+### I-04.3a · Cabecera
+
+Antes de la primera clase, Admin/Bedel pueden editar curso del mismo año, docente, alumnos y requisitos compartidos. El guardado verifica todas las aulas vigentes, versión y tiempo después de adquirir bloqueos; conserva fechas, patrones y cancelaciones. Historial anterior/nuevo solo para operadores. Respuestas inciertas se recuperan con el mismo UUID tras recarga. [Contrato](../docs/api/cabecera-reserva.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).

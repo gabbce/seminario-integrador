@@ -72,10 +72,14 @@ La carga explícita de I-02 prepara 20 aulas, 2026/2027 y 40 cursos sin modifica
 
 La carga explícita de [reservas demo 2026/2027](../docs/planificacion/datos-demo-i-03.md) amplía los catálogos: 12 series y 370 clases. Su repetición detecta diferencias sin duplicar ni restaurar datos. El arranque normal nunca ejecuta esa carga.
 
-## Esporádicas (I-04.1 en verificación)
+## Esporádicas (I-04.1)
 
-Preparación y confirmación persistentes: [OpenAPI](../docs/api/esporadicas.openapi.yaml). Reutiliza V8/V9, sin nueva migración para el alta; transacción completa, protección de ocupación y UUID por actor. [Avance I-04](../docs/planificacion/avance-i-04.md) registra pruebas PostgreSQL aisladas y el acceso remoto pendiente. Una autenticación PostgreSQL rechazada exige corregir `AULAS_DB_PASSWORD` en `.env`; nunca incluirla en logs ni Git.
+Preparación y confirmación persistentes: [OpenAPI](../docs/api/esporadicas.openapi.yaml). Reutiliza V8/V9, sin nueva migración para el alta; transacción completa, protección de ocupación y UUID por actor. [Avance I-04](../docs/planificacion/avance-i-04.md) registra pruebas PostgreSQL aisladas y verificación remota completada. Una autenticación PostgreSQL rechazada exige corregir `AULAS_DB_PASSWORD` en `.env`; nunca incluirla en logs ni Git.
 
 ### I-04.2 · Cancelaciones
 
 Preparación y confirmación por IDs, versión y motivo: [contrato](../docs/api/cancelaciones.openapi.yaml). V11 incorpora el registro de múltiples mutaciones por reserva; V9 conserva altas. Las cancelaciones son atómicas, liberan ocupación y conservan motivo/actor/instante. La UI recupera respuestas inciertas con la misma operación incluso tras recarga. Evidencia actual en [avance I-04](../docs/planificacion/avance-i-04.md).
+
+### I-04.3a · Cabecera
+
+Antes de la primera clase, Admin/Bedel pueden editar curso del mismo año, docente, alumnos y requisitos compartidos. El guardado verifica todas las aulas vigentes, versión y tiempo después de adquirir bloqueos; conserva fechas, patrones y cancelaciones. Historial anterior/nuevo solo para operadores. Respuestas inciertas se recuperan con el mismo UUID tras recarga. [Contrato](../docs/api/cabecera-reserva.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).

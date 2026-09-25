@@ -157,7 +157,7 @@ class CancellationTests {
    var blocker=pool.submit(()->new TransactionTemplate(manager).execute(tx->{db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);held.countDown();try{if(!release.await(10,TimeUnit.SECONDS))throw new IllegalStateException("Timeout");}catch(InterruptedException e){throw new RuntimeException(e);}return true;}));
    assertThat(held.await(5,TimeUnit.SECONDS)).isTrue();
    var cancellation=pool.submit(()->{attempted.countDown();try{cancellations.confirm(bedel,id,r);return true;}catch(DomainError e){return false;}});
-   assertThat(attempted.await(5,TimeUnit.SECONDS)).isTrue();clock.now.set(Instant.parse("2027-03-15T13:00:00Z"));release.countDown();
+   assertThat(attempted.await(5,TimeUnit.SECONDS)).isTrue();waitForPermissionLock();clock.now.set(Instant.parse("2027-03-15T13:00:00Z"));release.countDown();
    assertThat(blocker.get(10,TimeUnit.SECONDS)).isTrue();assertThat(cancellation.get(10,TimeUnit.SECONDS)).isFalse();
   }finally{release.countDown();}
   assertThat(count("mutacion_reserva")).isZero();assertThat(queries.get(id,true)).isEqualTo(b);
@@ -177,6 +177,13 @@ class CancellationTests {
   var fresh=queries.get(id,true);
   assertThatThrownBy(()->cancellations.confirm(bedel,id,cancel(fresh,ids(b),"x"))).isInstanceOf(DomainError.class);
   assertThat(count("mutacion_reserva")).isEqualTo(1);
+ }
+
+ void waitForPermissionLock() throws InterruptedException {
+  String sql="select count(*) from pg_stat_activity where datname=current_database() and wait_event_type='Lock' and query like 'select id from aulas.control_cuentas%'";
+  long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+  while(db.queryForObject(sql,Long.class)==0 && System.nanoTime()<deadline) Thread.sleep(10);
+  assertThat(db.queryForObject(sql,Long.class)).isPositive();
  }
 
 }

@@ -32,9 +32,11 @@ export function Detail({
   changeHeader,
   readOnly = false,
   cancelPersisted,
+  editHeaderPersisted,
 }: {
   readOnly?: boolean;
   cancelPersisted?: () => void;
+  editHeaderPersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -54,6 +56,7 @@ export function Detail({
       booking={b}
       readOnly={readOnly}
       cancelPersisted={cancelPersisted}
+      editHeaderPersisted={editHeaderPersisted}
       consultedDate={search.get("fecha")}
       consultedTime={search.get("hora")}
       role={role}
@@ -81,12 +84,14 @@ function BookingDetail({
   changeHeader,
   readOnly = false,
   cancelPersisted,
+  editHeaderPersisted,
 }: {
   booking: Booking;
   consultedDate: string | null;
   consultedTime: string | null;
   readOnly?: boolean;
   cancelPersisted?: () => void;
+  editHeaderPersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -198,11 +203,21 @@ function BookingDetail({
           </p>
         </div>
         {!editing &&
-          !readOnly &&
+          (!readOnly || editHeaderPersisted) &&
           operator &&
           calendar.state === "Habilitado" &&
-          headerEditable(b) && (
-            <Button variant="outline" onClick={() => setEditingHeader(true)}>
+          headerEditable(
+            b,
+            editHeaderPersisted ? institutionalNow() : undefined,
+          ) && (
+            <Button
+              variant="outline"
+              onClick={() =>
+                editHeaderPersisted
+                  ? editHeaderPersisted()
+                  : setEditingHeader(true)
+              }
+            >
               Modificar datos
             </Button>
           )}
@@ -283,7 +298,7 @@ function BookingDetail({
                 <p key={i}>
                   {change.description}
                   <br />
-                  {change.actor} · {change.at.replace("T", " ")}
+                  {change.actor} · {institutionalTimestamp(change.at)}
                 </p>
               ))}
             </section>

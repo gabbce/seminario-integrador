@@ -103,7 +103,7 @@ class DemoReservationTests {
   assertThatThrownBy(unmanaged::seed).hasMessageContaining("transacción activa");
   verifyNoInteractions(auth);
  }
- @Test void groupedListReadsSixQueriesForTwelveReservationsAndMatchesDetailWithRolePrivacy() {
+ @Test void groupedListReadsBoundedRoleQueriesForTwelveReservationsAndMatchesDetailWithRolePrivacy() {
   admin();catalogs.seed();seed.seed();
   db.update("update aulas.reserva set recursos=array['fans'] where id_reserva=(select min(id_reserva) from aulas.reserva)");
   var statements=new ArrayList<String>();
@@ -119,14 +119,14 @@ class DemoReservationTests {
    @Override public Connection getConnection(String user,String password) throws SQLException {return counted(db.getDataSource().getConnection(user,password));}
   };
   var reads=new ReservationQueries(new JdbcTemplate(source));
-  var operational=reads.list(true);assertThat(statements).hasSize(6);assertThat(operational).hasSize(12);
+  var operational=reads.list(true);assertThat(statements).hasSize(7);assertThat(operational).hasSize(12);
   assertThat(operational.stream().map(r->Long.parseLong(r.get("id").toString())).toList()).isSortedAccordingTo(Comparator.reverseOrder());
   assertThat(operational.getLast().get("resources")).isEqualTo(List.of("fans"));
   for(var booking:operational) assertThat(reads.get(Long.parseLong(booking.get("id").toString()),true)).isEqualTo(booking);
   statements.clear();var publicBookings=reads.list(false);assertThat(statements).hasSize(6);
   assertThat(statements).noneMatch(sql->sql.contains("email") || sql.contains("aulas.usuario") || sql.contains("registrado_por"));
   for(int i=0;i<publicBookings.size();i++) {
-   var publicBooking=publicBookings.get(i);var expected=new LinkedHashMap<>(operational.get(i));expected.remove("teacherEmail");expected.remove("registrant");
+   var publicBooking=publicBookings.get(i);var expected=new LinkedHashMap<>(operational.get(i));expected.remove("teacherEmail");expected.remove("registrant");expected.remove("changes");
    assertThat(publicBooking).isEqualTo(expected).doesNotContainKeys("teacherEmail","registrant");
    assertThat(reads.get(Long.parseLong(publicBooking.get("id").toString()),false)).isEqualTo(publicBooking);
   }

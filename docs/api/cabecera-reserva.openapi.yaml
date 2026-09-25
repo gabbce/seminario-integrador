@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: Edición de datos compartidos de reserva
+  version: I-04.3a
+security:
+  - bearerAuth: []
+paths:
+  /api/reservas/{id}/cabecera:
+    post:
+      summary: Editar cabecera antes de cualquier inicio, solo Admin/Bedel
+      description: >-
+        Curso/comisión del mismo año, docente de referencia, alumnos, tipo, pizarrón y recursos compartidos.
+        Requiere año habilitado, versión vigente, alguna clase no cancelada y que ninguna fecha/hora registrada haya iniciado,
+        incluidas canceladas (historia de la cabecera). Fechas, aulas, patrones y cancelaciones no cambian.
+        Revalida aulas de todas las clases vigentes, identifica las incompatibles y rechaza el conjunto completo.
+        Bloqueos control_cuentas, año, aulas ascendentes, reserva; reloj institucional leído tras bloquear.
+        Mismo actor/UUID/tipo/reserva/contenido normalizado devuelve resultado original antes de validar versión/tiempo.
+        Reutiliza ledger V11 y GET /api/reservas/mutaciones/{key}; found=false no habilita otra clave.
+        Resultado inmutable (operationId, reservationId, version, at); consultar reserva actual aparte.
+        Auditoría conserva cabecera anterior/nueva; historial de cambios visible solo a operadores, sin contactos en JSON Docente.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [operationId, version, courseId, teacherId, students, type, board, resources]
+              properties:
+                operationId: {type: string, format: uuid}
+                version: {type: integer, minimum: 0}
+                courseId: {type: string, pattern: '^[1-9][0-9]{0,17}$'}
+                teacherId: {type: string}
+                students: {type: integer, minimum: 1}
+                type: {type: string, enum: [General, Multimedios, Laboratorio]}
+                board: {type: string, enum: ['', Tiza, Fibrón]}
+                resources: {type: array, uniqueItems: true, items: {type: string}}
+      responses:
+        '200':
+          description: Guardado o resultado original recuperado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [operationId, reservationId, version, at]
+                properties:
+                  operationId: {type: string, format: uuid}
+                  reservationId: {type: string}
+                  version: {type: integer, format: int64}
+                  at: {type: string, format: date-time}
+        '400':
+          description: Datos inválidos o docente inexistente
+        '403':
+          description: Rol actual sin permiso o cuenta inactiva
+        '404':
+          description: Reserva inexistente
+        '409':
+          description: Versión obsoleta, inicio, cancelada, año no habilitado, curso de otro año, aulas incompatibles o UUID de otro cambio; ninguna escritura parcial
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}

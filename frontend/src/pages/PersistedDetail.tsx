@@ -1,3 +1,5 @@
+import { PersistedHeader } from "./PersistedHeader";
+import type { Course } from "../catalog";
 import { PersistedCancellation } from "./PersistedCancellation";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -8,12 +10,20 @@ import { Button } from "../components/ui/button";
 export function PersistedDetail({
   role,
   actorId,
+  courses,
+  addCourse,
 }: {
   role: Role;
   actorId: string;
+  courses: Course[];
+  addCourse: (c: Course) => void;
 }) {
   const { id } = useParams();
   const storageKey = `aulas-cancellation:${actorId}:${id}`;
+  const headerKey = `aulas-header:${actorId}:${id}`;
+  const [editingHeader, setEditingHeader] = useState(
+    () => !!sessionStorage.getItem(headerKey),
+  );
   const [cancelling, setCancelling] = useState(
     () => !!sessionStorage.getItem(storageKey),
   );
@@ -67,8 +77,23 @@ export function PersistedDetail({
         }}
       />
     );
+  if (editingHeader && role !== "Docente")
+    return (
+      <PersistedHeader
+        booking={result.booking}
+        storageKey={headerKey}
+        courses={courses}
+        addCourse={addCourse}
+        back={() => {
+          setEditingHeader(false);
+          setResult(undefined);
+          retry((old) => old + 1);
+        }}
+      />
+    );
   return (
     <Detail
+      editHeaderPersisted={() => setEditingHeader(true)}
       cancelPersisted={() => setCancelling(true)}
       readOnly
       bookings={[result.booking]}

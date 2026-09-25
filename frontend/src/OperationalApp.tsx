@@ -371,6 +371,13 @@ export default function App({
                           key={location.pathname}
                           role={role}
                           actorId={currentUser.id}
+                          courses={courses}
+                          addCourse={(course) =>
+                            setCourses((old) => [
+                              ...old.filter((c) => c.id !== course.id),
+                              course,
+                            ])
+                          }
                         />
                       }
                     />

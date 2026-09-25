@@ -50,3 +50,7 @@ Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local`; contraseña en
 - [QA manual de I-02](docs/planificacion/qa-manual-i-02.md).
 
 - [Carga reproducible de reservas 2026/2027](docs/planificacion/datos-demo-i-03.md).
+
+## Próxima entrega aprobada
+
+[Plan detallado I-04 · Operación completa](docs/planificacion/i-04-operacion-completa.md), aprobado el 25/09/2026 y pendiente de implementación.

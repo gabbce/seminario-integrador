@@ -51,3 +51,7 @@ La síntesis 00 orienta la lectura. Los capítulos 01–11 desarrollan las regla
 Ante diferencias con la versión histórica, aplicar el ajuste DA documentado y el modelo/caso vigente. Las decisiones técnicas derivadas se identifican como tales; no son requisitos adicionales de negocio. Cambios futuros de alcance deben quedar registrados y actualizar los documentos afectados.
 
 Esta entrega constituye el estado final de la especificación v1.0. La validación del prototipo está documentada por separado; las pruebas del sistema persistente se registran por entrega en los documentos de avance de integración.
+
+## Próxima entrega aprobada
+
+[Plan detallado I-04 · Operación completa](planificacion/i-04-operacion-completa.md), aprobado el 25/09/2026 y pendiente de implementación.

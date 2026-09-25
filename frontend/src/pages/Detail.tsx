@@ -33,10 +33,12 @@ export function Detail({
   readOnly = false,
   cancelPersisted,
   editHeaderPersisted,
+  changeRoomPersisted,
 }: {
   readOnly?: boolean;
   cancelPersisted?: () => void;
   editHeaderPersisted?: () => void;
+  changeRoomPersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -57,6 +59,7 @@ export function Detail({
       readOnly={readOnly}
       cancelPersisted={cancelPersisted}
       editHeaderPersisted={editHeaderPersisted}
+      changeRoomPersisted={changeRoomPersisted}
       consultedDate={search.get("fecha")}
       consultedTime={search.get("hora")}
       role={role}
@@ -85,6 +88,7 @@ function BookingDetail({
   readOnly = false,
   cancelPersisted,
   editHeaderPersisted,
+  changeRoomPersisted,
 }: {
   booking: Booking;
   consultedDate: string | null;
@@ -92,6 +96,7 @@ function BookingDetail({
   readOnly?: boolean;
   cancelPersisted?: () => void;
   editHeaderPersisted?: () => void;
+  changeRoomPersisted?: () => void;
   bookings: Booking[];
   role: Role;
   cancel: (id: string, request: Cancellation) => string | undefined;
@@ -231,11 +236,18 @@ function BookingDetail({
             </Button>
           )}
         {!editing &&
-          !readOnly &&
+          (!readOnly || changeRoomPersisted) &&
           operator &&
           calendar.state === "Habilitado" &&
           future.length > 0 && (
-            <Button variant="outline" onClick={() => setChangingRoom(true)}>
+            <Button
+              variant="outline"
+              onClick={() =>
+                changeRoomPersisted
+                  ? changeRoomPersisted()
+                  : setChangingRoom(true)
+              }
+            >
               Cambiar aula
             </Button>
           )}

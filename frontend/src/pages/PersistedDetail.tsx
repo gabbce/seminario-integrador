@@ -1,3 +1,4 @@
+import { PersistedRoomChange } from "./PersistedRoomChange";
 import { PersistedHeader } from "./PersistedHeader";
 import type { Course } from "../catalog";
 import { PersistedCancellation } from "./PersistedCancellation";
@@ -20,6 +21,10 @@ export function PersistedDetail({
 }) {
   const { id } = useParams();
   const storageKey = `aulas-cancellation:${actorId}:${id}`;
+  const roomKey = `aulas-rooms:${actorId}:${id}`;
+  const [changingRoom, setChangingRoom] = useState(
+    () => !!sessionStorage.getItem(roomKey),
+  );
   const headerKey = `aulas-header:${actorId}:${id}`;
   const [editingHeader, setEditingHeader] = useState(
     () => !!sessionStorage.getItem(headerKey),
@@ -77,6 +82,18 @@ export function PersistedDetail({
         }}
       />
     );
+  if (changingRoom && role !== "Docente")
+    return (
+      <PersistedRoomChange
+        booking={result.booking}
+        storageKey={roomKey}
+        back={() => {
+          setChangingRoom(false);
+          setResult(undefined);
+          retry((n) => n + 1);
+        }}
+      />
+    );
   if (editingHeader && role !== "Docente")
     return (
       <PersistedHeader
@@ -93,6 +110,7 @@ export function PersistedDetail({
     );
   return (
     <Detail
+      changeRoomPersisted={() => setChangingRoom(true)}
       editHeaderPersisted={() => setEditingHeader(true)}
       cancelPersisted={() => setCancelling(true)}
       readOnly

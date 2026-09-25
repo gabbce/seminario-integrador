@@ -1529,3 +1529,9 @@ body {
 @media (max-width: 900px) {
   .calendar-year-panels { grid-template-columns: 1fr; }
 }
+
+.room-mutation-groups {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0;
+}

@@ -72,3 +72,7 @@ El detalle operativo permite seleccionar clases futuras, indicar motivo, revisar
 ### I-04.3a · Cabecera
 
 Antes de la primera clase, Admin/Bedel pueden editar curso del mismo año, docente, alumnos y requisitos compartidos. El guardado verifica todas las aulas vigentes, versión y tiempo después de adquirir bloqueos; conserva fechas, patrones y cancelaciones. Historial anterior/nuevo solo para operadores. Respuestas inciertas se recuperan con el mismo UUID tras recarga. [Contrato](../docs/api/cabecera-reserva.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).
+
+### I-04.3b · Cambio de aulas
+
+Opciones y revisión por Java; confirmación atómica de clases esporádicas seleccionadas o de patrones periódicos completos con todas sus futuras vigentes. Conserva pasado, canceladas, fechas y orígenes; incluye clases reprogramadas por pertenencia persistida al patrón. V12 conserva la exclusión de ocupación, ahora diferible para intercambios atómicos. UI recupera respuesta incierta sin regenerar UUID. [Contrato](../docs/api/cambio-aulas.openapi.yaml) y [evidencia](../docs/planificacion/avance-i-04.md).

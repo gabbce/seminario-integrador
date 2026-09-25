@@ -40,7 +40,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/health", "/api/health/**").permitAll()
                 .requestMatchers("/api/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/reservas/periodicas/confirmacion","/api/reservas/esporadicas/confirmacion").hasAnyRole("ADMINISTRADOR","BEDEL")
-                .requestMatchers("/api/reservas/*/cabecera","/api/reservas/*/cancelaciones/preparacion","/api/reservas/*/cancelaciones/confirmacion","/api/reservas/mutaciones/*").hasAnyRole("ADMINISTRADOR","BEDEL")
+                .requestMatchers("/api/reservas/*/cabecera", "/api/reservas/*/aulas/**","/api/reservas/*/cancelaciones/preparacion","/api/reservas/*/cancelaciones/confirmacion","/api/reservas/mutaciones/*").hasAnyRole("ADMINISTRADOR","BEDEL")
                 .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/reservas","/api/reservas/*","/api/reservas/operaciones/*").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/reservas/periodicas/preparacion","/api/reservas/esporadicas/preparacion").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/aulas","/api/referencias/**").authenticated()

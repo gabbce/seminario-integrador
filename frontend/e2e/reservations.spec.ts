@@ -432,7 +432,7 @@ for (const width of [390, 1440])
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: /Reprogramar|Cambiar aula|Editar datos/,
+        name: /Reprogramar|Editar datos/,
       }),
     ).toHaveCount(0);
     await expect(

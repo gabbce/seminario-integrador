@@ -91,10 +91,37 @@ class IndicatorTests {
   assertThat(queries.summary(day,day,"A","General").availableHours()).isEqualTo(3.5);
   assertThat(queries.summary(day,day,"A","Multimedios").availableHours()).isEqualTo(12);
  }
+ @Test void concurrentThirtyFiftyTwentyAndIndependentPeaks(){
+  occurrence(a,day.toString(),"14:00",2,30);occurrence(b,day.toString(),"14:30",2,20);
+  var data=queries.series(day,day,"","","day");var slots=data.daily().slots();
+  assertThat(slots.subList(14,17).stream().map(IndicatorQueries.Slot::students)).containsExactly(30.0,50.0,20.0);
+  assertThat(slots.subList(14,17).stream().map(IndicatorQueries.Slot::classes)).containsExactly(1.0,2.0,1.0);
+  assertThat(data.studentHours()).isEqualTo(50);assertThat(data.daily().peakStudentSlots()).containsExactly("14:30–15:00");
+  occurrence(a,day.toString(),"16:00",4,80);
+  data=queries.series(day,day,"","","day");assertThat(data.daily().peakStudents()).isEqualTo(80);assertThat(data.daily().peakClasses()).isEqualTo(2);
+  assertThat(data.daily().peakStudentSlots()).containsExactly("16:00–16:30","16:30–17:00","17:00–17:30","17:30–18:00");assertThat(data.daily().peakClassSlots()).containsExactly("14:30–15:00");
+ }
+ @Test void consecutiveClassesAreNotSimultaneousAndSixtyStudentHoursAreNotPeople(){
+  occurrence(a,day.toString(),"14:00",4,30);occurrence(a,day.toString(),"16:00",1,20);
+  var data=queries.series(day,day,"","","day");assertThat(data.daily().peakClasses()).isEqualTo(1);assertThat(data.studentHours()).isEqualTo(70);
+  assertThat(data.daily().slots().get(18).students()).isEqualTo(20);assertThat(data.daily().slots().get(17).students()).isEqualTo(30);
+ }
+ @Test void typicalWeekIncludesZerosExcludesFifthHolidayAndSeparatesMeanAndDatePeak(){
+  occurrence(a,"2027-03-01","14:00",2,40);occurrence(a,"2027-03-15","14:00",2,20);
+  db.update("insert into aulas.feriado(id_anio_lectivo,fecha,descripcion) values (?,'2027-03-29','QA quinto lunes')",year);
+  var result=queries.series(day,LocalDate.parse("2027-03-29"),"","","week");var monday=result.weekly().week().getFirst();
+  assertThat(monday.dates()).containsExactly("2027-03-01","2027-03-08","2027-03-15","2027-03-22");assertThat(monday.slots().get(14).students()).isEqualTo(15);assertThat(monday.slots().get(14).classes()).isEqualTo(.5);
+  assertThat(monday.studentHours()).isEqualTo(15);assertThat(monday.classes()).isEqualTo(.5);assertThat(monday.peakStudents()).isEqualTo(15);assertThat(monday.peakDateStudents()).isEqualTo(40);
+  assertThat(result.studentHours()).isEqualTo(60);
+  // Neither room has availability after March1; those days still contribute zero.
+  assertThat(result.weekly().week().get(1).dates()).hasSize(4);assertThat(result.weekly().week().get(1).peakStudents()).isZero();
+  var none=queries.series(LocalDate.parse("2027-03-06"),LocalDate.parse("2027-03-07"),"","","week");assertThat(none.weekly().eligible()).isFalse();assertThat(none.weekly().peakStudents()).isNull();assertThat(none.weekly().week().getFirst().slots().getFirst().students()).isNull();
+ }
  @Test void rolesAndInvalidRange() throws Exception {
   mvc.perform(get("/api/indicadores/resumen?from=2027-03-01&to=2027-03-01").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isOk()).andExpect(jsonPath("$.availableHours").value(10));
   new TransactionTemplate(manager).executeWithoutResult(tx->{db.update("delete from aulas.administrador where id_usuario=?",actor);db.update("update aulas.usuario set rol='DOCENTE' where id_usuario=?",actor);db.update("insert into aulas.docente values (?)",actor);});
   mvc.perform(get("/api/indicadores/resumen?from=2027-03-01&to=2027-03-01").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isForbidden());
+  mvc.perform(get("/api/indicadores/serie?from=2027-03-01&to=2027-03-01").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isForbidden());
   assertThatThrownBy(()->queries.summary(day,day.minusDays(1),"","")).hasMessageContaining("rango válido");
  }
 }

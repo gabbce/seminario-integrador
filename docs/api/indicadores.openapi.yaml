@@ -20,6 +20,32 @@ paths:
         '401': {description: Sesión inválida}
         '403': {description: Docente o cuenta no habilitada}
         '503': {description: Fallo técnico; no interpretar como cero}
+  /api/indicadores/serie:
+    get:
+      description: Solo Admin/Bedel. Resumen y curvas calculados en un único snapshot. Misma selección histórica por módulo que resumen. Día incluye32 franjas, máximos independientes y todas sus franjas, alumnos-hora. Semana incluye fechas elegibles con cero clases aun sin aulas habilitadas, excluye feriados/fuera de apertura; medias sin redondear, null si no hay fechas. Pico de curva promedio separado del mayor pico de fecha concreta. No cuenta personas únicas.
+      parameters:
+        - {name: from, in: query, required: true, schema: {type: string, format: date}}
+        - {name: to, in: query, required: true, schema: {type: string, format: date}}
+        - {name: view, in: query, schema: {type: string, enum: [day, week], default: day}, description: day exige from=to}
+        - {name: room, in: query, schema: {type: string}}
+        - {name: type, in: query, schema: {type: string, enum: ['', General, Multimedios, Laboratorio, Sin historia]}}
+      responses:
+        '200':
+          description: Resumen y vista solicitada; la otra vista es null.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [summary, daily, weekly, studentHours]
+                properties:
+                  summary: {$ref: '#/components/schemas/Summary'}
+                  studentHours: {type: number}
+                  daily: {oneOf: [{$ref: '#/components/schemas/Day'}, {type: 'null'}]}
+                  weekly: {oneOf: [{$ref: '#/components/schemas/Week'}, {type: 'null'}]}
+        '400': {description: Filtro/rango/vista inválidos}
+        '401': {description: Sesión inválida}
+        '403': {description: Permiso insuficiente}
+        '503': {description: Fallo técnico, nunca cero}
 components:
   securitySchemes:
     bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
@@ -49,3 +75,47 @@ components:
         forecast: {type: boolean}
         demand: {type: array, items: {$ref: '#/components/schemas/Breakdown'}}
         rooms: {type: array, items: {$ref: '#/components/schemas/Breakdown'}}
+
+    Slot:
+      type: object
+      required: [start, end, students, classes]
+      properties:
+        start: {type: string}
+        end: {type: string}
+        students: {type: [number, 'null']}
+        classes: {type: [number, 'null']}
+    Day:
+      type: object
+      required: [date, slots, peakStudents, peakClasses, peakStudentSlots, peakClassSlots, studentHours, classes]
+      properties:
+        date: {type: string, format: date}
+        slots: {type: array, minItems: 32, maxItems: 32, items: {$ref: '#/components/schemas/Slot'}}
+        peakStudents: {type: integer}
+        peakClasses: {type: integer}
+        peakStudentSlots: {type: array, items: {type: string}, description: Todas las franjas inicio–fin empatadas}
+        peakClassSlots: {type: array, items: {type: string}}
+        studentHours: {type: number}
+        classes: {type: integer}
+    Week:
+      type: object
+      required: [week, eligible, peakStudents, peakClasses]
+      properties:
+        eligible: {type: boolean}
+        peakStudents: {type: [number, 'null'], description: Pico de curva promedio}
+        peakClasses: {type: [number, 'null']}
+        week:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: object
+            required: [day, dates, slots, studentHours, classes, peakStudents, peakClasses, peakDateStudents]
+            properties:
+              day: {type: integer, minimum: 1, maximum: 5}
+              dates: {type: array, items: {type: string, format: date}, description: Fechas elegibles del denominador}
+              slots: {type: array, items: {$ref: '#/components/schemas/Slot'}}
+              studentHours: {type: [number, 'null'], description: Media diaria}
+              classes: {type: [number, 'null'], description: Media de clases programadas por fecha}
+              peakStudents: {type: [number, 'null'], description: Pico de curva promedio del día semanal}
+              peakClasses: {type: [number, 'null']}
+              peakDateStudents: {type: [number, 'null'], description: Máximo de una fecha concreta, distinto de promedio}

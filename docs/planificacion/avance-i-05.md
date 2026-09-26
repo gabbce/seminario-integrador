@@ -45,3 +45,9 @@ Verificación:
 - Inspección visual resumen/filtros/tablas en escritorio/móvil y resumen real. Revisor estándares Luna high pidió desacoplar el hook compartido de consultas de reservas: movido a `use-api-query.ts` y verificado; eje especificación en revisión. Sin aceptación manual.
 
 Cierre técnico I-05.3: eje especificación Luna high sin hallazgos; eje estándares corregido. Commit `feat: calcular resumen e indicadores de ocupación históricos`. Continúa I-05.4; aceptación manual pendiente.
+
+## I-05.4 · Curvas y semana típica
+
+Contrato previo: ampliación de `indicadores.openapi.yaml` con `/api/indicadores/serie`. Resumen y serie solicitada comparten fuente y snapshot. Franjas de media hora, picos independientes con empates, alumnos-hora y medias semanales con fechas elegibles (incluidos ceros); pico de curva media separado del máximo de fecha. React representa valores autoritativos y conserva tabla accesible, teclado y desplazamiento móvil.
+
+Verificación: `IndicatorTests` 9/9 PostgreSQL aislado; 30/50/20 alumnos, 1/2/1 clases, 50 alumnos-hora; contigüidad sin simultaneidad; máximos independientes/empatados; cuatro lunes40/0/20/0→15 y quinto feriado fuera del denominador. Navegador4/4; build/lint aprobados. Integración real de solo lectura1/1: 14/07/2027 aula103,20 alumnos previstos07–08,1 clase,1h/16h; Docente403. Capturas regenerables mediante tests: `/tmp/i054-curves.png`, `/tmp/i054-week.png`, `/tmp/i054-week-mobile.png` y `/tmp/i053-summary-real.png`. Inspeccionadas escritorio/móvil y curva real. Dos revisores gpt-6-luna high, ejes especificación/estándares: sin hallazgos accionables. Ninguna modificación remota. Cierre técnico; aceptación manual pendiente.

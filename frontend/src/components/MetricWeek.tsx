@@ -7,17 +7,22 @@ const number = (n: number) =>
 export function MetricWeek({
   data,
 }: {
-  data: NonNullable<ReturnType<typeof rangeMetrics>>;
+  data: Pick<
+    NonNullable<ReturnType<typeof rangeMetrics>>,
+    "week" | "eligible"
+  > & { peakStudents?: number | null; peakClasses?: number | null };
 }) {
   const [metric, setMetric] = useState<"students" | "classes">("students");
   const [selected, setSelected] = useState<{
     day: number;
     slot: number;
   } | null>(null);
-  const max = Math.max(
-    0,
-    ...data.week.flatMap((d) => d.slots.map((s) => s[metric] ?? 0)),
-  );
+  const max =
+    (metric === "students" ? data.peakStudents : data.peakClasses) ??
+    Math.max(
+      0,
+      ...data.week.flatMap((d) => d.slots.map((s) => s[metric] ?? 0)),
+    );
   const selectedDay = selected
     ? data.week.find((d) => d.day === selected.day)
     : null;

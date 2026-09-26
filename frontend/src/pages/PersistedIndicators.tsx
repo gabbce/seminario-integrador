@@ -1,14 +1,20 @@
+import { useState, lazy, Suspense } from "react";
+import { MetricWeek } from "../components/MetricWeek";
 import { useSearchParams } from "react-router-dom";
 import { Clock3, ChartPie, CalendarDays } from "lucide-react";
 import { useRooms } from "../room-context";
 import { useCalendars } from "../calendar-context";
 import { useApiQuery } from "../use-api-query";
 import { institutionalNow } from "../institutional-time";
-import type { IndicatorSummary } from "../indicator-api";
+import type { IndicatorSeries } from "../indicator-api";
 import { Button } from "../components/ui/button";
+const MetricCurve = lazy(() =>
+  import("../components/MetricCurve").then((m) => ({ default: m.MetricCurve })),
+);
 const number = (n: number) =>
   new Intl.NumberFormat("es-AR", { maximumFractionDigits: 1 }).format(n);
 export function PersistedIndicators() {
+  const [selectedSlot, setSelectedSlot] = useState(0);
   const rooms = useRooms(),
     calendars = useCalendars();
   const [params, setParams] = useSearchParams();
@@ -40,18 +46,20 @@ export function PersistedIndicators() {
     setParams(next, { replace: true });
   }
   const valid = !!from && !!to && from <= to;
-  const query = useApiQuery<IndicatorSummary>(
+  const query = useApiQuery<IndicatorSeries>(
     valid
-      ? `/indicadores/resumen?${new URLSearchParams({ from, to, room, type })}`
+      ? `/indicadores/serie?${new URLSearchParams({ from, to, room, type, view: mode })}`
       : null,
   );
-  const m = query.data;
+  const m = query.data?.summary;
+  const daily = query.data?.daily;
+  const weekly = query.data?.weekly;
   return (
     <>
       <div className="page-heading">
         <div>
           <p className="eyebrow">
-            INDICADORES · {mode === "day" ? "DÍA" : "RANGO"}
+            INDICADORES · {mode === "day" ? "DÍA" : "SEMANA TÍPICA"}
           </p>
           <h1>Uso de aulas y horas pico</h1>
           <p>Programación de clases · De 07:00 a 23:00</p>
@@ -68,7 +76,7 @@ export function PersistedIndicators() {
           variant={mode === "week" ? "default" : "outline"}
           onClick={() => change({ mode: "week" })}
         >
-          Cuatrimestre / rango
+          Semana típica
         </Button>
       </div>
       <section
@@ -222,6 +230,89 @@ export function PersistedIndicators() {
               </div>
             </article>
           </section>
+          {weekly && (
+            <MetricWeek key={`${from}:${to}:${room}:${type}`} data={weekly} />
+          )}
+          {daily && (
+            <>
+              <Suspense fallback={<p role="status">Cargando gráficos…</p>}>
+                <MetricCurve
+                  slots={daily.slots}
+                  metric="students"
+                  title="Alumnos previstos"
+                  onSelect={setSelectedSlot}
+                  peak={{
+                    value: daily.peakStudents,
+                    slots: daily.peakStudentSlots,
+                  }}
+                />
+                <MetricCurve
+                  slots={daily.slots}
+                  metric="classes"
+                  title="Clases simultáneas"
+                  onSelect={setSelectedSlot}
+                  peak={{
+                    value: daily.peakClasses,
+                    slots: daily.peakClassSlots,
+                  }}
+                />
+              </Suspense>
+              <section className="panel daily-slot">
+                <label>
+                  Franja del día
+                  <select
+                    aria-label="Franja del día"
+                    value={selectedSlot}
+                    onChange={(e) => setSelectedSlot(Number(e.target.value))}
+                  >
+                    {daily.slots.map((s, i) => (
+                      <option key={s.start} value={i}>
+                        {s.start}–{s.end}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p role="status">
+                  {daily.slots[selectedSlot].students} alumnos previstos ·{" "}
+                  {daily.slots[selectedSlot].classes} clases simultáneas · 1
+                  fecha aportante.
+                </p>
+              </section>
+              <details className="panel metric-values">
+                <summary>Ver las 32 franjas y sus valores</summary>
+                <div className="metric-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Franja</th>
+                        <th>Alumnos previstos</th>
+                        <th>Clases simultáneas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {daily.slots.map((s) => (
+                        <tr key={s.start}>
+                          <th scope="row">
+                            {s.start}–{s.end}
+                          </th>
+                          <td>{s.students}</td>
+                          <td>{s.classes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            </>
+          )}
+          <div className="panel metric-volume">
+            <strong>{number(query.data!.studentHours)}</strong>
+            <span>alumnos-hora</span>
+          </div>
+          <p className="metric-note">
+            Estimación con 100 % de asistencia. No representa personas únicas ni
+            asistencia observada. Las clases pueden compartir alumnos.
+          </p>
           <section className="panel">
             <h2>Demanda atendida por tipo de aula</h2>
             <div className="metric-table">

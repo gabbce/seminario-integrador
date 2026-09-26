@@ -5,6 +5,8 @@ const password=process.env.AULAS_DEMO_PASSWORD||readFileSync("../backend/.env","
 test("indicadores resumen real, receso y privacidad",async({page,browser})=>{
  await page.goto("/");await page.getByLabel("Correo electrónico").fill("bedel@demo.local");await page.getByLabel("Contraseña",{exact:true}).fill(password!);await page.getByRole("button",{name:"Ingresar",exact:true}).click();await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
  await page.goto("/indicadores?date=2027-07-14&room=103");await expect(page.getByText("1 / 16 h habilitadas",{exact:true})).toBeVisible();await expect(page.getByText("6,3 %",{exact:true})).toBeVisible();
+ await expect(page.getByRole("img",{name:/Alumnos previstos. Pico 20/})).toBeVisible();
+ await page.getByLabel("Franja del día").selectOption("0");await expect(page.getByRole("status")).toContainText("20 alumnos previstos · 1 clases simultáneas");
  await page.setViewportSize({width:1366,height:768});await page.screenshot({path:"/tmp/i053-summary-real.png",fullPage:true});
  const second=await browser.newPage();try{
   await second.goto("http://127.0.0.1:5175/");await second.getByLabel("Correo electrónico").fill("docente@demo.local");await second.getByLabel("Contraseña",{exact:true}).fill(password!);await second.getByRole("button",{name:"Ingresar",exact:true}).click();await expect(second.getByLabel("Fecha de agenda")).toBeVisible();

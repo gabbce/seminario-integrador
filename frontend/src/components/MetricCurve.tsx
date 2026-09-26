@@ -24,7 +24,9 @@ export function MetricCurve({
   metric,
   title,
   onSelect,
+  peak,
 }: {
+  peak?: { value: number; slots: string[] };
   slots: ReturnType<typeof dayMetrics>["slots"];
   metric: "students" | "classes";
   title: string;
@@ -88,7 +90,7 @@ export function MetricCurve({
     });
     return () => chart.destroy();
   }, [slots, metric, title, onSelect]);
-  const max = Math.max(...slots.map((s) => s[metric]));
+  const max = peak?.value ?? Math.max(...slots.map((s) => s[metric]));
   return (
     <section className="panel metric-curve">
       <div className="metric-curve-heading">
@@ -99,10 +101,12 @@ export function MetricCurve({
             <span>
               {" "}
               ·{" "}
-              {slots
-                .filter((s) => s[metric] === max)
-                .map((s) => `${s.start}–${s.end}`)
-                .join(", ")}
+              {(
+                peak?.slots ??
+                slots
+                  .filter((s) => s[metric] === max)
+                  .map((s) => `${s.start}–${s.end}`)
+              ).join(", ")}
             </span>
           )}
         </p>

@@ -31,6 +31,60 @@ public class IndicatorQueries {
         validate(from,to,room,type);
         return summarize(from,to,room,type,source(from,to,room));
     }
+    public record Slot(String start,String end,Double students,Double classes) {}
+    public record Day(String date,List<Slot> slots,long peakStudents,long peakClasses,List<String> peakStudentSlots,List<String> peakClassSlots,double studentHours,int classes) {}
+    public record WeekDay(int day,List<String> dates,List<Slot> slots,Double studentHours,Double classes,Double peakStudents,Double peakClasses,Double peakDateStudents) {}
+    public record Week(List<WeekDay> week,boolean eligible,Double peakStudents,Double peakClasses) {}
+    public record Series(Summary summary,Day daily,Week weekly,double studentHours) {}
+    static class Curve {
+        long[] students=new long[32],classes=new long[32];Set<Long> occurrences=new HashSet<>();
+        double studentHours(){return Arrays.stream(students).sum()/2.0;}
+        long peakStudents(){return Arrays.stream(students).max().orElse(0);}
+        long peakClasses(){return Arrays.stream(classes).max().orElse(0);}
+    }
+    private static String time(int index){return LocalTime.of(7,0).plusMinutes(index*30L).toString();}
+    private static List<Slot> slots(Curve curve,double denominator) {
+        var slots=new ArrayList<Slot>();
+        for(int i=0;i<32;i++)slots.add(new Slot(time(i),time(i+1),denominator==0?null:curve.students[i]/denominator,denominator==0?null:curve.classes[i]/denominator));
+        return slots;
+    }
+    private static List<String> peaks(long[] values,long max) {
+        var peaks=new ArrayList<String>();for(int i=0;i<32;i++)if(values[i]==max)peaks.add(time(i)+"–"+time(i+1));return peaks;
+    }
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public Series series(LocalDate from,LocalDate to,String room,String type,String view) {
+        validate(from,to,room,type);
+        if(!Set.of("day","week").contains(view)||view.equals("day")&&!from.equals(to))throw new DomainError(400,"INVALID_VIEW","La vista diaria requiere una única fecha.");
+        var source=source(from,to,room);var summary=summarize(from,to,room,type,source);
+        var rooms=new HashMap<Long,Room>();source.rooms().forEach(r->rooms.put(r.id(),r));
+        var curves=new TreeMap<LocalDate,Curve>();
+        for(var o:source.occurrences())for(int i=0;i<o.modules();i++) {
+            var start=o.start().plusMinutes(i*30L);var history=at(rooms.get(o.room()).history(),instant(o.date(),start));
+            if(!matches(type,history==null?"Sin historia":history.type()))continue;
+            int index=(start.getHour()*60+start.getMinute()-420)/30;
+            var curve=curves.computeIfAbsent(o.date(),k->new Curve());curve.students[index]+=o.students();curve.classes[index]++;curve.occurrences.add(o.id());
+        }
+        double studentHours=curves.values().stream().mapToDouble(Curve::studentHours).sum();
+        if(view.equals("day")) {
+            var curve=curves.getOrDefault(from,new Curve());
+            return new Series(summary,new Day(from.toString(),slots(curve,1),curve.peakStudents(),curve.peakClasses(),peaks(curve.students,curve.peakStudents()),peaks(curve.classes,curve.peakClasses()),curve.studentHours(),curve.occurrences.size()),null,studentHours);
+        }
+        var week=new ArrayList<WeekDay>();
+        for(int weekday=1;weekday<=5;weekday++) {
+            final int day=weekday;
+            var dates=source.eligibleDates().stream().filter(d->d.getDayOfWeek().getValue()==day).sorted().toList();
+            var sum=new Curve();long classes=0;double peakDate=0;
+            for(var date:dates) {
+                var curve=curves.getOrDefault(date,new Curve());classes+=curve.occurrences.size();peakDate=Math.max(peakDate,curve.peakStudents());
+                for(int i=0;i<32;i++){sum.students[i]+=curve.students[i];sum.classes[i]+=curve.classes[i];}
+            }
+            double count=dates.size();
+            week.add(new WeekDay(day,dates.stream().map(LocalDate::toString).toList(),slots(sum,count),count==0?null:sum.studentHours()/count,count==0?null:classes/count,count==0?null:sum.peakStudents()/count,count==0?null:sum.peakClasses()/count,count==0?null:peakDate));
+        }
+        Double maxStudents=week.stream().map(WeekDay::peakStudents).filter(Objects::nonNull).max(Double::compare).orElse(null);
+        Double maxClasses=week.stream().map(WeekDay::peakClasses).filter(Objects::nonNull).max(Double::compare).orElse(null);
+        return new Series(summary,null,new Week(week,!source.eligibleDates().isEmpty(),maxStudents,maxClasses),studentHours);
+    }
     private Summary summarize(LocalDate from,LocalDate to,String room,String type,Source source) {
         var total=new Totals();var types=new TreeMap<String,Totals>();var rooms=new TreeMap<String,Totals>();
         boolean unknown=source.missingCalendar();

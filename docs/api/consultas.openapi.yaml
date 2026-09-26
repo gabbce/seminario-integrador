@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: Consultas persistentes I-05
+  version: 1.0.0
+security:
+  - bearerAuth: []
+paths:
+  /api/consultas/agenda:
+    get:
+      description: Todos los roles activos. Ocurrencias vigentes completas del día o lunes a viernes de la semana institucional. Proyección pública sin contactos, registrador ni auditoría. El contexto de calendario e historial de aulas se obtiene de referencias existentes; disponibilidad sigue siendo la autoridad para reservar.
+      parameters:
+        - {name: date, in: query, required: true, schema: {type: string, format: date}}
+        - {name: view, in: query, schema: {type: string, enum: [day, week], default: day}}
+        - {$ref: '#/components/parameters/room'}
+        - {$ref: '#/components/parameters/type'}
+      responses:
+        '200':
+          description: Intervalo efectivo y todas las filas sin paginar; tipo histórico al inicio, Sin historia si no hay cobertura.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Result'}
+        '400': {description: Fecha, vista o filtro inválido}
+        '401': {description: Sesión inválida}
+        '403': {description: Perfil no habilitado}
+        '503': {description: Fallo técnico; nunca conjunto vacío}
+  /api/consultas/listado:
+    get:
+      description: Todos los roles. Día ordena tipo, inicio, aula, ID de detalle; curso ordena fecha, inicio, ID. Total y filas pertenecen a una transacción REPEATABLE READ. Estado por detalle. Año y curso deben coincidir. Se preservan contratos /reservas/{id} y operaciones; el cliente operativo deja de consumir /reservas global.
+      parameters:
+        - {name: mode, in: query, schema: {type: string, enum: [day, course], default: day}}
+        - {name: date, in: query, schema: {type: string, format: date}, description: Obligatorio en modo day}
+        - {name: courseId, in: query, schema: {type: integer, minimum: 1}, description: Obligatorio en modo course}
+        - {name: year, in: query, schema: {type: integer, minimum: 1, maximum: 9999}, description: Obligatorio en modo course}
+        - {$ref: '#/components/parameters/room'}
+        - {$ref: '#/components/parameters/type'}
+        - {name: status, in: query, schema: {type: string, enum: [active, cancelled, all], default: active}}
+        - {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+        - {name: size, in: query, schema: {type: integer, enum: [20, 50, 100], default: 20}}
+      responses:
+        '200':
+          description: Página solicitada, incluso vacía si excede total. Filtros efectivos reflejados; sin información privada para ningún rol.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Result'}
+        '400': {description: Filtros inválidos o curso/año incompatibles}
+        '401': {description: Sesión inválida}
+        '403': {description: Perfil no habilitado}
+        '503': {description: Fallo técnico; permite reintento}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    room: {name: room, in: query, schema: {type: string}, description: Identificador visible exacto; vacío significa todas}
+    type: {name: type, in: query, schema: {type: string, enum: ['', General, Multimedios, Laboratorio, Sin historia]}, description: Tipo histórico al inicio de la ocurrencia; vacío significa todos}
+  schemas:
+    Row:
+      type: object
+      additionalProperties: false
+      required: [id, bookingId, courseId, course, subject, teacher, students, date, start, end, room, type, cancelled]
+      properties:
+        id: {type: string}
+        bookingId: {type: string}
+        courseId: {type: string}
+        course: {type: string}
+        subject: {type: string}
+        teacher: {type: string}
+        students: {type: integer}
+        date: {type: string, format: date}
+        start: {type: string}
+        end: {type: string}
+        room: {type: string}
+        type: {type: string}
+        cancelled: {type: boolean}
+    Result:
+      type: object
+      required: [rows, total, page, size, filters]
+      properties:
+        rows: {type: array, items: {$ref: '#/components/schemas/Row'}}
+        total: {type: integer}
+        page: {type: integer}
+        size: {type: integer, description: 0 indica conjunto completo de agenda}
+        filters: {type: object, additionalProperties: true, description: mode/view, from/to, room/type/status y curso/año efectivos}

@@ -154,6 +154,11 @@ async function setup(page: Page, role = "bedel") {
     );
     return r.fulfill({ json: { year: 2027, calendarVersion: 4, patterns } });
   });
+  await page.route("**/api/consultas/agenda?*", r => {
+    const p = new URL(r.request().url()).searchParams;
+    const rows = control.bookings.flatMap(b => b.occurrences.filter(o => !o.cancelled && o.date === p.get("date")).map(o => ({...o, bookingId:b.id, courseId:b.courseId, course:b.course, subject:b.subject, teacher:b.teacher, students:b.students, type:b.type})));
+    return r.fulfill({json:{rows,total:rows.length,page:0,size:0,filters:{}}});
+  });
   await page.route("**/api/reservas", (r) =>
     r.fulfill({ json: control.bookings }),
   );
@@ -517,7 +522,7 @@ test("resultado aún no encontrado reintenta con la misma identidad", async ({
   expect(new Set(control.operationIds).size).toBe(1);
 });
 
-test("listado previo demorado no borra una confirmación nueva de la agenda", async ({
+test("consulta acotada al volver refleja una confirmación nueva en agenda", async ({
   page,
 }) => {
   await setup(page);

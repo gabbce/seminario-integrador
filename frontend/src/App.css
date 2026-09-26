@@ -1540,3 +1540,13 @@ body {
   display: block;
   margin-top: 4px;
 }
+
+.agenda-unavailable-slot {
+  position: absolute;
+  inset-inline: 0;
+  background: repeating-linear-gradient(135deg, #e8e9e6 0 3px, #f2f3ef 3px 10px);
+  color: #52574e;
+  font-size: .7rem;
+  pointer-events: none;
+}
+.agenda-unavailable-slot span { padding: 4px; display: block; }

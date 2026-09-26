@@ -138,9 +138,15 @@ test("Reservas real: agenda de una reserva existente", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Correo electrónico").fill("docente@demo.local");
   await page.getByLabel("Contraseña", { exact: true }).fill(password);
-  const list = page.waitForResponse((r) => r.url().endsWith("/api/reservas"));
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-  const bookings = await (await list).json();
+  await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
+  // Read-only inventory for legacy dataset assertions; the application no longer downloads this collection.
+  const bookings = await page.evaluate(async () => {
+    const session = JSON.parse(localStorage.getItem("aulas-auth")!);
+    const response = await fetch("/api/reservas", {headers:{Authorization:`Bearer ${session.access_token}`}});
+    if (!response.ok) throw Error(`QA inventory ${response.status}`);
+    return response.json();
+  });
   expect(bookings.length).toBeGreaterThan(0);
   const booking = bookings[0];
   await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
@@ -166,9 +172,15 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
   await page.goto("/");
   await page.getByLabel("Correo electrónico").fill("bedel@demo.local");
   await page.getByLabel("Contraseña", { exact: true }).fill(password);
-  const list = page.waitForResponse((r) => r.url().endsWith("/api/reservas"));
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-  const bookings = await (await list).json();
+  await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
+  // Read-only inventory for legacy dataset assertions; the application no longer downloads this collection.
+  const bookings = await page.evaluate(async () => {
+    const session = JSON.parse(localStorage.getItem("aulas-auth")!);
+    const response = await fetch("/api/reservas", {headers:{Authorization:`Bearer ${session.access_token}`}});
+    if (!response.ok) throw Error(`QA inventory ${response.status}`);
+    return response.json();
+  });
   const expected = [
     ["Matemática I", 2026, "second", 25, "14:00", "105"],
     ["Física I", 2026, "second", 28, "17:00", "108"],

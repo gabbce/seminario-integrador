@@ -14,7 +14,12 @@ import type { Reschedule as RescheduleRequest } from "../reschedule";
 import { ChangeRoom } from "./ChangeRoom";
 import type { RoomChange } from "../room-change";
 import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { type Booking, type Role, dateLabel } from "../domain";
 import { bookingState, isFuture, type Cancellation } from "../cancellation";
@@ -125,6 +130,12 @@ function BookingDetail({
   const [rescheduling, setRescheduling] = useState(false);
   const [changingRoom, setChangingRoom] = useState(false);
   const go = useNavigate();
+  const location = useLocation();
+  const returnTo =
+    typeof location.state?.returnTo === "string" &&
+    /^\/(agenda|reservas)(\?|$)/.test(location.state.returnTo)
+      ? location.state.returnTo
+      : "/reservas";
   const [editing, setEditing] = useState(false);
   const [indices, setIndices] = useState<number[]>([]);
   const [reason, setReason] = useState("");
@@ -196,7 +207,7 @@ function BookingDetail({
     <>
       <Button
         variant="ghost"
-        onClick={() => (editing ? setEditing(false) : go("/reservas"))}
+        onClick={() => (editing ? setEditing(false) : go(returnTo))}
       >
         <ChevronLeft />
         {editing ? "Volver al detalle" : "Reservas"}
@@ -512,11 +523,17 @@ function BookingDetail({
 
 function MissingReservation() {
   const go = useNavigate();
+  const location = useLocation();
+  const returnTo =
+    typeof location.state?.returnTo === "string" &&
+    /^\/(agenda|reservas)(\?|$)/.test(location.state.returnTo)
+      ? location.state.returnTo
+      : "/reservas";
   return (
     <section className="panel">
       <h1>Reserva no encontrada</h1>
       <p>La reserva no está disponible en el escenario actual.</p>
-      <Button onClick={() => go("/reservas")}>Volver a reservas</Button>
+      <Button onClick={() => go(returnTo)}>Volver a reservas</Button>
     </section>
   );
 }

@@ -21,6 +21,7 @@ import {
   NavLink,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import {
   CalendarDays,
@@ -33,12 +34,12 @@ import {
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Brand } from "./components/Brand";
-import { type Booking, type Room } from "./domain";
+import { type Room } from "./domain";
 import "./App.css";
 import type { Profile } from "./auth-client";
 import { Agenda } from "./pages/Agenda";
 import { Wizard } from "./pages/Wizard";
-import { Listing } from "./pages/Listing";
+import { PersistedListing } from "./pages/PersistedListing";
 import { Rooms } from "./pages/Rooms";
 import { Indicators } from "./pages/Indicators";
 
@@ -96,8 +97,16 @@ export default function App({
     agendaSelection.locationKey === location.key
       ? agendaSelection.date
       : (requestedDate ?? agendaSelection.date);
-  const setAgendaDate = (date: string) =>
+  const navigate = useNavigate();
+  const setAgendaDate = (date: string) => {
     setAgendaSelection({ locationKey: location.key, date });
+    const params = new URLSearchParams(location.search);
+    params.set("fecha", date);
+    navigate(
+      { pathname: "/agenda", search: params.toString() },
+      { replace: true },
+    );
+  };
   const [inventory, setInventory] = useState<Room[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState("");
@@ -126,54 +135,6 @@ export default function App({
     };
   }, []);
   const role = currentUser?.role;
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState(true);
-  const [bookingsError, setBookingsError] = useState("");
-  const [bookingsAttempt, retryBookings] = useState(0);
-  useEffect(() => {
-    let active = true;
-    api<Booking[]>("/reservas")
-      .then(
-        (rows) => {
-          if (active) {
-            // A confirmation may finish while this initial snapshot is still in flight.
-            // Current entries belong to this account-mounted instance and include those results.
-            setBookings((current) => [
-              ...rows.filter(
-                (row) => !current.some((saved) => saved.id === row.id),
-              ),
-              ...current,
-            ]);
-            setBookingsError("");
-          }
-        },
-        (error: Error) => {
-          if (active) setBookingsError(error.message);
-        },
-      )
-      .finally(() => {
-        if (active) setBookingsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [bookingsAttempt]);
-  const bookingStatus = bookingsError ? (
-    <section className="panel" role="alert">
-      <p>{bookingsError}</p>
-      <Button
-        onClick={() => {
-          setBookingsError("");
-          setBookingsLoading(true);
-          retryBookings((old) => old + 1);
-        }}
-      >
-        Reintentar consulta
-      </Button>
-    </section>
-  ) : bookingsLoading ? (
-    <p role="status">Cargando reservas…</p>
-  ) : null;
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<TeacherReference[]>([]);
   const [referencesLoading, setReferencesLoading] = useState(true);
@@ -325,14 +286,13 @@ export default function App({
                     <Route
                       path="/agenda"
                       element={
-                        bookingStatus ?? (
-                          <Agenda
-                            bookings={bookings}
-                            date={agendaDate}
-                            setDate={setAgendaDate}
-                            operator={role !== "Docente"}
-                          />
-                        )
+                        <Agenda
+                          bookings={[]}
+                          persisted
+                          date={agendaDate}
+                          setDate={setAgendaDate}
+                          operator={role !== "Docente"}
+                        />
                       }
                     />
                     <Route
@@ -354,12 +314,7 @@ export default function App({
                               )
                             }
                             role={role}
-                            onConfirmed={(booking) =>
-                              setBookings((old) => [
-                                ...old.filter((b) => b.id !== booking.id),
-                                booking,
-                              ])
-                            }
+                            onConfirmed={() => {}}
                           />
                         )
                       }
@@ -383,7 +338,7 @@ export default function App({
                     />
                     <Route
                       path="/reservas"
-                      element={bookingStatus ?? <Listing bookings={bookings} />}
+                      element={<PersistedListing courses={courses} />}
                     />
                     <Route path="/aulas" element={<Rooms role={role} />} />
                     <Route

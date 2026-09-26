@@ -1,8 +1,10 @@
+import { rowBooking, useConsultation } from "../consultations";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { institutionalNow } from "../institutional-time";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
-import { weekDates, closedDay } from "../agenda";
+import { weekDates, closedDay, roomDaySlots, roomDayTypes } from "../agenda";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,28 +12,71 @@ import { minutes, dateLabel, type Booking } from "../domain";
 import { Button } from "../components/ui/button";
 
 export function Agenda({
-  bookings,
+  bookings: initialBookings,
+  persisted = false,
   operator,
   date,
   setDate,
 }: {
+  persisted?: boolean;
   date: string;
   setDate: (date: string) => void;
   bookings: Booking[];
   operator: boolean;
 }) {
   const rooms = useRooms();
-  const [view, setView] = useState<"day" | "week">("day");
+  const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const [localView, setLocalView] = useState<"day" | "week">("day");
+  const view = persisted
+    ? params.get("view") === "week"
+      ? "week"
+      : "day"
+    : localView;
+  const update = (patch: Record<string, string>) => {
+    const next = new URLSearchParams(params);
+    Object.entries(patch).forEach(([k, v]) => next.set(k, v));
+    setParams(next, { replace: true });
+  };
+  const changeDate = (value: string) =>
+    persisted ? update({ fecha: value }) : setDate(value);
+  const setView = (value: "day" | "week") =>
+    persisted ? update({ view: value }) : setLocalView(value);
   const calendar = useCalendar(Number(date.slice(0, 4)));
-  const [room, setRoom] = useState("");
-  const [type, setType] = useState("");
+  const [localRoom, setLocalRoom] = useState("");
+  const [localType, setLocalType] = useState("");
+  const room = persisted ? (params.get("room") ?? "") : localRoom;
+  const type = persisted ? (params.get("type") ?? "") : localType;
+  const setRoom = (value: string) =>
+    persisted ? update({ room: value }) : setLocalRoom(value);
+  const setType = (value: string) =>
+    persisted ? update({ type: value }) : setLocalType(value);
+  const query = useConsultation(
+    persisted
+      ? `/consultas/agenda?${new URLSearchParams({ date, view, room, type })}`
+      : null,
+  );
+  const bookings = persisted
+    ? (query.data?.rows.map(rowBooking) ?? [])
+    : initialBookings;
+  const detailState = persisted
+    ? { state: { returnTo: location.pathname + location.search } }
+    : undefined;
   const go = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 720;
   }, [view]);
   const shown = rooms.filter(
-    (r) => (!room || r.id === room) && (!type || r.type === type),
+    (r) =>
+      (!room || r.id === room) &&
+      (!type ||
+        (persisted
+          ? bookings.some(
+              (b) =>
+                b.type === type && b.occurrences.some((o) => o.room === r.id),
+            ) || roomDayTypes(r, date).includes(type)
+          : r.type === type)),
   );
   const entries = bookings
     .flatMap((b) =>
@@ -48,7 +93,7 @@ export function Agenda({
   function move(n: number) {
     const d = new Date(`${date}T12:00:00Z`);
     d.setUTCDate(d.getUTCDate() + n);
-    setDate(d.toISOString().slice(0, 10));
+    changeDate(d.toISOString().slice(0, 10));
   }
   return (
     <>
@@ -99,7 +144,7 @@ export function Agenda({
           </Button>
           <Button
             variant="outline"
-            onClick={() => setDate(institutionalNow().slice(0, 10))}
+            onClick={() => changeDate(institutionalNow().slice(0, 10))}
           >
             Hoy
           </Button>
@@ -114,7 +159,7 @@ export function Agenda({
             aria-label="Fecha de agenda"
             type="date"
             value={date}
-            onChange={(e) => e.target.value && setDate(e.target.value)}
+            onChange={(e) => e.target.value && changeDate(e.target.value)}
           />
         </div>
         <div className="filters">
@@ -134,12 +179,34 @@ export function Agenda({
             onChange={(e) => setType(e.target.value)}
           >
             <option value="">Todos los tipos</option>
-            {["General", "Multimedios", "Laboratorio"].map((t) => (
+            {[
+              "General",
+              "Multimedios",
+              "Laboratorio",
+              ...(persisted ? ["Sin historia"] : []),
+            ].map((t) => (
               <option key={t}>{t}</option>
             ))}
           </select>
         </div>
       </div>
+      <p className="muted">
+        Una franja sin clases no garantiza disponibilidad. Consultá
+        disponibilidad para reservar.
+      </p>
+      {persisted && view === "day" && (
+        <p className="muted">
+          Estado histórico por franja: las zonas rayadas indican
+          indisponibilidad o cobertura desconocida.{" "}
+          {shown
+            .filter((r) =>
+              roomDaySlots(r, date).some((slot) => slot.state !== "Habilitada"),
+            )
+            .map((r) => r.id)
+            .join(", ") ||
+            "Todas las aulas mostradas tienen cobertura habilitada completa."}
+        </p>
+      )}
       {shown.some((r) => r.state && r.state !== "Habilitada") && (
         <p className="closed-notice">
           Aulas no reservables actualmente:{" "}
@@ -150,14 +217,24 @@ export function Agenda({
           . Se conserva la consulta histórica.
         </p>
       )}
-      {view === "week" ? (
+      {persisted && query.error ? (
+        <section className="panel" role="alert">
+          {query.error}{" "}
+          <Button onClick={query.retry}>Reintentar consulta</Button>
+        </section>
+      ) : persisted && !query.data ? (
+        <p role="status">Cargando agenda…</p>
+      ) : view === "week" ? (
         <WeekAgenda
           date={date}
           rooms={shown}
           bookings={bookings}
           openDay={(day) => {
-            setDate(day);
-            setView("day");
+            if (persisted) update({ fecha: day, view: "day" });
+            else {
+              setDate(day);
+              setView("day");
+            }
           }}
         />
       ) : (
@@ -192,7 +269,8 @@ export function Agenda({
                     {r.id.startsWith("Lab") ? r.id : `Aula ${r.id}`}
                   </strong>
                   <small>
-                    {r.capacity} personas · {r.type}
+                    {r.capacity} personas ·{" "}
+                    {persisted ? roomDayTypes(r, date).join(" / ") : r.type}
                   </small>
                 </div>
               ))}
@@ -203,15 +281,30 @@ export function Agenda({
               </div>
               {shown.map((r) => (
                 <div
-                  className={`room-column ${r.state && r.state !== "Habilitada" ? "unavailable-room" : ""}`}
+                  className={`room-column ${!persisted && r.state && r.state !== "Habilitada" ? "unavailable-room" : ""}`}
                   key={r.id}
                 >
+                  {persisted &&
+                    roomDaySlots(r, date).map(
+                      ({ index: i, start, end, state }) => {
+                        return state === "Habilitada" ? null : (
+                          <div
+                            key={i}
+                            className="agenda-unavailable-slot"
+                            style={{ top: i * 60, height: 60 }}
+                            title={`${start}–${end} · ${state}`}
+                          >
+                            <span>{state}</span>
+                          </div>
+                        );
+                      },
+                    )}
                   {entries
                     .filter((x) => x.o.room === r.id)
                     .map(({ b, o }) => (
                       <button
-                        className={`booking ${r.type}`}
-                        key={`${b.id}-${o.date}`}
+                        className={`booking ${persisted ? b.type : r.type}`}
+                        key={o.id ?? `${b.id}-${o.date}-${o.start}`}
                         style={{
                           top: (minutes(o.start) - 420) * 2,
                           height: (minutes(o.end) - minutes(o.start)) * 2,
@@ -219,6 +312,7 @@ export function Agenda({
                         onClick={() =>
                           go(
                             `/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`,
+                            detailState,
                           )
                         }
                       >
@@ -240,9 +334,12 @@ export function Agenda({
               entries.map(({ b, o }) => (
                 <button
                   className="mobile-booking"
-                  key={`${b.id}-${o.date}`}
+                  key={o.id ?? `${b.id}-${o.date}-${o.start}`}
                   onClick={() =>
-                    go(`/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`)
+                    go(
+                      `/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`,
+                      detailState,
+                    )
                   }
                 >
                   <span className="eyebrow">

@@ -1,6 +1,6 @@
 import { emptyCalendar } from "../calendar";
 import { useCalendars } from "../calendar-context";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { type Booking, type Room, dateLabel } from "../domain";
 import { weekDates, closedDay } from "../agenda";
 import { Button } from "./ui/button";
@@ -17,6 +17,7 @@ export function WeekAgenda({
 }) {
   const calendars = useCalendars();
   const go = useNavigate();
+  const location = useLocation();
   return (
     <>
       <p className="muted">
@@ -74,9 +75,11 @@ export function WeekAgenda({
               {entries.map(({ b, o }) => (
                 <button
                   className="week-booking"
-                  key={`${b.id}-${o.date}`}
+                  key={o.id ?? `${b.id}-${o.date}-${o.start}`}
                   onClick={() =>
-                    go(`/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`)
+                    go(`/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`, {
+                      state: { returnTo: location.pathname + location.search },
+                    })
                   }
                 >
                   <small>

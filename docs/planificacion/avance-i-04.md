@@ -1,6 +1,6 @@
 # Avance de I-04
 
-Plan vinculante: [operación completa](i-04-operacion-completa.md), aprobado el 25/09/2026. **Estado: I-04 implementada y verificada, pendiente de QA del usuario.** Se completaron los seis cortes, los datos demo y la guía manual; aceptación exclusiva del usuario. Ver cierre técnico al final para evidencia vigente.
+Plan vinculante: [operación completa](i-04-operacion-completa.md), aprobado el 25/09/2026. **Estado: I-04 implementada y verificada, pendiente de QA del usuario.** Se completaron los seis cortes, los datos demo y la guía manual; aceptación exclusiva del usuario. Ver cierre técnico al final para evidencia vigente. Las secciones de verificación por corte conservan la cronología: sus estados «en curso» y pendientes interinos no describen el estado actual.
 
 ## Base y método
 
@@ -61,7 +61,7 @@ La primera ejecución de pruebas nuevas fue roja por ausencia de `SporadicConfir
 
 ## Punto de recuperación actual
 
-Los seis cortes están técnicamente completos. Guía vigente: [QA manual I-04](qa-manual-i-04.md); dataset y reservasQA: [datos demo](datos-demo-i-04.md). Continuación funcional: QA del usuario. No se hizo push ni despliegue; `prototype/v1` se conserva.
+Los seis cortes están técnicamente completos. Guía vigente: [QA manual I-04](qa-manual-i-04.md); dataset y reservasQA: [datos demo](datos-demo-i-04.md). Base técnica de I-04: commit `98512e3`. Continuación acordada el 25/09/2026: preparar los planes detallados de I-05 e I-06 y el QA manual final conjunto de I-04–I-06. Esta planificación fue aprobada por bloques el 26/09/2026; su implementación y la ejecución del QA siguen pendientes. El usuario posterga su QA de I-04 mientras se avanza con las siguientes entregas; I-04 no está aceptada ni cerrada por el usuario. Al cierre técnico de I-04 no se había realizado push ni despliegue; `prototype/v1` se conserva.
 
 Servicios propios detenidos; puertos8080/5173/5174/5175 libres al cierre. Para levantar: desde `backend/`, `./mvnw spring-boot:run`; desde `frontend/`, `npm run dev`. No se detuvieron procesos ajenos. Las secciones siguientes conservan la cronología de verificación; sus pendientes interinos fueron resueltos según el cierre final.
 

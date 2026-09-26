@@ -1,6 +1,6 @@
 # I-04 · Operación completa de reservas
 
-**Estado:** plan detallado aprobado secuencialmente por el usuario el 25/09/2026: alcance/orden y los seis cortes. Implementación no iniciada. I-03 está aceptada y cerrada. Este documento habilita preparar los contratos técnicos e implementar dentro del alcance aprobado; la aceptación final requiere QA del usuario.
+**Estado:** plan detallado aprobado secuencialmente por el usuario el 25/09/2026: alcance/orden y los seis cortes. Implementación completada y verificada; ver [avance y evidencia](avance-i-04.md). I-03 está aceptada y cerrada. El QA manual de I-04 queda pendiente por decisión del usuario mientras se avanza con I-05 e I-06; la revisión manual final de las tres entregas fue planificada y aprobada por bloques el 26/09/2026, y sigue pendiente de ejecución. La aceptación final de I-04 sigue pendiente del usuario.
 
 ## Objetivo y límites
 

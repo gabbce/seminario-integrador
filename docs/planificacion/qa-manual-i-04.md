@@ -1,6 +1,6 @@
 # QA manual · I-04
 
-**Pendiente del usuario.** Esta guía no marca aceptación. Alcance: esporádicas, cancelaciones, edición de cabecera/aulas, reprogramación, impacto de calendario y recuperación. I-01–03 mantienen su aceptación previa; indicadores persistentes, consultas/impresión completas y empaquetado quedan para I-05/I-06.
+**Pendiente del usuario.** El 25/09/2026 el usuario decidió postergar este QA mientras se avanza con I-05 e I-06. Esta checklist se conserva como cobertura de I-04 para el QA manual final conjunto de las tres entregas, planificado y aprobado por bloques el 26/09/2026, pendiente de ejecución. Esta guía no marca ejecución ni aceptación. Alcance: esporádicas, cancelaciones, edición de cabecera/aulas, reprogramación, impacto de calendario y recuperación. I-01–03 mantienen su aceptación previa; indicadores persistentes, consultas/impresión completas y empaquetado quedan para I-05/I-06.
 
 ## Preparación
 

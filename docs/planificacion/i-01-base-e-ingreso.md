@@ -1,6 +1,6 @@
 # I-01 · Base e ingreso real
 
-**Estado:** alcance, entorno, preparación de cuentas, contrato de sesión, subcortes y validación aprobados por el usuario. Plan consolidado; implementación no iniciada. Pertenece al [plan general I-01 a I-06](integracion.md). Cada entrega posterior tendrá su propio detalle antes de comenzar.
+**Estado:** alcance, entorno, preparación de cuentas, contrato de sesión, subcortes y validación aprobados por el usuario. Implementación completada y verificada; I-01 aceptada por el usuario mediante QA manual. Ver [avance y evidencia](avance-i-01.md). Pertenece al [plan general I-01 a I-06](integracion.md). Cada entrega posterior tendrá su propio detalle antes de comenzar.
 
 ## Resultado y límites
 

@@ -1,6 +1,6 @@
 # Avance I-05
 
-Estado: en implementación. Aceptación manual I-04/I-05/I-06 pendiente.
+Estado: I-05 implementada y verificada funcionalmente. Aceptación manual I-04/I-05/I-06 pendiente. Referencia de latencia remota con excesos documentados; protocolo RNF completo pendiente I-06.3.
 
 ## I-05.1 · Consultas acotadas
 
@@ -71,3 +71,16 @@ Contrato previo `carga-demo-i-05.md`; dataset generado determinista `volumen-i05
 - Repetición remota finalizada0:0reservas/0clases creadas,306conservadas, sin discrepancias. Cotejo final completado: igualdad completa con el inventario posterior a carga. No reset; aceptación manual pendiente.
 
 Cierre técnico I-05.5: inventario posterior y repetición completamente iguales. Build y66unitarias frontend aprobadas; lint limpio. Revisiones Luna high resueltas. Continúa I-05.6; QA/aceptación manual pendientes.
+
+## I-05.6 · Regresión cruzada y QA exacto
+
+Contrato previo `docs/api/qa-i-05.md`. Cruces de servicios reales aislados y entorno temporal con la misma interfaz/validación Auth; sin cambios en escenarios compartidos. Referencia de latencias separada del protocolo RNF completo de I-06.3. Aceptación manual pendiente.
+
+- `ConsultationMutationTests`:2/2 PostgreSQL aislado. Alta20alumnos×1h por fecha; cabecera25; reasignación A→B; reprogramación27→28julio con1,5h/37,5alumnos-hora; cancelación elimina numerador/agenda pero figura cancelada. Extensión22mar agrega1h/30alumnos-hora sin ampliar32h disponibles; quitar feriado08mar agrega clase y32h elegibles. Listado/impresión iguales y proyección pública sin contactos.
+- Entorno exacto temporal iniciado, detenido y recreado; usa las14migraciones y Auth/JWT Supabase reales con perfiles locales. Rechaza puertos ocupados, usa ID propio del contenedor para limpiar. Revisor pidió cerrar sesiones temporales y asegurar permisos de archivos existentes: corregido con logout local/chmod; ninguna sesión existente se cierra. Guía `qa-exacto-i-05.md` con valores/enlaces por caso.
+- `indicators-exact.spec.ts`:2/2; todos los cálculos por API y vistas reales, navegación por teclado del mapa, Docente móvil y403; H dada de baja en2022 conserva cifras históricas2021. Se corrigió selector ambiguo del test (50 en tabla y resumen), sin defecto de producto. Repetido tras ajustes de aislamiento y baja histórica.
+- Referencia remota descriptiva en `docs/evidencias/i05-lecturas.json`:1sesión,1calentamiento+5lecturas por operación, sin errores. p95 listado1612,87ms y disponibilidad2748,60ms superan el objetivo1500ms; no se acredita cumplimiento RNF remoto. No es el protocolo vigente de50sesiones, que se ejecutará sobre el paquete/entorno declarado en I-06.3. Impresión/agenda/indicadores registrados sin inventarles umbrales.
+- Regresión completa:164pruebas Java sin fallos/errores/omisiones y109pruebas Playwright offline aprobadas. Lint limpio. Inspección visual de ponderación25%, curvas30/50/20, H histórico tras baja, cobertura parcial y mapa/listado móvil completada; las capturas se regeneran con el comando exacto. Permisos privados del entorno comprobados:directorio700 y configuración/logs600.
+- Cierre de revisión: teardown exacto cierra solo su sesión Auth local;2/2 repetidas aprobadas. Reporte de referencia marca árbol con cambios y límite de trazabilidad inicial; futuras mediciones agregan dirty y hash del colector. Revisores Luna high sin hallazgos pendientes. Entorno exacto detenido por su señal de limpieza, manteniendo artefactos privados regenerables.
+
+Cierre técnico funcional I-05.6 e I-05: seis cortes implementados, contratos/datasets/QA exacto y evidencias disponibles. Continúa I-06. La referencia remota supera1500ms en listado/disponibilidad; no se declara RNF remoto aprobado ni aceptación manual. I-06.3 ejecutará el protocolo completo y conservará esta limitación separada por entorno.

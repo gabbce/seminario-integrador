@@ -75,3 +75,5 @@ La comparación posterior confirma las306reservas/4613clases adicionales y la ig
 `volume-real.spec.ts`:3/3 aprobadas con Supabase Auth/PostgreSQL reales. PDFs Chromium y Firefox:9páginas cada uno,104identidades y contenido completo contrastados con manifiesto. Indicadores día/semana y los seis filtros publicados coinciden; privacidad Docente comprobada. Inspección visual de listado, resumen/curvas, semana móvil y primera página de ambos PDF completada técnicamente. Estos resultados no constituyen QA ni aceptación manual del usuario.
 
 Repetición explícita remota26/09/2026:0reservas/0clases creadas,306conservadas, sin discrepancias. El comando de carga preserva cambios; no usarlo como restablecimiento.
+
+Listado por curso de referencia:Programación I,006-A-2027,curso30. Inventario posterior:664clases, todas vigentes. La reserva232 corresponde a clave `print-101-00`; resolver las otras identidades con el manifiesto. Nuevas altas manuales pueden cambiar el total.

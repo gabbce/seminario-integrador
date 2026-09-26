@@ -1,6 +1,6 @@
 # QA final conjunto · I-04, I-05 e I-06
 
-**Estado: planificación del QA aprobada por el usuario el 26/09/2026. Ejecución y aceptación de I-04/I-05/I-06 pendientes; ningún caso ejecutado por este documento.** I-04 está implementada/verificada con aceptación pendiente; I-05 e I-06 aún no se implementan. Esta guía conserva la cobertura de [QA I-04](qa-manual-i-04.md); sus detalles siguen siendo aplicables.
+**Estado: planificación del QA aprobada por el usuario el 26/09/2026. Ejecución y aceptación de I-04/I-05/I-06 pendientes; ningún caso ejecutado por este documento.** I-04 está implementada/verificada con aceptación pendiente; I-05 está implementada y verificada funcionalmente (limitación de latencia remota registrada) e I-06 pendiente de implementación; esta guía todavía no se entrega como QA final listo. Esta guía conserva la cobertura de [QA I-04](qa-manual-i-04.md); sus detalles siguen siendo aplicables.
 
 ## Preparación y datos
 
@@ -31,7 +31,7 @@ Recorrer 14/07/2027 Historia 07–08 aula103, 22/07/2027 con 20/07 cancelado, 18
 
 ### F03 · Agenda y listados — I-05; regresión I-04
 
-**Roles:** los tres. **Datos:** rango/cursos del manifiesto y reserva con cancelación parcial.
+**Roles:** los tres. **Datos:**23/08/2027:104vigentes;24/08:1vigente+1cancelada;25/08:0. Curso Programación I,006-A-2027 (curso30):664vigentes en el inventario posterior a volumen. Referencias/IDs en [manifiesto I05](datos-demo-i-05.md); registrar deltas si hubo nuevas operaciones manuales.
 
 Alternar día/semana y filtros aula/tipo; abrir detalle y volver. Consultar por día y por curso/comisión/año; cambiar estado entre vigentes/canceladas/todas y tamaños 20/50/100; recorrer páginas y volver desde detalle. Probar filtros sin resultados y franja no reservable.
 
@@ -39,7 +39,7 @@ Alternar día/semana y filtros aula/tipo; abrir detalle y volver. Consultar por 
 
 ### F04 · Impresión completa — I-05, I-06
 
-**Roles:** Bedel y Docente; mismo contrato para Admin. **Datos:** filtro diario del manifiesto con más de 100 filas y subconjunto con canceladas.
+**Roles:** Bedel y Docente; mismo contrato para Admin. **Datos:**23/08/2027, todos tipos/aulas, confirmadas:104filas; filtros General65, Multimedios39, aula10413.24/08/2027 canceladas:1;25/08 todas:0. IDs exactos y comandos de cotejo en [manifiesto I05](datos-demo-i-05.md) y `docs/evidencias/i05-datos.json`.
 
 Seleccionar página intermedia de20 filas; imprimir el filtro completo y guardar PDF desde Chromium y Firefox. Comparar cantidad/identidades con manifiesto independiente. Repetir con filtro reducido y sin resultados.
 
@@ -47,11 +47,11 @@ Seleccionar página intermedia de20 filas; imprimir el filtro completo y guardar
 
 ### F05 · Indicadores exactos e históricos — I-05
 
-**Roles:** Admin/Bedel; rechazo para Docente. **Datos:** fixtures pequeños accesibles en entorno de QA y manifestados, más rango demo de volumen.
+**Roles:** Admin/Bedel; rechazo para Docente. **Datos:** iniciar [entorno exacto aislado](qa-exacto-i-05.md): misma interfaz en5176, año2021 cerrado, fechas/aulas/esperados concretos en su tabla. Compartido:23/08/2027=52/320h,780alumnos-hora,picos125alumnos/8clases; semana23–27/08=56/1600h y855alumnos-hora, según [manifiesto](datos-demo-i-05.md).
 
 Comparar resumen, curvas y semana típica con tablas esperadas: 2/8h=25%; combinación2/8 y0/2=20%; alumnos30/50/20 por franja y50alumnos-hora; cuatro lunes40/0/20/0 dan15. Revisar feriado, receso, año cerrado, cobertura parcial, cambio histórico de estado/tipo y baja posterior. Consultar cero denominador y ausencia de fechas elegibles; cambiar filtros/rango.
 
-**Esperado:** resultados exactos y unidades, máximos/franjas correctos, ceros elegibles incluidos, sin inventar historia ni alumnos únicos. Cierre del año no cambia estadísticas. Tipo histórico preservado. «Sin horas habilitadas» y «Sin datos aplicables» diferenciados. El manifiesto final debe concretar IDs/fechas de estos fixtures antes de QA.
+**Esperado:** resultados exactos y unidades, máximos/franjas correctos, ceros elegibles incluidos, sin inventar historia ni alumnos únicos. Cierre del año no cambia estadísticas. Tipo histórico preservado. «Sin horas habilitadas» y «Sin datos aplicables» diferenciados. Los IDs/fechas, filtros y enlaces reproducibles figuran en la guía del entorno exacto.
 
 ### F06 · Alta, cabecera y concurrencia — I-04, I-05
 

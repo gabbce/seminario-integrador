@@ -1,0 +1,11 @@
+# Contrato de verificación I-05.6
+
+Sin endpoints ni reglas de producto nuevos. Los cruces ejecutan los servicios reales I-04 sobre PostgreSQL aislado y consultan inmediatamente agenda, listado/impresión e indicadores I-05. Alta y cabecera cambian alumnos-hora; reasignación traslada aula; reprogramación traslada fecha sin duplicar origen; cancelación quita numerador y agenda; extensión de calendario agrega solo fechas efectivas y conserva la apertura institucional. Quitar feriado modifica también elegibilidad/denominador. Permisos y privacidad conservan contratos existentes.
+
+Los ejemplos exactos de F05 se cargan únicamente en un contenedor PostgreSQL desechable identificado `aulas-qa-exact`, base `aulas_qa_exact`, con las migraciones vigentes. La herramienta rechaza un contenedor ya existente y una base no vacía; no usa la conexión de datos compartida. Mapea los UUID de cuentas demo existentes obtenidos mediante login normal de Supabase; no crea/cambia cuentas ni contraseñas remotas. Login/logout sí crean y cierran sesiones temporales de Auth; cierra solo esas sesiones con alcance local, sin cerrar sesiones existentes. No hay escrituras remotas de datos del dominio. JWT sigue validado por Java contra issuer/JWKS real. Configuración y logs locales privados bajo `artifacts/qa/exact/`, excluidos de Git.
+
+Misma interfaz React, sin selector de simulación. Backend separado8081, Vite5176, loopback. El proceso de QA permanece en primer plano y al interrumpirlo detiene sus procesos y elimina únicamente su contenedor temporal. Los datos de ese entorno son descartables; una ejecución nueva recupera los fixtures originales, sin restablecimiento remoto.
+
+Año histórico2021 cerrado, fechas institucionales y horas locales. Referencias A/B para2/8=25% y total2/10=20%; C/D para concurrencia30/50/20 y50alumnos-hora; cuatro lunes de abril con40/0/20/0 y quinto feriado; H para cambios10:10/11:10/12:10; P para cobertura parcial; Z para cero habilitado. Tabla definitiva de fechas/filtros y comandos en manifiesto QA. SQL explícito solo para fixtures aislados; no modifica semillas de producto ni historia compartida.
+
+Medición de referencia I-05: lecturas reales con volumen, tiempos/entorno declarados sin atribuirles cumplimiento del protocolo RNF. El protocolo íntegro de50 sesiones y12min se ejecuta sobre el paquete en I-06.3.

@@ -1,6 +1,6 @@
 # Plan aprobado de integración
 
-**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 implementada, aceptada y cerrada por el usuario el 17/09/2026, incluidos los ajustes visuales; I-03 está implementada, verificada y cerrada con QA aprobado por el usuario el 17/09/2026; I-04 está implementada y verificada, con QA manual del usuario pendiente; I-05 e I-06 tienen planes detallados aprobados el 26/09/2026; I-05 está en implementación y verificación técnica ([avance](avance-i-05.md)), I-06 pendiente. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
+**Estado:** planificación aprobada secuencialmente por el usuario; consolidada el 16/09/2026. I-01 implementada y aceptada; I-02 implementada, aceptada y cerrada por el usuario el 17/09/2026, incluidos los ajustes visuales; I-03 está implementada, verificada y cerrada con QA aprobado por el usuario el 17/09/2026; I-04 está implementada y verificada, con QA manual del usuario pendiente; I-05 e I-06 tienen planes detallados aprobados el 26/09/2026; I-05 implementada y verificada funcionalmente, pendiente QA del usuario; limitación de latencia remota explícita en [avance](avance-i-05.md), con protocolo RNF completo pendiente I-06.3. I-06 pendiente. El prototipo P-01 a P-06 está terminado y sirve de referencia de interacción, no como prueba de funcionamiento del sistema persistente.
 
 ## Objetivo y alcance
 

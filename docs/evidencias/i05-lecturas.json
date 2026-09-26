@@ -1,0 +1,163 @@
+{
+  "date": "2026-09-26T08:39:19.962Z",
+  "commit": "4e11b9d3ccca40a1c7147c569a5e1bdcfabc70bd",
+  "kind": "referencia secuencial de lecturas; NO protocolo RNF",
+  "environment": {
+    "backend": "Java local, puerto8080",
+    "database": "Supabase PostgreSQL17.6 remoto, us-west-2",
+    "auth": "Supabase real; login fuera de medición",
+    "os": "linux 6.6.87.2-microsoft-standard-WSL2",
+    "cpu": "AMD Ryzen 5 5600 6-Core Processor",
+    "logicalCpus": 12,
+    "memoryGiB": 23,
+    "node": "v24.14.0"
+  },
+  "dataset": {
+    "reservations": 337,
+    "details": 5150
+  },
+  "protocol": {
+    "sessions": 1,
+    "warmupRequestsPerOperation": 1,
+    "measuredRequestsPerOperation": 5,
+    "pauseAfterResponseMs": 0,
+    "includes": "HTTP, transferencia y consumo del cuerpo; sin render",
+    "limitations": "Muestra descriptiva pequeña; no acredita p95 RNF ni extrapola disponibilidad bajo50 sesiones. No asigna umbrales RNF a indicadores o impresión."
+  },
+  "results": [
+    {
+      "name": "listado20",
+      "method": "GET",
+      "path": "/consultas/listado?mode=day&date=2027-08-23&page=0&size=20",
+      "samplesMs": [
+        1606.82,
+        1612.87,
+        1611.75,
+        1610.44,
+        1606.24
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p50Ms": 1610.44,
+      "p95Ms": 1612.87,
+      "errors": 0
+    },
+    {
+      "name": "impresion104",
+      "method": "GET",
+      "path": "/consultas/impresion-diaria?date=2027-08-23",
+      "samplesMs": [
+        1605.65,
+        1603.58,
+        1602.56,
+        1601.42,
+        1602.78
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p50Ms": 1602.78,
+      "p95Ms": 1605.65,
+      "errors": 0
+    },
+    {
+      "name": "agendaSemana",
+      "method": "GET",
+      "path": "/consultas/agenda?date=2027-08-23&view=week",
+      "samplesMs": [
+        1370.21,
+        1369.41,
+        1370.52,
+        1371.09,
+        1370.56
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p50Ms": 1370.52,
+      "p95Ms": 1371.09,
+      "errors": 0
+    },
+    {
+      "name": "indicadoresDia",
+      "method": "GET",
+      "path": "/indicadores/serie?from=2027-08-23&to=2027-08-23&view=day",
+      "samplesMs": [
+        2272.01,
+        2291.64,
+        2290.07,
+        2284.96,
+        2281.14
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p50Ms": 2284.96,
+      "p95Ms": 2291.64,
+      "errors": 0
+    },
+    {
+      "name": "indicadoresSemana",
+      "method": "GET",
+      "path": "/indicadores/serie?from=2027-08-23&to=2027-08-27&view=week",
+      "samplesMs": [
+        2279.05,
+        2278.67,
+        2278.06,
+        2275.76,
+        2276.95
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p50Ms": 2278.06,
+      "p95Ms": 2279.05,
+      "errors": 0
+    },
+    {
+      "name": "disponibilidadPeriodica",
+      "method": "POST",
+      "path": "/reservas/periodicas/preparacion",
+      "samplesMs": [
+        2730.81,
+        2737.51,
+        2748.6,
+        2742.46,
+        2737.4
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p50Ms": 2737.51,
+      "p95Ms": 2748.6,
+      "errors": 0
+    }
+  ],
+  "workingTreeDirty": true,
+  "revisionNote": "Ensayo realizado con pruebas/herramientas/documentación I-05.6 sin commit. Código aplicativo servido del corte I-05.5, HEAD indicado. No se capturó hash del árbol completo en este primer ensayo."
+}

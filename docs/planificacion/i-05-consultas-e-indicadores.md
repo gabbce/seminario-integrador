@@ -1,6 +1,6 @@
 # I-05 · Consultas e indicadores persistentes
 
-**Estado:** plan detallado aprobado por bloques el 26/09/2026. Implementación en curso; cortes I-05.1–5 técnicamente verificados, I-05.6 pendiente. Ver [avance](avance-i-05.md). Depende de I-04 implementada y verificada; por acuerdo explícito no requiere aceptar antes su QA manual, que se conserva pendiente para el [QA final conjunto](qa-final-i-04-i-05-i-06.md).
+**Estado:** plan detallado aprobado por bloques el 26/09/2026. Implementada y verificada funcionalmente en sus seis cortes; pendiente QA del usuario. Referencia remota de latencia con excesos documentados; protocolo RNF completo en I-06.3. Ver [avance](avance-i-05.md). Depende de I-04 implementada y verificada; por acuerdo explícito no requiere aceptar antes su QA manual, que se conserva pendiente para el [QA final conjunto](qa-final-i-04-i-05-i-06.md).
 
 ## Objetivo y fronteras
 

@@ -6,3 +6,6 @@
 
 # Supabase CLI local state
 supabase/.temp/
+
+# Regenerable QA artifacts (screenshots, PDFs and private inventories).
+/artifacts/qa/

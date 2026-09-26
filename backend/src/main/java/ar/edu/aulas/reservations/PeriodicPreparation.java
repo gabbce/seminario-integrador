@@ -78,7 +78,8 @@ public class PeriodicPreparation {
         var compatible=rooms.references().stream().filter(room->room.state().equals("Habilitada") && room.type().equals(r.type())
             && room.capacity()>=r.students() && (r.board()==null || r.board().isEmpty() || r.board().equals(room.board()))
             && room.resources().containsAll(r.resources())).sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id)).toList();
-        var occupied=ReservationOccupancy.read(db,start,end,operational);
+        var windows=r.patterns().stream().map(p->new ReservationOccupancy.Window(p.day(),null,LocalTime.parse(p.start()),LocalTime.parse(p.start()).plusMinutes(p.modules()*30L))).toList();
+        var occupied=ReservationOccupancy.read(db,start,end,operational,compatible.stream().map(room->Long.parseLong(room.internalId())).toList(),windows);
         var now=LocalDateTime.now(clock);
         var result=new ArrayList<PreparedPattern>();
         for(var pattern:r.patterns()) {

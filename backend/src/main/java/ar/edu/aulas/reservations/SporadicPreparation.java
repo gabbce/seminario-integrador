@@ -68,7 +68,8 @@ public class SporadicPreparation {
             .sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id))
             .map(room->new PeriodicPreparation.Room(room.internalId(),room.id(),room.version(),room.type(),room.capacity())).toList();
         var ordered=r.dates().stream().sorted(Comparator.comparing(DateSlot::date)).toList();
-        var occupied=ReservationOccupancy.read(db,LocalDate.parse(ordered.getFirst().date()),LocalDate.parse(ordered.getLast().date()),operational);
+        var windows=ordered.stream().map(p->new ReservationOccupancy.Window(null,LocalDate.parse(p.date()),LocalTime.parse(p.start()),LocalTime.parse(p.start()).plusMinutes(p.modules()*30L))).toList();
+        var occupied=ReservationOccupancy.read(db,LocalDate.parse(ordered.getFirst().date()),LocalDate.parse(ordered.getLast().date()),operational,compatible.stream().map(room->Long.parseLong(room.internalId())).toList(),windows);
         var result=new ArrayList<PreparedDate>();
         for(var slot:ordered) {
             var start=LocalTime.parse(slot.start());var end=start.plusMinutes(slot.modules()*30L);var dates=Set.of(slot.date());

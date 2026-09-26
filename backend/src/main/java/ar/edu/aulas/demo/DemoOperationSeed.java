@@ -36,44 +36,58 @@ public class DemoOperationSeed {
     private UUID operation(Dataset d,Entry e,String action){return UUID.nameUUIDFromBytes((d.dataset()+"/"+e.key()+"/"+action).getBytes(StandardCharsets.UTF_8));}
     private long version(long id){return db.queryForObject("select version from aulas.reserva where id_reserva=?",Long.class,id);}
     @Transactional(isolation=Isolation.READ_COMMITTED)
-    public DemoReservationSeed.Result seed(){
-        if(!"demo".equals(environment.getProperty("AULAS_ENVIRONMENT")))throw new IllegalStateException("La carga ficticia requiere AULAS_ENVIRONMENT=demo.");
+    public DemoReservationSeed.Result seed(){checkEnvironment();return seedDataset(dataset(),false);}
+    private void checkEnvironment(){if(!"demo".equals(environment.getProperty("AULAS_ENVIRONMENT")))throw new IllegalStateException("La carga ficticia requiere AULAS_ENVIRONMENT=demo.");}
+    DemoReservationSeed.Result seedDataset(Dataset data,boolean strict){
+        checkEnvironment();
         if(!TransactionSynchronizationManager.isActualTransactionActive())throw new IllegalStateException("La carga requiere una transacción activa.");
-        var data=dataset();
         if(data.dataset()==null || data.dataset().isBlank() || data.version()<1 || data.entries().isEmpty() || data.entries().stream().map(Entry::key).distinct().count()!=data.entries().size())throw new IllegalStateException("Identidad del conjunto demo inválida.");
         db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);
         var actors=db.queryForList("select id_usuario from aulas.usuario where activo and rol='ADMINISTRADOR' order by id_usuario limit 1",Long.class);
         if(actors.isEmpty())throw new IllegalStateException("Prepará primero un Administrador activo; la carga no crea cuentas ni consulta Auth.");
         long actor=actors.getFirst();int preserved=0;var pending=new ArrayList<Entry>();var discrepancies=new ArrayList<String>();
+        var registered=new HashMap<String,Map<String,Object>>();
+        for(var row:db.queryForList("select clave,id_reserva,definicion::text,snapshot::text from aulas.demo_reserva where dataset=?",data.dataset()))registered.put(row.get("clave").toString(),row);
         for(var entry:data.entries()){
-            var previous=db.queryForList("select id_reserva,definicion=?::jsonb as same_definition from aulas.demo_reserva where dataset=? and clave=?",definition(data,entry),data.dataset(),entry.key());
-            if(previous.isEmpty()){pending.add(entry);continue;}
-            long id=((Number)previous.getFirst().get("id_reserva")).longValue();preserved++;
-            if(!Boolean.TRUE.equals(previous.getFirst().get("same_definition")))discrepancies.add(entry.key()+": cambió la definición; se conserva la reserva "+id+".");
-            if(!Boolean.TRUE.equals(db.queryForObject("select snapshot=?::jsonb from aulas.demo_reserva where dataset=? and clave=?",Boolean.class,snapshots.snapshot(id),data.dataset(),entry.key())))discrepancies.add(entry.key()+": la reserva "+id+" tiene cambios manuales; no se restauran.");
+            var previous=registered.get(entry.key());
+            if(previous==null){pending.add(entry);continue;}
+            long id=((Number)previous.get("id_reserva")).longValue();preserved++;
+            if(!json.readTree(previous.get("definicion").toString()).equals(json.readTree(definition(data,entry))))discrepancies.add(entry.key()+": cambió la definición; se conserva la reserva "+id+".");
+            if(!json.readTree(previous.get("snapshot").toString()).equals(json.readTree(snapshots.snapshot(id))))discrepancies.add(entry.key()+": la reserva "+id+" tiene cambios manuales; no se restauran.");
         }
         var keys=new HashSet<>(data.entries().stream().map(Entry::key).toList());
-        for(String key:db.queryForList("select clave from aulas.demo_reserva where dataset=? order by clave",String.class,data.dataset()))if(!keys.contains(key))discrepancies.add(key+": retirada de configuración; reserva conservada.");
+        for(String key:new TreeSet<>(registered.keySet()))if(!keys.contains(key))discrepancies.add(key+": retirada de configuración; reserva conservada.");
+        if(strict && !pending.isEmpty() && !discrepancies.isEmpty())throw new IllegalStateException("Discrepancias previas; no se agregan claves pendientes: "+String.join("; ",discrepancies));
         var yearIds=new TreeSet<Long>();var roomIds=new TreeSet<Long>();
-        for(var e:pending){
-            var ids=db.queryForList("select id_anio_lectivo from aulas.anio_lectivo where anio_calendario=?",Long.class,e.year());
-            if(ids.size()!=1)throw new IllegalStateException(e.key()+": falta el año.");yearIds.add(ids.getFirst());
+        for(int year:pending.stream().map(Entry::year).distinct().sorted().toList()){
+            var ids=db.queryForList("select id_anio_lectivo from aulas.anio_lectivo where anio_calendario=?",Long.class,year);
+            if(ids.size()!=1)throw new IllegalStateException(year+": falta el año.");yearIds.add(ids.getFirst());
         }
         for(long id:yearIds)db.queryForObject("select id_anio_lectivo from aulas.anio_lectivo where id_anio_lectivo=? for update",Long.class,id);
-        for(var e:pending)for(String name:e.targetRoom()==null?List.of(e.room()):List.of(e.room(),e.targetRoom())){
+        var names=new TreeSet<String>();
+        for(var e:pending){names.add(e.room());if(e.targetRoom()!=null)names.add(e.targetRoom());}
+        for(String name:names){
             var ids=db.queryForList("select id_aula from aulas.aula where identificador=?",Long.class,name);
-            if(ids.size()!=1)throw new IllegalStateException(e.key()+": falta el aula "+name+".");roomIds.add(ids.getFirst());
+            if(ids.size()!=1)throw new IllegalStateException("Falta el aula "+name+".");roomIds.add(ids.getFirst());
         }
         for(long id:roomIds)db.queryForObject("select id_aula from aulas.aula where id_aula=? for update",Long.class,id);
+        // Resolutions are scoped to this transaction; preparation still revalidates every booking.
+        record CourseKey(String subject,String commission,int year) {}
+        var courseIds=new HashMap<CourseKey,String>();
+        for(var e:pending){
+            var key=new CourseKey(normalize(e.subject()),normalize(e.commission()),e.year());
+            if(courseIds.containsKey(key))continue;
+            var ids=db.queryForList("select c.id_curso from aulas.curso c join aulas.materia m using(id_materia) join aulas.anio_lectivo a using(id_anio_lectivo) where m.nombre_normalizado=? and c.comision=? and a.anio_calendario=?",Long.class,key.subject(),key.commission(),key.year());
+            if(ids.size()!=1)throw new IllegalStateException(e.key()+": falta el curso.");courseIds.put(key,ids.getFirst().toString());
+        }
         var clock=Clock.fixed(OffsetDateTime.parse(data.clock()).toInstant(),ZoneId.of("America/Argentina/Cordoba"));
         var factory=new StaticListableBeanFactory();factory.addBean("clock",clock);var clocks=factory.getBeanProvider(Clock.class);
         var periodic=new PeriodicPreparation(db,calendars,rooms,clock);var periodicConfirm=new PeriodicConfirmation(db,periodic,queries,references);
         var sporadic=new SporadicPreparation(db,calendars,rooms,clocks);var sporadicConfirm=new SporadicConfirmation(db,sporadic,queries,references);
         var roomChanges=new RoomMutationService(db,rooms,clocks,json);var reschedules=new RescheduleService(db,calendars,rooms,clocks,json);var cancellations=new CancellationService(db,clocks,json);
-        int occurrences=0;
+        int occurrences=0,processed=0;
         for(var e:pending){
-            var courses=db.queryForList("select c.id_curso from aulas.curso c join aulas.materia m using(id_materia) join aulas.anio_lectivo a using(id_anio_lectivo) where m.nombre_normalizado=? and c.comision=? and a.anio_calendario=?",Long.class,normalize(e.subject()),normalize(e.commission()),e.year());
-            if(courses.size()!=1)throw new IllegalStateException(e.key()+": falta el curso.");String course=courses.getFirst().toString();Map<String,Object> booking;
+            String course=courseIds.get(new CourseKey(normalize(e.subject()),normalize(e.commission()),e.year()));Map<String,Object> booking;
             if(e.period()!=null){
                 var proposal=new PeriodicPreparation.Request(e.year(),course,e.period(),e.students(),e.type(),e.board(),e.resources(),e.excluded(),List.of(new PeriodicPreparation.Pattern(e.day(),e.start(),e.modules())));
                 var ready=periodic.prepare(proposal);var pattern=ready.patterns().getFirst();
@@ -101,12 +115,13 @@ public class DemoOperationSeed {
             }
             if(e.cancelDates()!=null && !e.cancelDates().isEmpty()){
                 var ids=e.cancelDates().stream().map(date->db.queryForObject("select id_detalle::text from aulas.detalle_reserva where id_reserva=? and fecha=?",String.class,id,LocalDate.parse(date))).toList();
-                cancellations.confirm(actor,id,new CancellationService.Request(operation(data,e,"cancel"),version(id),ids,"Cancelación ficticia del conjunto I-04: "+e.key()));
+                cancellations.confirm(actor,id,new CancellationService.Request(operation(data,e,"cancel"),version(id),ids,"Cancelación ficticia del conjunto "+(data.dataset().equals("operacion-i04")?"I-04":data.dataset())+": "+e.key()));
             }
             String snapshot=snapshots.snapshot(id),definition=definition(data,e);
             db.update("insert into aulas.demo_reserva(dataset,clave,version_dataset,id_reserva,definicion,snapshot) values (?,?,?,?,?::jsonb,?::jsonb)",data.dataset(),e.key(),data.version(),id,definition,snapshot);
-            db.update("insert into aulas.evento_auditoria(actor,operacion,entidad,entidad_id,resultado,detalle) values (?,'CARGAR_DEMO_I04','RESERVA',?,'CONFIRMADO',?)",actor,id,json.writeValueAsString(Map.of("dataset",data.dataset(),"key",e.key(),"definition",json.readTree(definition),"snapshot",json.readTree(snapshot))));
-            occurrences+=e.dates().size();
+            db.update("insert into aulas.evento_auditoria(actor,operacion,entidad,entidad_id,resultado,detalle) values (?,?,'RESERVA',?,'CONFIRMADO',?)",actor,data.dataset().equals("operacion-i04")?"CARGAR_DEMO_I04":"CARGAR_DEMO_I05",id,json.writeValueAsString(Map.of("dataset",data.dataset(),"key",e.key(),"definition",json.readTree(definition),"snapshot",json.readTree(snapshot))));
+            occurrences+=e.dates().size();processed++;
+            if(strict && (processed%25==0 || processed==pending.size())) org.slf4j.LoggerFactory.getLogger(DemoOperationSeed.class).info("Demo {}: {} de {} reservas procesadas; transacción todavía SIN confirmar.",data.dataset(),processed,pending.size());
         }
         return new DemoReservationSeed.Result(data.dataset(),pending.size(),preserved,occurrences,List.copyOf(discrepancies));
     }

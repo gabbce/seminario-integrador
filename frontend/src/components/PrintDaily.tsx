@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { Printer } from "lucide-react";
 import { api } from "../api";
@@ -20,14 +20,16 @@ export function PrintDaily({
   const key = new URLSearchParams({ date, room, type, status }).toString();
   const active = useRef(true);
   const criteria = useRef(key);
-  criteria.current = key;
+  useLayoutEffect(() => {
+    criteria.current = key;
+  }, [key]);
   const [snapshot, setSnapshot] = useState<{
     key: string;
     data: ConsultationResult;
   }>();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => {
+  useLayoutEffect(() => {
     active.current = true;
     return () => {
       active.current = false;

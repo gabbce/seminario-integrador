@@ -88,8 +88,8 @@ public class RescheduleService {
     public Map<String,Object> confirm(long actor,long id,Request request){
         var r=normalized(request,true);String content=json.writeValueAsString(new TreeMap<>(Map.of("reservationId",id,"version",r.version(),"dates",r.dates(),"calendarVersion",r.calendarVersion(),"roomVersions",r.roomVersions())));
         db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);operator(actor);
-        var previous=db.queryForList("select tipo,id_reserva,contenido,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,r.operationId());
-        if(!previous.isEmpty()){
+        var previous=db.queryForList("select invalidada_en,tipo,id_reserva,contenido,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,r.operationId());
+        if(!previous.isEmpty()){OperationRecovery.requireCurrent(previous.getFirst());
             var old=previous.getFirst();if(!old.get("tipo").equals("REPROGRAMAR") || ((Number)old.get("id_reserva")).longValue()!=id || !old.get("contenido").equals(content))throw DomainError.conflict("La clave de operación corresponde a otro cambio.");
             Map<String,Object> result=json.readValue(old.get("resultado").toString(),Map.class);result.put("version",((Number)result.get("version")).longValue());result.put("calendarVersion",((Number)result.get("calendarVersion")).longValue());
             Map<String,Number> stored=(Map<String,Number>)result.get("roomVersions");var versions=new TreeMap<String,Long>();stored.forEach((key,value)->versions.put(key,value.longValue()));result.put("roomVersions",versions);return result;

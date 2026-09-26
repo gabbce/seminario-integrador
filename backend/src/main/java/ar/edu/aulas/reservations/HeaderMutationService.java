@@ -42,8 +42,9 @@ public class HeaderMutationService {
         db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);
         var permissions=db.queryForList("select activo and rol in ('ADMINISTRADOR','BEDEL') from aulas.usuario where id_usuario=?",Boolean.class,actor);
         if(permissions.isEmpty() || !Boolean.TRUE.equals(permissions.getFirst())) throw new DomainError(403,"FORBIDDEN","Tu cuenta no permite modificar reservas.");
-        var previous=db.queryForList("select tipo,id_reserva,contenido,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,r.operationId());
+        var previous=db.queryForList("select invalidada_en,tipo,id_reserva,contenido,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,r.operationId());
         if(!previous.isEmpty()) {
+            OperationRecovery.requireCurrent(previous.getFirst());
             var old=previous.getFirst();
             if(!old.get("tipo").equals("EDITAR_CABECERA") || ((Number)old.get("id_reserva")).longValue()!=id || !old.get("contenido").equals(content))
                 throw DomainError.conflict("La clave de operación corresponde a otro cambio.");

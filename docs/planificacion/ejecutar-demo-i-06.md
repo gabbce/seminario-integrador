@@ -49,6 +49,6 @@ docker compose --env-file frontend/.env.local down
 
 No ejecutar `docker compose config` con secretos expandidos ni compartir volcados de entorno. Los comandos normales no necesitan exponer credenciales. El modo de desarrollo Java+Vite sigue en los README de backend/frontend.
 
-Los comandos de carga siguen explícitos en los manifiestos I02/I03/I04/I05. El restablecimiento selectivo se documentará en I06.2; todavía no ejecutarlo. Un restablecimiento remoto requiere autorización sobre destino y alcance concretos.
+Los comandos de carga siguen explícitos en los manifiestos I02/I03/I04/I05. El [restablecimiento selectivo](restablecer-demo-i-06.md) tiene previsualización y ensayo aislado reproducible. Un restablecimiento remoto requiere autorización sobre destino y alcance concretos.
 
 Estado del paquete: I-06.1 verificada técnicamente; evidencia y comandos en [avance I-06](avance-i-06.md). QA/aceptación manual pendientes.

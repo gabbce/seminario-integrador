@@ -1,6 +1,6 @@
 # I-06 · Demo y validación final
 
-**Estado:** plan detallado aprobado por bloques el 26/09/2026. Implementación en curso; I-06.1 verificada técnicamente. Ver [avance](avance-i-06.md). Depende de I-05 técnicamente verificada; I-04/I-05 conservan aceptación manual pendiente hasta el QA conjunto. Esta planificación no autoriza ejecutar restablecimientos remotos.
+**Estado:** plan detallado aprobado por bloques el 26/09/2026. Implementación en curso; I-06.1–2 verificadas técnicamente. Ver [avance](avance-i-06.md). Depende de I-05 técnicamente verificada; I-04/I-05 conservan aceptación manual pendiente hasta el QA conjunto. Esta planificación no autoriza ejecutar restablecimientos remotos.
 
 ## Objetivo y fronteras
 

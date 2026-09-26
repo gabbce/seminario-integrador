@@ -3,14 +3,18 @@ FROM node:24.14.0-bookworm-slim@sha256:d8e448a56fc63242f70026718378bd4b00f8c82e7
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
-COPY frontend/ ./
+COPY frontend/index.html frontend/vite.config.ts frontend/tsconfig*.json ./
+COPY frontend/src/ ./src/
+COPY frontend/public/ ./public/
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_PUBLISHABLE_KEY
 RUN test -n "$VITE_SUPABASE_URL" && test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" && npm run build
 
 FROM eclipse-temurin:21-jdk-jammy@sha256:6adefddd4a20bceef702cedb0b03952fcd7691f9c7ccffe27014992abc0b46bd AS backend
 WORKDIR /build/backend
-COPY backend/ ./
+COPY backend/pom.xml backend/mvnw ./
+COPY backend/.mvn/ ./.mvn/
+COPY backend/src/main/ ./src/main/
 COPY --from=frontend /build/frontend/dist/ ./src/main/resources/static/
 RUN --mount=type=cache,target=/root/.m2 chmod +x mvnw && ./mvnw -B -DskipTests package
 COPY tools/docker/Healthcheck.java /build/Healthcheck.java

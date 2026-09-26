@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { mkdirSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { fakeAuth, login } from "./auth-fixture";
 import type { Booking } from "../src/domain";
@@ -266,4 +267,57 @@ test("Docente no edita cabecera", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Modificar datos", exact: true }),
   ).toHaveCount(0);
+});
+
+test("historial operativo muestra restablecimiento sin detalles técnicos", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.route("**/api/reservas/42", async (route) => {
+    await route.fulfill({
+      json: {
+        id: "42",
+        version: 3,
+        subject: "Actividad QA",
+        course: "001-A-2027",
+        courseId: "8",
+        teacher: "Laura Gómez",
+        teacherId: "D-01",
+        students: 20,
+        type: "General",
+        board: "Tiza",
+        resources: [],
+        occurrences: [
+          {
+            id: "11",
+            date: "2027-03-15",
+            start: "14:00",
+            end: "16:00",
+            room: "103",
+          },
+        ],
+        changes: [
+          {
+            at: "2026-09-26T12:00:00Z",
+            actor: "Admin Demo",
+            description:
+              "Restablecimiento demo: se restauró el escenario registrado. Consultá las clases actuales.",
+          },
+        ],
+      },
+    });
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Historial de cambios", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Restablecimiento demo:", { exact: false }),
+  ).toBeVisible();
+  mkdirSync("../artifacts/qa/reset", { recursive: true });
+  await page.screenshot({
+    path: "../artifacts/qa/reset/history-ui.png",
+    fullPage: true,
+  });
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

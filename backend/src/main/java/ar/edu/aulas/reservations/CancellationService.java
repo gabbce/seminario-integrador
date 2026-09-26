@@ -66,8 +66,9 @@ public class CancellationService {
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Map<String,Object> operation(long actor,UUID key) {
         operator(actor);
-        var rows=db.queryForList("select resultado::text from aulas.mutacion_reserva where actor=? and clave=?",String.class,actor,key);
-        return rows.isEmpty()?Map.of("found",false):Map.of("found",true,"result",result(rows.getFirst()));
+        var rows=db.queryForList("select invalidada_en,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,key);
+        if(!rows.isEmpty()) OperationRecovery.requireCurrent(rows.getFirst());
+        return rows.isEmpty()?Map.of("found",false):Map.of("found",true,"result",result(rows.getFirst().get("resultado").toString()));
     }
     @Transactional(isolation=Isolation.READ_COMMITTED)
     public Map<String,Object> confirm(long actor,long id,Request request) {
@@ -75,8 +76,9 @@ public class CancellationService {
         String content=json.writeValueAsString(new TreeMap<>(Map.of("reservationId",id,"version",r.version(),"detailIds",r.detailIds(),"reason",r.reason())));
         db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);
         operator(actor);
-        var previous=db.queryForList("select tipo,id_reserva,contenido,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,r.operationId());
+        var previous=db.queryForList("select invalidada_en,tipo,id_reserva,contenido,resultado::text from aulas.mutacion_reserva where actor=? and clave=?",actor,r.operationId());
         if(!previous.isEmpty()) {
+            OperationRecovery.requireCurrent(previous.getFirst());
             var old=previous.getFirst();
             if(!old.get("tipo").equals("CANCELAR_CLASES") || ((Number)old.get("id_reserva")).longValue()!=id || !old.get("contenido").equals(content))
                 throw DomainError.conflict("La clave de operación corresponde a otro cambio.");

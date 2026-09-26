@@ -1,0 +1,16 @@
+{
+  "image": "sha256:7e6bd4c6374b2fdb5590a65f6e6dd5bf0596759ba2828c7f7f8119ceb5006092",
+  "environment": "isolated Docker PostgreSQL 17.6; no remote Auth or database",
+  "selectedDatasets": [
+    "operacion-i04"
+  ],
+  "selectedReservations": 8,
+  "totalReservations": 20,
+  "totalDetails": 439,
+  "previewReadOnly": true,
+  "wrongConfirmationRejected": true,
+  "resetRestores": true,
+  "repeatPreservesFunctionalState": true,
+  "foreignI03AndProfilesCatalogs2029Preserved": true,
+  "manualAcceptance": "pending"
+}

@@ -2,6 +2,7 @@
 **
 !Dockerfile
 !frontend/
+frontend/**
 !frontend/package.json
 !frontend/package-lock.json
 !frontend/index.html
@@ -12,15 +13,19 @@
 !frontend/public/
 !frontend/public/**
 !backend/
+backend/**
 !backend/pom.xml
 !backend/mvnw
 !backend/.mvn/
 !backend/.mvn/**
 !backend/src/
+backend/src/**
 !backend/src/main/
 !backend/src/main/**
 !tools/
+tools/**
 !tools/docker/
+tools/docker/**
 !tools/docker/Healthcheck.java
 **/.env
 **/.env.*

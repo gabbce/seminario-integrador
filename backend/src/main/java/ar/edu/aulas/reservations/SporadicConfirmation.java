@@ -40,8 +40,9 @@ public class SporadicConfirmation {
         db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);
         if(!Boolean.TRUE.equals(db.queryForObject("select activo and rol in ('ADMINISTRADOR','BEDEL') from aulas.usuario where id_usuario=?",Boolean.class,actor)))
             throw new DomainError(403,"FORBIDDEN","Tu cuenta no permite confirmar reservas.");
-        var previous=db.queryForList("select contenido,id_reserva from aulas.operacion_reserva where actor=? and clave=?",actor,r.operationId());
+        var previous=db.queryForList("select invalidada_en,contenido,id_reserva from aulas.operacion_reserva where actor=? and clave=?",actor,r.operationId());
         if(!previous.isEmpty()) {
+            OperationRecovery.requireCurrent(previous.getFirst());
             if(!previous.getFirst().get("contenido").equals(content)) throw DomainError.conflict("La clave de operación ya corresponde a otra propuesta.");
             return queries.get(((Number)previous.getFirst().get("id_reserva")).longValue(),true);
         }

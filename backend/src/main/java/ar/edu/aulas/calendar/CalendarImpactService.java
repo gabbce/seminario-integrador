@@ -1,6 +1,7 @@
 package ar.edu.aulas.calendar;
 
 import ar.edu.aulas.api.DomainError;
+import ar.edu.aulas.reservations.OperationRecovery;
 import ar.edu.aulas.reservations.ReservationGuards;
 import ar.edu.aulas.rooms.RoomsService;
 import java.time.*;
@@ -102,15 +103,15 @@ public class CalendarImpactService {
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Review prepare(long actor,long id,CalendarManagement.Edit edit){admin(actor);return review(id,edit);}
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
-    public Map<String,Object> operation(long actor,UUID key){admin(actor);var rows=db.queryForList("select resultado::text from aulas.operacion_calendario where actor=? and clave=?",String.class,actor,key);return rows.isEmpty()?Map.of("found",false):Map.of("found",true,"result",json.readValue(rows.getFirst(),Map.class));}
+    public Map<String,Object> operation(long actor,UUID key){admin(actor);var rows=db.queryForList("select invalidada_en,resultado::text from aulas.operacion_calendario where actor=? and clave=?",actor,key);if(!rows.isEmpty())OperationRecovery.requireCurrent(rows.getFirst());return rows.isEmpty()?Map.of("found",false):Map.of("found",true,"result",json.readValue(rows.getFirst().get("resultado").toString(),Map.class));}
     @SuppressWarnings("unchecked")
     @Transactional(isolation=Isolation.READ_COMMITTED)
     public Map<String,Object> confirm(long actor,long id,Request request){
         if(request==null || request.operationId()==null || request.proposal()==null || request.stamp()==null || !request.stamp().matches("[a-f0-9]{64}"))throw DomainError.invalid("Revisá el impacto antes de confirmar.");
         String content=canonical(Map.of("id",id,"proposal",request.proposal(),"stamp",request.stamp()));
         db.queryForObject("select id from aulas.control_cuentas where id=1 for update",Integer.class);admin(actor);
-        var previous=db.queryForList("select contenido,resultado::text from aulas.operacion_calendario where actor=? and clave=?",actor,request.operationId());
-        if(!previous.isEmpty()){if(!previous.getFirst().get("contenido").equals(content))throw DomainError.conflict("La clave corresponde a otro cambio de calendario.");return json.readValue(previous.getFirst().get("resultado").toString(),Map.class);}
+        var previous=db.queryForList("select invalidada_en,contenido,resultado::text from aulas.operacion_calendario where actor=? and clave=?",actor,request.operationId());
+        if(!previous.isEmpty()){OperationRecovery.requireCurrent(previous.getFirst());if(!previous.getFirst().get("contenido").equals(content))throw DomainError.conflict("La clave corresponde a otro cambio de calendario.");return json.readValue(previous.getFirst().get("resultado").toString(),Map.class);}
         if(db.queryForList("select id_anio_lectivo from aulas.anio_lectivo where id_anio_lectivo=? for update",Long.class,id).isEmpty())throw new DomainError(404,"NOT_FOUND","El año no existe.");
         var related=reservations(id);
         var roomIds=db.queryForList("select distinct p.id_aula from aulas.patron_semanal p join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=? order by p.id_aula",Long.class,id);

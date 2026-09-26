@@ -93,7 +93,7 @@ Seguir sección6 de QA I-04: ampliar al siguiente lunes futuro no incorporado, r
 
 ### F11 · Restablecimiento selectivo — I-06; regresión I-04/I-05
 
-**Rol:** operador técnico con configuración privada. **Datos:** entorno aislado identificado, dataset gestionado modificado y registros ajenos testigo; completar comandos exactos al implementar.
+**Rol:** operador técnico con configuración privada. **Datos:** ensayo [restablecer demo](restablecer-demo-i-06.md), comando `python3 tools/qa/reset-rehearsal.py` desde raíz tras construir la imagen. PostgreSQL/red descartables sin acceso remoto; I04 modificado, I03 y catálogos/perfiles/2029 testigos. Pruebas de bloqueos/rollback/volumen: `./mvnw -Dtest=DemoResetTests test` desde backend.
 
 Verificar destino y previsualizar un dataset seleccionado: no debe escribir. Ejecutar confirmación explícita, comparar escenario original, repetir y comprobar mismo estado funcional. Probar bloqueo por calendario/aula/reserva ajena incompatible. Registrar preservación de identidades, claves y datos testigo sin mostrarlos. Verificar que reintentos antiguos no deshagan el reset.
 

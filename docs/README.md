@@ -52,6 +52,8 @@ Ante diferencias con la versión histórica, aplicar el ajuste DA documentado y 
 
 Esta entrega constituye el estado final de la especificación v1.0. La validación del prototipo está documentada por separado; las pruebas del sistema persistente se registran por entrega en los documentos de avance de integración.
 
-## Próxima entrega aprobada
+## Estado y próximas entregas
 
-[Plan detallado I-04 · Operación completa](planificacion/i-04-operacion-completa.md), aprobado el 25/09/2026 y pendiente de implementación.
+I-04 está **implementada y verificada, pendiente de QA y aceptación del usuario**. Ver [avance](planificacion/avance-i-04.md) y [QA I-04](planificacion/qa-manual-i-04.md).
+
+Los planes detallados de [I-05 · Consultas e indicadores](planificacion/i-05-consultas-e-indicadores.md) e [I-06 · Demo y validación final](planificacion/i-06-demo-y-validacion-final.md) fueron aprobados por bloques el 26/09/2026; implementación todavía no iniciada. El [QA manual final conjunto I-04/I-05/I-06](planificacion/qa-final-i-04-i-05-i-06.md) está planificado, no ejecutado, y conserva aceptación separada por entrega. [Registro de acuerdos](planificacion/preparacion-i-05-i-06.md).

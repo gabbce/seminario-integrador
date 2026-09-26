@@ -51,6 +51,8 @@ Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local`; contraseña en
 
 - [Carga reproducible de reservas 2026/2027](docs/planificacion/datos-demo-i-03.md).
 
-## Próxima entrega aprobada
+## Estado y próximas entregas
 
-[Plan detallado I-04 · Operación completa](docs/planificacion/i-04-operacion-completa.md), aprobado el 25/09/2026; **implementada y verificada, pendiente de QA del usuario**. [Avance](docs/planificacion/avance-i-04.md), [datos demo](docs/planificacion/datos-demo-i-04.md) y [QA manual](docs/planificacion/qa-manual-i-04.md).
+I-04 está **implementada y verificada, pendiente de QA y aceptación del usuario**. Ver [avance](docs/planificacion/avance-i-04.md) y [QA I-04](docs/planificacion/qa-manual-i-04.md).
+
+Los planes detallados de [I-05 · Consultas e indicadores](docs/planificacion/i-05-consultas-e-indicadores.md) e [I-06 · Demo y validación final](docs/planificacion/i-06-demo-y-validacion-final.md) fueron aprobados por bloques el 26/09/2026; implementación todavía no iniciada. El [QA manual final conjunto I-04/I-05/I-06](docs/planificacion/qa-final-i-04-i-05-i-06.md) está planificado, no ejecutado, y conserva aceptación separada por entrega. [Registro de acuerdos](docs/planificacion/preparacion-i-05-i-06.md).

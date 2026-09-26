@@ -1,0 +1,56 @@
+{
+  "audit": "passed",
+  "protocol": "i06-load-v1",
+  "manualAcceptance": "pending",
+  "sources": {
+    "run.mjs": "3b0580283ba14280613e44fb1ce884ed1c02c6e9abed3216edce7370f76b2ca4",
+    "dataset.py": "b6dcb84938df3436762b88ff52531b7efd6d95f2ead7ad4a36dc3504eb71ccb6",
+    "verify.py": "658e2432db31d68f897362040463fbd2cfa0eb8bbbe11b33f55cb2ced4b5b901"
+  },
+  "artifacts": {
+    "manifest.json": {
+      "bytes": 5863,
+      "sha256": "b7f0e777ec2516ae1ac584b1060f39495bc3b7664f58ccefecb55dc3a75ede22"
+    },
+    "app.log": {
+      "bytes": 8058,
+      "sha256": "849bc278a4af22dbdf332e1537536373bb5bae2d2ac065ac768426336ec600e5"
+    },
+    "dataset.sql": {
+      "bytes": 1165899,
+      "sha256": "56648377e7ad17edbd8442bbb1d34e6c731120a2bccced06b298a15a91ab31d9"
+    },
+    "setup.json": {
+      "bytes": 358,
+      "sha256": "a3e4e81187590210c6208158c9fc147e160cad0d846b2cb2e7a78cb6f810f923"
+    },
+    "result.json": {
+      "bytes": 4161,
+      "sha256": "06eb2f941f32906828481911ae0747ba0f9be7fb1b76d066fa7eda68d4440146"
+    },
+    "pauses.json": {
+      "bytes": 1165824,
+      "sha256": "a95ac397a6a758af3c0b10fa2c5cf589834ad5fd1f03825bdf5f0d96ad278b3c"
+    },
+    "auxiliary.json": {
+      "bytes": 88036,
+      "sha256": "1492fcf527d71dbff25808840041d4da45260074855f6544c0febdb546a3c3f1"
+    },
+    "assignments.json": {
+      "bytes": 841265,
+      "sha256": "0c2694187094e4e749cd4253008a17ad98299ef53fcef5d6033a3f538f2849c6"
+    },
+    "samples.json": {
+      "bytes": 1810039,
+      "sha256": "499344845ec3fcf661fad4feb69ee4d9e63c935298f7b86954dc398bfb7174f0"
+    },
+    "dataset.log": {
+      "bytes": 64733,
+      "sha256": "a15fb7265b692891b0c93a61a5fd55d8c214a4526ee5ba470e889c4a9a67f91e"
+    },
+    "activations.json": {
+      "bytes": 4339,
+      "sha256": "1244de76c58ae80e7beebd3ebb967a2afab9d6ab9a239f13e5c24a8b568cccb6"
+    }
+  }
+}

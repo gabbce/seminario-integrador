@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./real-session-fixture";
 import { readFileSync } from "node:fs";
 const lines = readFileSync("../backend/.env", "utf8").split(/\r?\n/);
 const password =
@@ -84,7 +84,7 @@ test("I04.2 real cancelación, recarga, segunda sesión y aula reutilizable", as
   await expect(
     page.getByRole("heading", { name: "Revisar cancelación", exact: true }),
   ).toBeVisible();
-  await page.screenshot({ path: "/tmp/i042-real-review.png", fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i042-real-review.png`, fullPage: true });
   await page
     .getByRole("button", { name: "Confirmar cancelación", exact: true })
     .click();
@@ -100,7 +100,7 @@ test("I04.2 real cancelación, recarga, segunda sesión y aula reutilizable", as
     page.getByText("Motivo: QA I04.2", { exact: false }),
   ).toHaveCount(2);
   await page.screenshot({
-    path: "/tmp/i042-real-cancelled.png",
+    path: `../artifacts/qa/operations/${browser.browserType().name()}-i042-real-cancelled.png`,
     fullPage: true,
   });
   const replacement = await page.evaluate(async ({ proposal, selections }) => {
@@ -168,7 +168,7 @@ test("I04.2 real cancelación, recarga, segunda sesión y aula reutilizable", as
       second.getByText(`${created.booking.id} · CANCELADA`, { exact: true }),
     ).toBeVisible();
     await second.screenshot({
-      path: "/tmp/i042-real-docente-390.png",
+      path: `../artifacts/qa/operations/${browser.browserType().name()}-i042-real-docente-390.png`,
       fullPage: true,
     });
   } finally {

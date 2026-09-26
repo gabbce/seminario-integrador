@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./real-session-fixture";
 import { readFileSync } from "node:fs";
 const lines = readFileSync("../backend/.env", "utf8").split(/\r?\n/);
 const password =
@@ -31,10 +31,10 @@ for (const periodic of [false, true]) test(`I04.4 real reprogramación ${periodi
     await page.getByRole("button", { name: "Reprogramar clases", exact: true }).click();await page.getByRole("checkbox").first().check();
     await page.getByLabel("Nueva fecha", { exact: true }).fill(date);await page.getByLabel("Nuevo inicio", { exact: true }).fill("18:00");await page.getByRole("combobox", { name: "Duración", exact: true }).selectOption("90");
     await page.getByRole("button", { name: "Revisar reprogramación", exact: true }).click();await expect(page.getByRole("heading", { name: "Revisar nuevas fechas", exact: true })).toBeVisible();
-    await page.screenshot({ path: `/tmp/i044-real-review-${periodic}-${index}.png`, fullPage: true });
+    await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i044-real-review-${periodic}-${index}.png`, fullPage: true });
     await page.getByRole("button", { name: "Guardar reprogramación", exact: true }).click();await expect(page.getByRole("heading", { name: "Reprogramación confirmada" })).toBeVisible();await page.getByRole("button", { name: "Ver detalle actualizado" }).click();await page.reload();await expect(page.getByRole("heading", { name: "Historial de cambios", exact: true })).toBeVisible();
   }
-  await page.screenshot({ path: `/tmp/i044-real-history-${periodic}.png`, fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i044-real-history-${periodic}.png`, fullPage: true });
   const second = await browser.newPage({ viewport: { width: 390, height: 1000 } });
   try {
     await second.goto("/");await second.getByLabel("Correo electrónico").fill("docente@demo.local");await second.getByLabel("Contraseña", { exact: true }).fill(password!);await second.getByRole("button", { name: "Ingresar", exact: true }).click();await expect(second.getByLabel("Fecha de agenda")).toBeVisible();
@@ -42,7 +42,7 @@ for (const periodic of [false, true]) test(`I04.4 real reprogramación ${periodi
     const changed = data.occurrences.find((c: { id: string }) => c.id === original.id);expect(changed).toMatchObject({ date: secondDate, start: "18:00", end: "19:30", room: original.room, originalDate: original.date });
     if (periodic) expect(data.patterns).toEqual(booking.patterns);
     expect(data).not.toHaveProperty("changes");expect(data).not.toHaveProperty("teacherEmail");expect(data).not.toHaveProperty("registrant");
-    await expect(second.getByRole("heading", { name: booking.subject, exact: true })).toBeVisible();await expect(second.getByRole("button", { name: "Reprogramar clases", exact: true })).toHaveCount(0);await second.screenshot({ path: `/tmp/i044-real-docente-${periodic}-390.png`, fullPage: true });
+    await expect(second.getByRole("heading", { name: booking.subject, exact: true })).toBeVisible();await expect(second.getByRole("button", { name: "Reprogramar clases", exact: true })).toHaveCount(0);await second.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i044-real-docente-${periodic}-390.png`, fullPage: true });
     console.log(`I04.4 QA reserva ${booking.id}; curso ${booking.courseId}; origen ${original.date}; primera ${firstDate}; segunda ${secondDate}; aula ${original.room}; patrón conservado ${periodic}.`);
   } finally { await second.close(); }
 });

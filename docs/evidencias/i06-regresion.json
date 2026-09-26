@@ -1,0 +1,58 @@
+{
+  "date": "2026-09-26",
+  "imageId": "sha256:7e6bd4c6374b2fdb5590a65f6e6dd5bf0596759ba2828c7f7f8119ceb5006092",
+  "browsers": {
+    "chromium": "153.0.8010.12",
+    "firefox": "155.0"
+  },
+  "tests": {
+    "backend": 174,
+    "frontendUnit": 66,
+    "mockedUI": 110,
+    "packageReadOnly": 12,
+    "exactPackage": 4,
+    "operationsChromiumFreshDatabase": 8,
+    "operationsFirefoxFreshDatabase": 8
+  },
+  "pdfs": {
+    "chromium": {
+      "pages": 9,
+      "rows": 104
+    },
+    "firefox": {
+      "pages": 9,
+      "rows": 104
+    }
+  },
+  "preservation": {
+    "reservations": 337,
+    "details": 5150,
+    "rooms": 28,
+    "semanticComparison": "identical to I061 after restart; includes calendars, courses and protected availability",
+    "remoteResetExecuted": false
+  },
+  "visual": {
+    "desktop": "1366x768",
+    "teacher": "390x844",
+    "reflow": "683x384 CSS viewport; native zoom reserved for manual QA",
+    "inspected": "roles, listings, indicators/curves/history/partial coverage, print, I04 operation review/history/mobile"
+  },
+  "incidents": [
+    "Five package Chromium cases started before health: connection failure; repeated five passed.",
+    "One Firefox rescheduling case collided with a destination occupied by prior Chromium run; now one fresh local database per browser. Complete Firefox rerun passed."
+  ],
+  "manualAcceptance": {
+    "I04": "pending",
+    "I05": "pending",
+    "I06": "pending"
+  },
+  "evidence": {
+    "chromium-i044-real-review-true-1.png": "903c93e089895a5dcafd45d8b1ac67216d9753c386847dc80b644d7753426683",
+    "docente-chromium.png": "efb33543672b08d987a547a2491fff2a7d1d74bca851def9fa5d4a1ded414ae2",
+    "partial-firefox.png": "b6e9f287a5efb23913d8d2884d569662827fd224146028286eedcf37a9a61d82",
+    "firefox-i045-real-review.png": "9ca7bbd6af4c74e020b4c50bbe02843faa4d76a71a6e6a132dbc5a13ccea7480",
+    "indicators-firefox.png": "d944748d1ae6faa5283b42993a913d5d1d081dacae921b8fc19f0eaae3ae5feb",
+    "volume-firefox.pdf": "1a9f7d5cee5a8dd95c010b33630e9b2f5ca331fcd205b88ec84371b67465c9f8",
+    "volume-chromium.pdf": "494e728e9b6260c8c33232c2f9f61b01c4eb8454f039f4a1f03b301bec54f929"
+  }
+}

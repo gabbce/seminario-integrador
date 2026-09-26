@@ -1,6 +1,6 @@
 # Avance I-06
 
-Estado: implementación en curso. I-04/I-05/I-06 mantienen aceptación manual pendiente. I-05 está verificada funcionalmente; la referencia remota de latencia excede objetivos y no acredita RNF. Se ejecutará protocolo completo separado en I-06.3.
+Estado: implementación en curso. I-04/I-05/I-06 mantienen aceptación manual pendiente. I-05 está verificada funcionalmente; la referencia remota de latencia excede objetivos y no acredita RNF. El protocolo completo local de I-06.3 pasó, sin extrapolar a Supabase remoto.
 
 ## I-06.1 · Paquete Compose
 
@@ -28,3 +28,23 @@ Se agregó V15 sin modificar migraciones aplicadas: copia original de snapshots 
 - Ajuste complementario del paquete: COPY explícitos y exclusiones por nivel impiden incorporar tests/targets al contexto de construcción; verificado `No sources to compile` en testCompile del build. Reescaneo de 34.794 archivos del JAR y 5.321 de capas sin valores privados locales inspeccionados. Imagen del ensayo final `sha256:7e6bd4c6374b2fdb5590a65f6e6dd5bf0596759ba2828c7f7f8119ceb5006092`. Lint y diff check sin errores; ambas revisiones cerradas sin hallazgos pendientes.
 
 Incidencia de verificación: un lanzamiento de Maven adicional sobre el mismo `target` coincidió con una regresión y produjo 6 errores de carga de bean entre 173 casos. La repetición serializada pasó 173/173 sin errores. Después del último ajuste de patrones extra pasaron las ocho pruebas de reset. No ejecutar compilaciones Maven simultáneas en el mismo checkout.
+
+## I-06.3 · Verificación final
+
+Contrato previo [carga final](../api/carga-final-i-06.md), [reproducción de carga](carga-final-i-06.md) y [regresión del paquete](regresion-paquete-i-06.md). Verificación técnica completada el26/09/2026; aceptación manual pendiente.
+
+Se preparó runner con 50 identidades JWT firmadas y perfiles reales locales, 30 aulas, 800 series/25.600 clases y 500 esporádicas, 280 altas previstas y diez series propias de modificación. Ciclos, pausas, calentamiento y medición íntegros del documento11. PostgreSQL/JWKS locales; la aplicación publica loopback mediante un bridge adicional con egreso permitido. No usa credenciales ni servicios Supabase. La medición local no elimina la limitación remota documentada en I05.
+
+Incidencias del guion antes de resultado final: primer intento sin puerto publicado por red interna exclusiva, corregido con bridge de acceso propio; corrida preliminar interrumpida para completar evidencia de asignaciones/IDs/ciclos solicitada por revisión. Ninguna se contabiliza como cumplimiento. La corrida final parte de base nueva y ejecuta nuevamente todo el protocolo.
+
+Regresión sobre la imagen final: Chromium/Firefox, roles/rutas/PDF de104filas, indicadores y teclado/reflow; entorno exacto con Auth Supabase real y PostgreSQL local; operaciones I04 en otro escenario descartable con guard de destino. No requiere modificar datos manuales del entorno compartido. Ejecutada después de terminar la ventana de carga, evitando interferencia de otras baterías; resultados detallados debajo.
+
+Resultado de carga final: 5.963 solicitudes medidas, cero errores de todas las fases, pausa mínima5000,0026ms,120s de calentamiento después de activar la sesión50 y600s de medición. p95: disponibilidad14,23ms, listado diario13,43ms, curso94,01ms, alta100,19ms, modificación201,95ms. Auditor independiente recalcula percentiles y verifica sesiones/ciclos/asignaciones/IDs/versiones y ambas series por operador. Reporte, manifiesto, hashes y trazas sin credenciales versionados en `docs/evidencias/i06-carga*`; comando de auditoría en la guía. Revisión Luna high corrigió barreras de contenedores/imagen/red/loopback y exigencia independiente de umbrales, cobertura y series.
+
+Regresión exacta del paquete:4/4 casos (Chromium/Firefox) con Auth real y PostgreSQL descartable; capturas de curvas, ponderación, historia, cobertura parcial, semana y Docente móvil. Inspección visual sin defectos detectados; no se cambiaron datos remotos. Unitarias frontend66/66, build y lint correctos.
+
+Regresión final Java174/174, sin fallos/errores/omitidas; UI con red simulada110/110. Paquete compartido de solo lectura12/12 casos cubiertos en Chromium/Firefox; los cinco primeros casos Chromium se lanzaron antes de salud y fallaron por conexión, repetición con salud5/5. Ambos PDFs:9páginas/104filas, todas cotejadas por IDs y contenido con manifiesto; primera/última página inspeccionadas. Teclado y reflow683×384 verificados; zoom nativo queda para usuario. Capturas de referencia y PDF versionados en `docs/evidencias/i06-visual/`.
+
+Operaciones I04: Chromium8/8. En el primer intento Firefox sobre la misma base,15/16 totales pasaron y una reprogramación esporádica chocó con el destino ya ocupado por Chromium; aplicación rechazó correctamente sin cambio. El guion ahora limita a un navegador por corrida y exige20reservas iniciales, recreando base entre motores. Revisión Luna high cerró esa corrección; Firefox repetido completo sobre base nueva:8/8 aprobados.
+
+Cierre de I-06.3: [reporte final](../evidencias/i06-regresion.json). Comparación de inventario remoto antes/después:337reservas/5150clases/28aulas, calendarios/cursos y disponibilidad protegida idénticos semánticamente (solo orden de recursos normalizado). V15 aplicada normalmente al recrear Compose; ningún seed/reset remoto. Contenedores de ensayos retirados por sus IDs. Revisiones GPT-6 Luna high de especificación/estándares cerradas con correcciones incorporadas. Resta I-06.4 documental para entregar QA al usuario; no se aceptó ninguna entrega manualmente.

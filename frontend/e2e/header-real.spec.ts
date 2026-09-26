@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./real-session-fixture";
 import { readFileSync } from "node:fs";
 const lines = readFileSync("../backend/.env", "utf8").split(/\r?\n/);
 const password =
@@ -40,7 +40,7 @@ test("I04.3a real cabecera, recarga, historial y privacidad", async ({ page, bro
   await page.getByLabel("Alumnos previstos", { exact: true }).fill("9999");
   await page.getByRole("button", { name: "Guardar datos", exact: true }).click();
   await expect(page.getByText("no cumplen los nuevos requisitos", { exact: false })).toBeVisible();
-  await page.screenshot({ path: "/tmp/i043a-real-conflict.png", fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043a-real-conflict.png`, fullPage: true });
   await page.getByLabel("Alumnos previstos", { exact: true }).fill("25");
   await page.getByLabel("Docente", { exact: true }).selectOption("Ana Ruiz");
   await page.getByRole("button", { name: "Guardar datos", exact: true }).click();
@@ -49,7 +49,7 @@ test("I04.3a real cabecera, recarga, historial y privacidad", async ({ page, bro
   await page.reload();
   await expect(page.getByRole("heading", { name: "Historial de cambios", exact: true })).toBeVisible();
   await expect(page.getByText("alumnos 20 → 25", { exact: false })).toBeVisible();
-  await page.screenshot({ path: "/tmp/i043a-real-history.png", fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043a-real-history.png`, fullPage: true });
   const second = await browser.newPage({ viewport: { width: 390, height: 1000 } });
   try {
     await second.goto("/");
@@ -68,7 +68,7 @@ test("I04.3a real cabecera, recarga, historial y privacidad", async ({ page, bro
     expect(data.occurrences).toEqual(booking.occurrences);
     await expect(second.getByRole("heading", { name: "QA I04 Cabecera", exact: true })).toBeVisible();
     await expect(second.getByRole("button", { name: "Modificar datos", exact: true })).toHaveCount(0);
-    await second.screenshot({ path: "/tmp/i043a-real-docente-390.png", fullPage: true });
+    await second.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043a-real-docente-390.png`, fullPage: true });
   } finally { await second.close(); }
   console.log(`I04.3a QA: reserva ${booking.id}; curso ${booking.courseId}; alumnos 20 → 25; docente D-01 → D-02; fechas/aulas conservadas.`);
 });

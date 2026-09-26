@@ -1,5 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
-import { readFileSync, mkdirSync } from "node:fs";
+import {
+  readFileSync,
+  mkdirSync,
+  writeFileSync,
+  existsSync,
+  rmSync,
+} from "node:fs";
 const password =
   process.env.AULAS_DEMO_PASSWORD ||
   readFileSync("../backend/.env", "utf8")
@@ -69,7 +75,7 @@ test("paquete sirve rutas profundas y assets; API mantiene errores JSON", async 
   expect((await request.get("/api/health")).status()).toBe(200);
 });
 for (const role of ["admin", "bedel", "docente", "inhabilitado"])
-  test("paquete Auth real " + role, async ({ page }) => {
+  test("paquete Auth real " + role, async ({ page, browserName }) => {
     mkdirSync("../artifacts/qa/package", { recursive: true });
     const externalAssets: string[] = [];
     page.on("request", (r) => {
@@ -102,8 +108,92 @@ for (const role of ["admin", "bedel", "docente", "inhabilitado"])
     if (role === "docente")
       await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({
-      path: "../artifacts/qa/package/" + role + ".png",
+      path: "../artifacts/qa/package/" + role + "-" + browserName + ".png",
       fullPage: true,
     });
     expect(externalAssets).toEqual([]);
   });
+
+test("paquete: indicadores, impresión completa, teclado y reflow", async ({
+  page,
+  browserName,
+}) => {
+  mkdirSync("../artifacts/qa/package", { recursive: true });
+  const output = "../artifacts/qa/package/volume-" + browserName + ".pdf";
+  rmSync(output, { force: true });
+  await page.addInitScript(() => {
+    const nativePrint = window.print.bind(window);
+    window.addEventListener("qa-native-print", () => nativePrint());
+    window.print = () => {
+      document.documentElement.dataset.printed = "yes";
+    };
+  });
+  await login(page, "bedel");
+  await page.goto("/reservas?date=2027-08-23&page=1&size=20");
+  await expect(page.locator(".screen-list tbody tr")).toHaveCount(20);
+  const print = page.getByRole("button", { name: "Imprimir listado diario" });
+  await print.focus();
+  await expect(print).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("html")).toHaveAttribute("data-printed", "yes");
+  await expect(page.locator(".print-list tbody tr")).toHaveCount(104);
+  const rows = await page
+    .locator(".print-list tbody tr")
+    .evaluateAll((elements) =>
+      elements.map((e) => ({
+        id: e.getAttribute("data-occurrence-id"),
+        text: (e as HTMLElement).innerText,
+      })),
+    );
+  expect(new Set(rows.map((r) => r.id)).size).toBe(104);
+  writeFileSync(
+    "../artifacts/qa/package/print-rows-" + browserName + ".json",
+    JSON.stringify(rows),
+  );
+  if (browserName === "chromium")
+    await page.pdf({ path: output, format: "A4", landscape: true });
+  else {
+    await page.evaluate(() =>
+      window.dispatchEvent(new Event("qa-native-print")),
+    );
+    await expect
+      .poll(
+        () =>
+          existsSync(output) &&
+          readFileSync(output).subarray(-100).toString().includes("%%EOF"),
+        { timeout: 30000 },
+      )
+      .toBeTruthy();
+  }
+  await page.goto("/indicadores?date=2027-08-23");
+  await expect(
+    page.getByText("52 / 320 h habilitadas", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("780", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: /Alumnos previstos. Pico 125/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: /Clases simultáneas. Pico 8/ }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "../artifacts/qa/package/indicators-" + browserName + ".png",
+    fullPage: true,
+  });
+  await page.goto("/indicadores?mode=week&from=2027-08-23&to=2027-08-27");
+  await expect(
+    page.getByText("56 / 1.600 h habilitadas", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("855", { exact: true })).toBeVisible();
+  // Half-size CSS viewport verifies the reflow equivalent of 200% desktop zoom; manual browser zoom remains in QA.
+  await page.setViewportSize({ width: 683, height: 384 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "../artifacts/qa/package/reflow-" + browserName + ".png",
+    fullPage: true,
+  });
+});

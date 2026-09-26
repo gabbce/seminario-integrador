@@ -1,0 +1,286 @@
+{
+  "seed": "i06-load-v1",
+  "currentYear": 2026,
+  "historicalYear": 2025,
+  "operationalYear": 2027,
+  "terms": {
+    "2025": [
+      [
+        "2025-03-03",
+        "2025-06-22"
+      ],
+      [
+        "2025-08-04",
+        "2025-11-23"
+      ]
+    ],
+    "2027": [
+      [
+        "2027-03-01",
+        "2027-06-20"
+      ],
+      [
+        "2027-08-02",
+        "2027-11-21"
+      ]
+    ]
+  },
+  "profiles": [
+    {
+      "id": 1,
+      "sub": "38f1dd7f-b01e-54f7-848c-cd327621dd95",
+      "role": "ADMINISTRADOR"
+    },
+    {
+      "id": 2,
+      "sub": "fd2f89eb-97b1-5847-ae1c-c3db431d4b4e",
+      "role": "ADMINISTRADOR"
+    },
+    {
+      "id": 3,
+      "sub": "881faf0d-2809-5ec1-b73d-07816eeb3fb8",
+      "role": "BEDEL"
+    },
+    {
+      "id": 4,
+      "sub": "80674212-3282-5c70-aa07-4032edc4d347",
+      "role": "BEDEL"
+    },
+    {
+      "id": 5,
+      "sub": "915b72db-61d6-577f-b66e-510facda5ab7",
+      "role": "BEDEL"
+    },
+    {
+      "id": 6,
+      "sub": "0c2d2fa2-d163-53fa-859e-fbba9bbfa2f2",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 7,
+      "sub": "0861d637-5f3f-5cda-9f08-cfae720c3d85",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 8,
+      "sub": "c6319a27-9142-5adc-8cba-34085c3f2bbd",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 9,
+      "sub": "429c8bfd-d7db-58eb-af47-02af807432be",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 10,
+      "sub": "232b9e79-8004-57f4-8ca1-2822840217b9",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 11,
+      "sub": "940892b5-da3f-5a00-935f-ed5976cb8da0",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 12,
+      "sub": "6bdb6b41-f229-5123-8eb5-6e30bae9c1c0",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 13,
+      "sub": "d1f68bc1-1250-5e6c-b371-da6f6a8288f6",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 14,
+      "sub": "9d69bcde-905c-58e1-8905-9163134fbb01",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 15,
+      "sub": "48e63e17-1a7f-564b-92e8-f292ccc5c3a2",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 16,
+      "sub": "f4db5d33-cd39-5ec2-a425-02397a96928e",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 17,
+      "sub": "f6f81147-887e-5851-ad43-7a260d9d3949",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 18,
+      "sub": "ff5568a3-d623-578b-adfb-1fb61c5c32c4",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 19,
+      "sub": "920eff47-fa07-52da-b2ce-b4d070a2e94f",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 20,
+      "sub": "58a61458-8cd2-5302-b095-04f4d8f958dd",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 21,
+      "sub": "c07d40ab-a18e-5370-b9a2-2aec8fd57723",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 22,
+      "sub": "047bb64b-f94b-5f69-aa12-5ebd8711b0bb",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 23,
+      "sub": "65d48e46-a978-5162-96ff-c28da9ae690f",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 24,
+      "sub": "1effad1a-df30-53d5-b799-2847b7fbd984",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 25,
+      "sub": "39b62ccc-a64c-5bf7-ae5b-19ddc7fc4b49",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 26,
+      "sub": "0929f417-c21a-58cc-9dfb-9bbcb3f212e9",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 27,
+      "sub": "7b187ee1-c44c-57ff-9e3c-c8a468a83335",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 28,
+      "sub": "bb83b57b-6045-507a-9596-08173d929a44",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 29,
+      "sub": "7c33dd94-0485-5915-83cf-f6354b6a7cc6",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 30,
+      "sub": "2515b34f-4b86-531e-b95c-860566ee3530",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 31,
+      "sub": "4c839453-a9dd-50a0-a4c4-b4fdf44dc498",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 32,
+      "sub": "0d076d38-b543-5bba-81c2-4739e734510c",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 33,
+      "sub": "9f66f5dc-fe2b-5ce5-ae41-f60e9fa4964f",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 34,
+      "sub": "f16be5e9-3bab-5216-8c9d-1e40e0cb2e2a",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 35,
+      "sub": "cca97df3-2af3-56e3-bba8-190099cc1c29",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 36,
+      "sub": "a79eaf7d-88a8-50bc-861d-b4c9e6545ed3",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 37,
+      "sub": "8d998b3a-267a-571f-bfdc-5aca8daf2dab",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 38,
+      "sub": "51b612f9-4dc4-5174-be58-d8c8e024893e",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 39,
+      "sub": "7f536091-7d07-5e74-be56-fae4cebef531",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 40,
+      "sub": "5ee9e59c-b75d-5afd-a749-e1a7abb16360",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 41,
+      "sub": "2c3271a0-45fa-55c0-b02c-3243ec9e3ce7",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 42,
+      "sub": "32d62a58-8810-5bb8-8a92-d0d7afba6e5c",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 43,
+      "sub": "51d7eccd-f3a6-5f74-99c4-1566c6b1bd9b",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 44,
+      "sub": "ca6a11dc-b307-5966-b347-fa01ddd3c0cd",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 45,
+      "sub": "a1130e25-8c3d-5ea9-ae31-921cad6bd39a",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 46,
+      "sub": "4be82a90-4d4a-5077-b23e-42ee377e1621",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 47,
+      "sub": "6198ed61-b308-54bb-b607-b864a46a46e7",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 48,
+      "sub": "b72d828c-5bd3-5e30-af2a-93bc1b933a09",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 49,
+      "sub": "eda9c92d-f647-556b-b9fc-939f89403c00",
+      "role": "DOCENTE"
+    },
+    {
+      "id": 50,
+      "sub": "6a4c149a-7054-588e-b12e-6aac209444a0",
+      "role": "DOCENTE"
+    }
+  ],
+  "listingDate": "2027-03-02",
+  "courseId": "11",
+  "periodicSeries": 800,
+  "periodicDetails": 25600,
+  "sporadicDetails": 500,
+  "rooms": 30
+}

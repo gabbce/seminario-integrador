@@ -1,0 +1,144 @@
+{
+  "protocol": "i06-load-v1",
+  "imageId": "sha256:7e6bd4c6374b2fdb5590a65f6e6dd5bf0596759ba2828c7f7f8119ceb5006092",
+  "commit": "5f023097b886f346d400f51359726992358c813e",
+  "workingTreeDirty": true,
+  "scriptSha256": "3b0580283ba14280613e44fb1ce884ed1c02c6e9abed3216edce7370f76b2ca4",
+  "datasetSha256": "56648377e7ad17edbd8442bbb1d34e6c731120a2bccced06b298a15a91ab31d9",
+  "generatorSha256": "b6dcb84938df3436762b88ff52531b7efd6d95f2ead7ad4a36dc3504eb71ccb6",
+  "at": "2026-09-26T09:45:53.507Z",
+  "environment": {
+    "provider": "local Docker; no Supabase",
+    "network": "loopback client→published app; private Docker bridge app→PostgreSQL/JWKS",
+    "issuer": "controlled RSA-2048 JWKS; real JWT validation and 50 persisted profiles",
+    "cpus": 12,
+    "cpu": "AMD Ryzen 5 5600 6-Core Processor",
+    "memoryBytes": 25200623616,
+    "node": "v24.14.0",
+    "postgres": "17.6",
+    "docker": "29.7.2",
+    "jvm": "openjdk 21.0.12.1 2026-08-18 LTS\nOpenJDK Runtime Environment Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS)\nOpenJDK 64-Bit Server VM Temurin-21.0.12.1+1 (build 21.0.12.1+1-LTS, mixed mode, sharing)",
+    "dockerResources": {
+      "cpus": 12,
+      "memoryBytes": 25200623616
+    },
+    "loopbackHealthP50Ms": 4.3170980000013515,
+    "loopbackHealthP95Ms": 7.380103999999847
+  },
+  "timing": {
+    "rampPlannedMs": 4900,
+    "actualRampMs": 4900.522087000005,
+    "warmupMs": 120000,
+    "measurementMs": 600000,
+    "measurementStartMs": 169028.172097,
+    "measurementEndMs": 769028.1720970001,
+    "pauseRequestedMs": 5000,
+    "pauseMinMs": 5000.002619000035,
+    "pauseMaxMs": 5004.335251000011
+  },
+  "initial": {
+    "rooms": 30,
+    "reservations": 1300,
+    "details": 26100
+  },
+  "preparedInitial": {
+    "reservations": 1310,
+    "details": 26580
+  },
+  "sessions": 50,
+  "roles": {
+    "Docente": 45,
+    "Admin": 2,
+    "Bedel": 3
+  },
+  "operations": {
+    "availability": {
+      "count": 2963,
+      "errors": 0,
+      "technicalErrors": 0,
+      "validationOrAuthErrors": 0,
+      "p50Ms": 12.331027999985963,
+      "p95Ms": 14.23101999994833,
+      "maxMs": 23.185154000064358,
+      "requestsPerSecond": 4.9383333333333335,
+      "thresholdMs": 1500,
+      "passed": true,
+      "periods": {
+        "first": 0,
+        "annual": 0
+      }
+    },
+    "listing-daily": {
+      "count": 1350,
+      "errors": 0,
+      "technicalErrors": 0,
+      "validationOrAuthErrors": 0,
+      "p50Ms": 11.754243000003044,
+      "p95Ms": 13.430669000023045,
+      "maxMs": 18.47903999997652,
+      "requestsPerSecond": 2.25,
+      "thresholdMs": 1500,
+      "passed": true,
+      "periods": {
+        "first": 0,
+        "annual": 0
+      }
+    },
+    "periodic-create": {
+      "count": 150,
+      "errors": 0,
+      "technicalErrors": 0,
+      "validationOrAuthErrors": 0,
+      "p50Ms": 63.02060399996117,
+      "p95Ms": 100.18934799998533,
+      "maxMs": 134.64437400002498,
+      "requestsPerSecond": 0.25,
+      "thresholdMs": 2000,
+      "passed": true,
+      "periods": {
+        "first": 75,
+        "annual": 75
+      }
+    },
+    "listing-course": {
+      "count": 1350,
+      "errors": 0,
+      "technicalErrors": 0,
+      "validationOrAuthErrors": 0,
+      "p50Ms": 65.52609599998686,
+      "p95Ms": 94.00740000000224,
+      "maxMs": 153.62415300006978,
+      "requestsPerSecond": 2.25,
+      "thresholdMs": 1500,
+      "passed": true,
+      "periods": {
+        "first": 0,
+        "annual": 0
+      }
+    },
+    "periodic-modify": {
+      "count": 150,
+      "errors": 0,
+      "technicalErrors": 0,
+      "validationOrAuthErrors": 0,
+      "p50Ms": 84.07113599998411,
+      "p95Ms": 201.95336499996483,
+      "maxMs": 222.5557990000816,
+      "requestsPerSecond": 0.25,
+      "thresholdMs": 2000,
+      "passed": true,
+      "periods": {
+        "first": 75,
+        "annual": 75
+      }
+    }
+  },
+  "totalMeasured": 5963,
+  "measuredErrors": 0,
+  "allPhaseErrors": 0,
+  "auxiliaryCount": 362,
+  "auxiliariesDuringMeasurement": 0,
+  "passed": true,
+  "limitation": "Local result does not establish the same latency against remote Supabase; remote I05 sample exceeded target.",
+  "manualAcceptance": "pending"
+}

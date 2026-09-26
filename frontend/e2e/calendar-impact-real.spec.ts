@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./real-session-fixture";
 import { readFileSync } from "node:fs";
 const lines = readFileSync("../backend/.env", "utf8").split(/\r?\n/);
 const secret = (name: string) =>
@@ -124,7 +124,7 @@ test("I04.5 calendario y clases reales atómicos", async ({ page, browser }) => 
     page.getByRole("heading", { name: "Impacto del cambio" }),
   ).toBeVisible();
   await expect(page.getByText(/Clases nuevas: 2/)).toBeVisible();
-  await page.screenshot({ path: "/tmp/i045-real-review.png", fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i045-real-review.png`, fullPage: true });
   await page
     .getByRole("button", {
       name: "Confirmar cambio de calendario",
@@ -148,7 +148,7 @@ test("I04.5 calendario y clases reales atómicos", async ({ page, browser }) => 
   await expect(
     page.getByRole("heading", { name: "Historial de cambios" }),
   ).toBeVisible();
-  await page.screenshot({ path: "/tmp/i045-real-history.png", fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i045-real-history.png`, fullPage: true });
   const second = await browser.newPage({
     viewport: { width: 390, height: 1000 },
   });
@@ -179,7 +179,7 @@ test("I04.5 calendario y clases reales atómicos", async ({ page, browser }) => 
       }),
     ).toBeVisible();
     await second.screenshot({
-      path: "/tmp/i045-real-docente-390.png",
+      path: `../artifacts/qa/operations/${browser.browserType().name()}-i045-real-docente-390.png`,
       fullPage: true,
     });
     console.log(

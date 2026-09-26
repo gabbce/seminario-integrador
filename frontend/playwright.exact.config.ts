@@ -1,8 +1,13 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/exact-package-setup.ts",
   testMatch: "*-exact.spec.ts",
   workers: 1,
+  projects: [
+    { name: "chromium", use: { browserName: "chromium" } },
+    { name: "firefox", use: { browserName: "firefox" } },
+  ],
   timeout: 120000,
   expect: { timeout: 15000 },
   use: {

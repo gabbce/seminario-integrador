@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./real-session-fixture";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 const lines = readFileSync(resolve("../backend/.env"), "utf8").split(/\r?\n/);
@@ -63,7 +63,7 @@ test("I-04.1 real: esporádica en receso, recarga y segunda sesión", async ({
   await page.locator('input[name="room-2"]').nth(1).check();
   await page.getByRole("button", { name: "Revisar reserva" }).click();
   await page.screenshot({
-    path: "/tmp/i041-real-revision.png",
+    path: `../artifacts/qa/operations/${browser.browserType().name()}-i041-real-revision.png`,
     fullPage: true,
   });
   const response = page.waitForResponse((r) =>
@@ -87,7 +87,7 @@ test("I-04.1 real: esporádica en receso, recarga y segunda sesión", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await page.screenshot({ path: "/tmp/i041-real-detalle.png", fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i041-real-detalle.png`, fullPage: true });
   const second = await browser.newPage({
     viewport: { width: 390, height: 900 },
   });
@@ -108,7 +108,7 @@ test("I-04.1 real: esporádica en receso, recarga y segunda sesión", async ({
       second.getByRole("heading", { name: booking.subject, exact: true }),
     ).toBeVisible();
     await second.screenshot({
-      path: "/tmp/i041-real-docente-390.png",
+      path: `../artifacts/qa/operations/${browser.browserType().name()}-i041-real-docente-390.png`,
       fullPage: true,
     });
   } finally {

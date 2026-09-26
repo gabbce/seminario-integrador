@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./real-session-fixture";
 import { readFileSync } from "node:fs";
 const lines = readFileSync("../backend/.env", "utf8").split(/\r?\n/);
 const password =
@@ -39,15 +39,15 @@ for (const periodic of [false, true]) test(`I04.3b real aulas ${periodic ? "patr
     const value = await select.locator("option").nth(1).getAttribute("value");
     await select.selectOption(value!);
   }
-  await page.screenshot({ path: `/tmp/i043b-real-selection-${periodic}.png`, fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043b-real-selection-${periodic}.png`, fullPage: true });
   await page.getByRole("button", { name: "Revisar cambio de aulas", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Revisar cambio de aulas", exact: true })).toBeVisible();
-  await page.screenshot({ path: `/tmp/i043b-real-review-${periodic}.png`, fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043b-real-review-${periodic}.png`, fullPage: true });
   await page.getByRole("button", { name: "Confirmar cambio de aulas", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Cambio de aulas confirmado" })).toBeVisible();
   await page.getByRole("button", { name: "Ver detalle actualizado" }).click();await page.reload();
   await expect(page.getByRole("heading", { name: "Historial de cambios", exact: true })).toBeVisible();
-  await page.screenshot({ path: `/tmp/i043b-real-history-${periodic}.png`, fullPage: true });
+  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043b-real-history-${periodic}.png`, fullPage: true });
   const second = await browser.newPage({ viewport: { width: 390, height: 1000 } });
   try {
     await second.goto("/");await second.getByLabel("Correo electrónico").fill("docente@demo.local");await second.getByLabel("Contraseña", { exact: true }).fill(password!);
@@ -62,7 +62,7 @@ for (const periodic of [false, true]) test(`I04.3b real aulas ${periodic ? "patr
     }
     await expect(second.getByRole("heading", { name: booking.subject, exact: true })).toBeVisible();
     await expect(second.getByRole("button", { name: "Cambiar aula", exact: true })).toHaveCount(0);
-    await second.screenshot({ path: `/tmp/i043b-real-docente-${periodic}-390.png`, fullPage: true });
+    await second.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i043b-real-docente-${periodic}-390.png`, fullPage: true });
     console.log(`I04.3b QA: reserva ${booking.id}; curso ${booking.courseId}; modalidad ${periodic ? "periódica" : "esporádica"}; ${data.occurrences.length} clases; aula nueva ${data.occurrences[0].room}.`);
   } finally { await second.close(); }
 });

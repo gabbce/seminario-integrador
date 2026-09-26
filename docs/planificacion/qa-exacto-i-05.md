@@ -2,11 +2,17 @@
 
 Para F05. No usa ni cambia PostgreSQL compartido. Requiere Linux/WSL, Docker disponible, Java21, Node24, dependencias frontend instaladas y archivos privados existentes `backend/.env` y `frontend/.env.local` para las cuentas demo Supabase. No crea cuentas Auth. Inicia y cierra únicamente sus sesiones temporales de preparación con `scope=local`; las sesiones existentes se conservan. Las contraseñas siguen fuera de esta guía.
 
-Desde la raíz:
+Para verificar el paquete final, construir primero la imagen con [Compose](ejecutar-demo-i-06.md) y ejecutar desde raíz:
+```sh
+node tools/qa/exact-package-env.mjs
+```
+Este modo usa el mismo JAR/React de la imagen en5176, PostgreSQL descartable sin puerto publicado y Auth Supabase real; no requiere Java local ni Vite. `Ctrl+C` retira sus dos contenedores y su red por IDs propios. La etiqueta de recuperación tras un cierre forzado es `aulas.qa=exact-package`. Rechaza el puerto o nombres ocupados.
+
+El modo de desarrollo original sigue disponible (Java21/Node24, backend8081 y Vite5176):
 ```sh
 node tools/qa/exact-env.mjs
 ```
-Esperar «QA exacto listo» y abrir [interfaz aislada](http://127.0.0.1:5176). Ingresar con Bedel/Admin demo. Backend8081 y PostgreSQL temporal local; issuer/JWKS y login Supabase reales, requiere internet. Puerto ocupado o contenedor existente se rechazan sin tocar servicios ajenos. Mantener la terminal abierta. `Ctrl+C` detiene sus procesos y elimina solo el contenedor temporal creado por esta ejecución; todas las ediciones de este entorno se descartan. Un nuevo inicio crea otra vez los fixtures. No es el reset de la demo compartida.
+Esperar el mensaje de entorno listo y abrir [interfaz aislada](http://127.0.0.1:5176). Ingresar con Bedel/Admin demo. En desarrollo usa backend8081; el modo paquete sirve todo en5176. PostgreSQL siempre temporal local; issuer/JWKS y login Supabase reales, requiere internet. Puerto ocupado o contenedor existente se rechazan sin tocar servicios ajenos. Mantener la terminal abierta. `Ctrl+C` detiene sus procesos y elimina solo el contenedor temporal creado por esta ejecución; todas las ediciones de este entorno se descartan. Un nuevo inicio crea otra vez los fixtures. No es el reset de la demo compartida.
 
 SQL fuente: `tools/qa/fixtures-exact.sql`, con guard de base nueva. No ejecutarlo contra otra base. Configuración/logs privados bajo `artifacts/qa/exact/` (ignorados); ninguna instrucción requiere `/tmp`. Si una interrupción abrupta dejó `aulas-qa-exact`, identificarlo mediante `docker inspect --format '{{json .Config.Labels}}' aulas-qa-exact` y detener sus procesos de QA antes de eliminar explícitamente ese contenedor desechable. No eliminar contenedores ajenos.
 

@@ -55,6 +55,7 @@ async function get(page: Page, path: string) {
 }
 test("fixtures exactos con PostgreSQL local y JWT Supabase real", async ({
   page,
+  browserName,
 }) => {
   mkdirSync("../artifacts/qa/exact", { recursive: true });
   await login(page);
@@ -149,7 +150,7 @@ test("fixtures exactos con PostgreSQL local y JWT Supabase real", async ({
   ).toBeVisible();
   await expect(page.getByText("25 %", { exact: true })).toBeVisible();
   await page.screenshot({
-    path: "../artifacts/qa/exact/weighted.png",
+    path: "../artifacts/qa/exact/weighted-" + browserName + ".png",
     fullPage: true,
   });
   await page.goto("/indicadores?date=2021-03-03");
@@ -157,7 +158,7 @@ test("fixtures exactos con PostgreSQL local y JWT Supabase real", async ({
     page.locator(".metric-volume strong").filter({ hasText: /^50$/ }),
   ).toBeVisible();
   await page.screenshot({
-    path: "../artifacts/qa/exact/curves.png",
+    path: "../artifacts/qa/exact/curves-" + browserName + ".png",
     fullPage: true,
   });
   await page.goto(
@@ -174,7 +175,7 @@ test("fixtures exactos con PostgreSQL local y JWT Supabase real", async ({
   await page.keyboard.press("Enter");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
-    path: "../artifacts/qa/exact/week-mobile.png",
+    path: "../artifacts/qa/exact/week-mobile-"+browserName+".png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 1366, height: 768 });
@@ -184,13 +185,13 @@ test("fixtures exactos con PostgreSQL local y JWT Supabase real", async ({
     page.getByText("1 / 1 h habilitadas", { exact: true }),
   ).toBeVisible();
   await page.screenshot({
-    path: "../artifacts/qa/exact/history.png",
+    path: "../artifacts/qa/exact/history-"+browserName+".png",
     fullPage: true,
   });
   await page.goto("/indicadores?date=2021-03-09&room=P");
   await expect(page.getByText(/Cobertura histórica desconocida/)).toBeVisible();
   await page.screenshot({
-    path: "../artifacts/qa/exact/partial.png",
+    path: "../artifacts/qa/exact/partial-"+browserName+".png",
     fullPage: true,
   });
   await page.goto("/indicadores?date=2021-03-09&room=Z");
@@ -206,13 +207,14 @@ test("fixtures exactos con PostgreSQL local y JWT Supabase real", async ({
 });
 test("Docente consulta fixture y recibe rechazo de indicadores", async ({
   page,
+  browserName,
 }) => {
   await login(page, "docente");
   await page.goto("/reservas?date=2021-03-03");
   await expect(page.locator(".screen-list tbody tr")).toHaveCount(2);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
-    path: "../artifacts/qa/exact/teacher-mobile.png",
+    path: "../artifacts/qa/exact/teacher-mobile-" + browserName + ".png",
     fullPage: true,
   });
   expect(

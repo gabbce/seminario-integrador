@@ -33,3 +33,15 @@ Verificación:
 - Revisión gpt-6-luna high en ejes especificación y estándares: sin hallazgos pendientes. Lectura integrada de impresión en curso. Aceptación manual pendiente.
 
 Cierre I-05.2: lectura integrada Docente con Supabase e impresión de filtro 14/07/2027/aula103 aprobada (1/1; una fila). PDF de ambos navegadores revalidado con `verify-print.py`; vista móvil real inspeccionada con botón de impresión y resultado cargado. Commit `feat: imprimir el listado diario completo desde una lectura consistente`. Aceptación manual pendiente.
+
+## I-05.3 · Resumen histórico
+
+Contrato previo `indicadores.openapi.yaml`: rango institucional inclusivo; resumen, demanda por tipo y desglose por aula; solo Admin/Bedel. Cálculo autoritativo Java sobre snapshot PostgreSQL, lecturas acotadas al rango, estado por detalle y fecha/aula efectiva. Módulos completos con cobertura habilitada continua, tipo al inicio, sin redondear eventos ni usar estado actual para historia. Cobertura desconocida, cero denominador y ninguna fecha elegible tienen estados distintos. Total es cociente de sumas. Indicadores operativos ya no importan `createScenario`; la concurrencia/gráficos se conectan en I-05.4.
+
+Verificación:
+- `IndicatorTests`: 6/6 sobre PostgreSQL aislado. Fixtures independientes: A=2/8h→25%; A+B=2/10h→20%; dos clases simultáneas→4h; cambio habilitación10:10/tipo11:10/inhabilitación12:10→1,5h completas, atribuidas1h General+0,5h Multimedios; hueco10:10–10:20 invalida todo módulo y marca cobertura desconocida. Cancelación y destino de reprogramación, baja actual, año cerrado sin alterar historia; feriado, cobertura parcial, cero disponible y permiso Docente.
+- Navegador: 3 casos de indicadores en 1366×768/390×844, error/reintento y respuesta tardía; consulta+indicadores tras extraer hook compartido: 6/6. TypeScript/build/lint aprobados.
+- Integración real Supabase solo lectura: 14/07/2027/aula103 (receso), 1h reservada/16h habilitadas=6,25%, interfaz6,3%; Docente403. 1/1 aprobado, sin modificar filas. Captura `/tmp/i053-summary-real.png`, reproducible mediante `indicators-real.spec.ts`.
+- Inspección visual resumen/filtros/tablas en escritorio/móvil y resumen real. Revisor estándares Luna high pidió desacoplar el hook compartido de consultas de reservas: movido a `use-api-query.ts` y verificado; eje especificación en revisión. Sin aceptación manual.
+
+Cierre técnico I-05.3: eje especificación Luna high sin hallazgos; eje estándares corregido. Commit `feat: calcular resumen e indicadores de ocupación históricos`. Continúa I-05.4; aceptación manual pendiente.

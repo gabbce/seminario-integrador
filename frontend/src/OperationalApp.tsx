@@ -2,7 +2,6 @@ import { institutionalNow } from "./institutional-time";
 import type { CalendarConfig } from "./calendar";
 import { PersistedDetail } from "./pages/PersistedDetail";
 import { CalendarContext } from "./calendar-context";
-import { createScenario } from "./demo-scenarios";
 
 import PersistedCalendar from "./pages/PersistedCalendar";
 import { Users } from "./pages/Users";
@@ -41,7 +40,7 @@ import { Agenda } from "./pages/Agenda";
 import { Wizard } from "./pages/Wizard";
 import { PersistedListing } from "./pages/PersistedListing";
 import { Rooms } from "./pages/Rooms";
-import { Indicators } from "./pages/Indicators";
+import { PersistedIndicators } from "./pages/PersistedIndicators";
 
 const navigation = [
   ["/agenda", "Agenda", CalendarDays],
@@ -57,7 +56,6 @@ export default function App({
   currentUser: Profile;
   onLogout: () => void;
 }) {
-  const [scenario] = useState(() => createScenario("base"));
   const [calendars, setCalendars] = useState<CalendarConfig[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [calendarError, setCalendarError] = useState("");
@@ -360,7 +358,7 @@ export default function App({
                         role === "Docente" ? (
                           <Navigate to="/agenda" replace />
                         ) : (
-                          <Indicators bookings={scenario.bookings} />
+                          <PersistedIndicators />
                         )
                       }
                     />

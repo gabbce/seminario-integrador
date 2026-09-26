@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info: {title: Indicadores persistentes, version: 1.0.0}
+security: [{bearerAuth: []}]
+paths:
+  /api/indicadores/resumen:
+    get:
+      description: Solo Admin/Bedel. Snapshot REPEATABLE READ. Fechas institucionales inclusivas, día usando from=to; cuatrimestre mediante límites del calendario. Excluye detalles cancelados; fecha/aula efectivas. Numerador y denominador por módulos de media hora y tipo histórico al inicio. Denominador exige cobertura habilitada completa, incluso atravesando cambios de tipo; ningún redondeo de eventos. Años cerrados/preparación no excluyen fechas ni receso. Sin historia previa inferida. Si falta cobertura, occupancy=null; horas conocidas se devuelven y unknownCoverage=true. Cero denominador devuelve null. React redondea solo presentación.
+      parameters:
+        - {name: from, in: query, required: true, schema: {type: string, format: date}}
+        - {name: to, in: query, required: true, schema: {type: string, format: date}}
+        - {name: room, in: query, schema: {type: string}, description: Identificador visible, vacío todas}
+        - {name: type, in: query, schema: {type: string, enum: ['', General, Multimedios, Laboratorio, Sin historia]}, description: Tipo al inicio del módulo, no tipo actual}
+      responses:
+        '200':
+          description: Cifras exactas de módulos; percentage sin redondeo, null si no puede calcularse. forecast indica rango con fechas futuras según reloj institucional.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Summary'}
+        '400': {description: Rango o filtros inválidos}
+        '401': {description: Sesión inválida}
+        '403': {description: Docente o cuenta no habilitada}
+        '503': {description: Fallo técnico; no interpretar como cero}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  schemas:
+    Breakdown:
+      type: object
+      required: [label, hours, availableHours, classes]
+      properties:
+        label: {type: string}
+        hours: {type: number}
+        availableHours: {type: number}
+        classes: {type: integer, description: Ocurrencias distintas que aportan al grupo; una ocurrencia atravesando tipos puede aportar a ambos grupos}
+    Summary:
+      type: object
+      required: [from, to, room, type, hours, availableHours, occupancy, classes, unknownCoverage, eligible, forecast, demand, rooms]
+      properties:
+        from: {type: string, format: date}
+        to: {type: string, format: date}
+        room: {type: string}
+        type: {type: string}
+        hours: {type: number}
+        availableHours: {type: number}
+        occupancy: {type: [number, 'null']}
+        classes: {type: integer}
+        unknownCoverage: {type: boolean}
+        eligible: {type: boolean, description: Existe al menos una fecha de apertura en calendario registrado, aun sin aulas habilitadas}
+        forecast: {type: boolean}
+        demand: {type: array, items: {$ref: '#/components/schemas/Breakdown'}}
+        rooms: {type: array, items: {$ref: '#/components/schemas/Breakdown'}}

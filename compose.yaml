@@ -1,0 +1,24 @@
+name: aulas-demo
+services:
+  app:
+    image: aulas-demo:local
+    build:
+      context: .
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:?Configurar URL pública Auth}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:?Configurar clave pública Auth}
+    ports:
+      - "127.0.0.1:${DEMO_PORT:-8080}:8080"
+    user: "${DEMO_UID:-1000}:${DEMO_GID:-1000}"
+    environment:
+      SPRING_CONFIG_IMPORT: "file:/run/secrets/backend.properties[.properties]"
+      SERVER_ADDRESS: "0.0.0.0"
+      PORT: "8080"
+    secrets:
+      - source: backend_config
+        target: backend.properties
+    restart: unless-stopped
+    stop_grace_period: 30s
+secrets:
+  backend_config:
+    file: ${AULAS_BACKEND_CONFIG:-./backend/.env}

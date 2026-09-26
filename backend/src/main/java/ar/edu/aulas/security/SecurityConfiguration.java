@@ -37,6 +37,9 @@ public class SecurityConfiguration {
             .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .requestCache(cache->cache.disable())
             .authorizeHttpRequests(rules->rules
+                .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.FORWARD,jakarta.servlet.DispatcherType.ERROR).permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET,"/","/index.html","/assets/**","/favicon.ico","/favicon.svg","/agenda","/disponibilidad","/reservas","/reservas/**","/aulas","/indicadores","/administracion","/administracion/calendario").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.HEAD,"/","/index.html","/assets/**","/favicon.ico","/favicon.svg","/agenda","/disponibilidad","/reservas","/reservas/**","/aulas","/indicadores","/administracion","/administracion/calendario").permitAll()
                 .requestMatchers("/api/health", "/api/health/**").permitAll()
                 .requestMatchers("/api/me").authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.POST,"/api/reservas/periodicas/confirmacion","/api/reservas/esporadicas/confirmacion").hasAnyRole("ADMINISTRADOR","BEDEL")

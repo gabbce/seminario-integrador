@@ -1,6 +1,6 @@
 # QA exacto I-05 · entorno aislado
 
-Para F05. No usa ni cambia PostgreSQL compartido. Requiere Linux/WSL, Docker disponible, Java21, Node24, dependencias frontend instaladas y archivos privados existentes `backend/.env` y `frontend/.env.local` para las cuentas demo Supabase. No crea cuentas Auth. Inicia y cierra únicamente sus sesiones temporales de preparación con `scope=local`; las sesiones existentes se conservan. Las contraseñas siguen fuera de esta guía.
+Para F05. No usa ni cambia PostgreSQL compartido. Requiere Linux/WSL, Docker disponible, Node24, dependencias frontend instaladas y archivos privados existentes `backend/.env` y `frontend/.env.local` para las cuentas demo Supabase. No crea cuentas Auth. Inicia y cierra únicamente sus sesiones temporales de preparación con `scope=local`; las sesiones existentes se conservan. Las contraseñas siguen fuera de esta guía.
 
 Para verificar el paquete final, construir primero la imagen con [Compose](ejecutar-demo-i-06.md) y ejecutar desde raíz:
 ```sh
@@ -40,7 +40,7 @@ Repetir la consulta del03/03 como Docente en [listado](http://127.0.0.1:5176/res
 
 ## Evidencia automatizada reproducible
 
-Con el entorno anterior abierto, en otra terminal:
+Con el entorno del **paquete** anterior abierto, en otra terminal (el setup verifica sus contenedores y rechaza otros servidores):
 ```sh
 cd frontend
 npx playwright test --config playwright.exact.config.ts

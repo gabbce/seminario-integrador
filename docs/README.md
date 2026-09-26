@@ -4,6 +4,8 @@
 
 **Versión 1.0 final, aprobada por el usuario.** Las 85 decisiones de la entrevista y revisión están resueltas. El prototipo P-01 a P-06 está implementado y verificado; I-01 incorpora acceso real y perfiles persistentes; ver [avance](planificacion/avance-i-01.md).
 
+I04/I05/I06 están implementadas y verificadas técnicamente, con aceptación manual pendiente. Comenzar el recorrido operativo por [QA final](planificacion/qa-final-i-04-i-05-i-06.md), [manifiesto](planificacion/manifiesto-qa-final.md) y [demo Compose](planificacion/ejecutar-demo-i-06.md).
+
 Comenzar por la [especificación de la aplicación](especificacion/00-especificacion.md), que resume el alcance, las reglas y las exclusiones.
 
 El [diseño B — PATIO](diseno/README.md), sus recorridos y [guía visual](diseno/guia-visual-b.md) están aprobados. El [prototipo navegable](diseno/validacion-prototipo.md) conserva esos recorridos con datos simulados. El siguiente trabajo sigue el [plan aprobado de integración I-01 a I-06](planificacion/integracion.md).
@@ -52,8 +54,8 @@ Ante diferencias con la versión histórica, aplicar el ajuste DA documentado y 
 
 Esta entrega constituye el estado final de la especificación v1.0. La validación del prototipo está documentada por separado; las pruebas del sistema persistente se registran por entrega en los documentos de avance de integración.
 
-## Estado y próximas entregas
+## Estado de integración y QA
 
-I-04 está **implementada y verificada, pendiente de QA y aceptación del usuario**. Ver [avance](planificacion/avance-i-04.md) y [QA I-04](planificacion/qa-manual-i-04.md).
+I04, I05 e I06 están implementadas y verificadas técnicamente, listas para el [QA final conjunto](planificacion/qa-final-i-04-i-05-i-06.md). La ejecución manual y aceptación de cada entrega siguen pendientes del usuario. Ver avances [I04](planificacion/avance-i-04.md), [I05](planificacion/avance-i-05.md) e [I06](planificacion/avance-i-06.md), [manifiesto operativo](planificacion/manifiesto-qa-final.md) y [registro de resultados](planificacion/registro-qa-final.md).
 
-Los planes detallados de [I-05 · Consultas e indicadores](planificacion/i-05-consultas-e-indicadores.md) e [I-06 · Demo y validación final](planificacion/i-06-demo-y-validacion-final.md) fueron aprobados por bloques el 26/09/2026; implementación todavía no iniciada. El [QA manual final conjunto I-04/I-05/I-06](planificacion/qa-final-i-04-i-05-i-06.md) está planificado, no ejecutado, y conserva aceptación separada por entrega. [Registro de acuerdos](planificacion/preparacion-i-05-i-06.md).
+La carga completa local aprobó los umbrales; la muestra de latencia Supabase remota los excedió y no se declara cumplimiento remoto. Los escenarios manuales están preservados; ningún reset remoto fue ejecutado. Los [planes I05](planificacion/i-05-consultas-e-indicadores.md) e [I06](planificacion/i-06-demo-y-validacion-final.md) y el [registro de acuerdos](planificacion/preparacion-i-05-i-06.md) conservan el alcance aprobado.

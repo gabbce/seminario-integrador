@@ -4,6 +4,8 @@ Docker Engine/Desktop con Compose v2 e internet. PostgreSQL/Auth permanecen en S
 
 ## Configuración privada
 
+Desde checkout limpio, copiar `backend/.env.example` a `backend/.env` y `frontend/.env.example` a `frontend/.env.local` y completar localmente, sin sobrescribir archivos existentes.
+
 Conservar/preparar `backend/.env` (formato Java properties, según `backend/README.md`) y `frontend/.env.local` (solo `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`). Nunca usar una clave service_role/secret como clave pública. Estos archivos están ignorados por Git y excluidos del contexto Docker. No copiar secretos a Dockerfile ni argumentos de build.
 
 El backend monta su archivo privado como `/run/secrets/backend.properties`, solo lectura, al ejecutar; no se incorpora a ninguna capa. Si está en otro sitio, indicar `AULAS_BACKEND_CONFIG=/ruta/privada/backend.properties`. En Linux/WSL el usuario del contenedor debe poder leerlo: predeterminado1000:1000; ajustar `DEMO_UID=$(id -u)` y `DEMO_GID=$(id -g)` si corresponde. Mantener archivo600, sin hacerlo público. Usar UID sin privilegios. En Docker Desktop deben estar compartidas las rutas de los archivos montados.
@@ -51,4 +53,4 @@ No ejecutar `docker compose config` con secretos expandidos ni compartir volcado
 
 Los comandos de carga siguen explícitos en los manifiestos I02/I03/I04/I05. El [restablecimiento selectivo](restablecer-demo-i-06.md) tiene previsualización y ensayo aislado reproducible. Un restablecimiento remoto requiere autorización sobre destino y alcance concretos.
 
-Estado del paquete: I-06.1 verificada técnicamente; evidencia y comandos en [avance I-06](avance-i-06.md). QA/aceptación manual pendientes.
+Estado del paquete: I-06 verificada técnicamente y lista para QA; evidencia y comandos en [avance I-06](avance-i-06.md). QA/aceptación manual pendientes.

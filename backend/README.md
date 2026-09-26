@@ -1,6 +1,6 @@
 # Backend Aulas
 
-Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. I-03 incorpora reservas periódicas persistentes; I-04 incorpora esporádicas, cancelación, edición, reprogramación e impacto atómico de calendario; indicadores persistentes corresponden a I-05.
+Java 21, Spring Boot 4.1.1 y Maven Wrapper. I-01 e I-02 incorporan Supabase Auth, perfiles, administración de cuentas, aulas, calendario y referencias con PostgreSQL y migraciones Flyway. I-03 incorpora reservas periódicas persistentes; I-04 incorpora esporádicas, cancelación, edición, reprogramación e impacto atómico de calendario; I-05 incorpora consultas e indicadores históricos y I-06 el empaquetado y restablecimiento selectivo. Ver [demo/QA final](../docs/planificacion/manifiesto-qa-final.md).
 
 ## Configuración local
 

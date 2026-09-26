@@ -1,6 +1,6 @@
 # Avance I-05
 
-Estado: I-05 implementada y verificada funcionalmente. Aceptación manual I-04/I-05/I-06 pendiente. Referencia de latencia remota con excesos documentados; protocolo RNF completo pendiente I-06.3.
+Estado: I-05 implementada y verificada funcionalmente. Aceptación manual I-04/I-05/I-06 pendiente. Referencia de latencia remota con excesos documentados; protocolo completo local I-06.3 aprobado, sin extrapolar al entorno remoto; ver [carga final](carga-final-i-06.md).
 
 ## I-05.1 · Consultas acotadas
 

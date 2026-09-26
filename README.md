@@ -23,36 +23,31 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.
 
-Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 e I-02 implementadas; cuentas, aulas, calendario y cursos persistentes. I-03 conecta preparación, confirmación y consulta mínima de reservas periódicas. I-04 conecta esporádicas, cancelación, edición, reprogramación e impacto de calendario; los indicadores aún usan el conjunto del prototipo hasta I-05.
+Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 e I-02 implementadas; cuentas, aulas, calendario y cursos persistentes. I-03 conecta preparación, confirmación y consulta mínima de reservas periódicas. I-04 conecta esporádicas, cancelación, edición, reprogramación e impacto de calendario; I-05 conecta consultas, impresión completa e indicadores históricos; I-06 entrega el paquete Compose y restablecimiento selectivo ensayado.
 
-## Ejecutar la integración
+## Ejecutar la demo
 
-Configurar los archivos locales de variables según los README de frontend/backend. En este entorno ya están preparados. En dos terminales, desde la raíz:
+Preparar los archivos privados según [instrucciones de Compose](docs/planificacion/ejecutar-demo-i-06.md). Desde la raíz:
 
-```bash
-cd frontend
-npm ci
-npm run dev
+```sh
+export DEMO_PORT=8082
+docker compose --env-file frontend/.env.local build
+docker compose --env-file frontend/.env.local up -d
+docker compose --env-file frontend/.env.local ps
 ```
 
-```bash
-cd backend
-./mvnw spring-boot:run
-```
+Esperar estado saludable y abrir [demo local](http://127.0.0.1:8082). React y API comparten origen; PostgreSQL/Auth permanecen en Supabase y requieren internet. Usar cuentas existentes y credenciales locales privadas. El arranque no carga ni restablece datos.
 
-Abrir http://localhost:5173. Cuenta ficticia: `bedel@demo.local`; contraseña en `AULAS_DEMO_PASSWORD` de `backend/.env`. El ingreso requiere backend y Supabase. Los catálogos y las reservas confirmadas se mantienen al recargar. PostgreSQL y Auth ya están alojados en Supabase; no se inicia una base local.
+- [QA final conjunto I04/I05/I06](docs/planificacion/qa-final-i-04-i-05-i-06.md).
+- [Manifiesto de datos, comandos y esperados](docs/planificacion/manifiesto-qa-final.md).
+- [Guion de presentación](docs/planificacion/guion-demo-final.md).
+- [Restablecimiento selectivo y ensayo aislado](docs/planificacion/restablecer-demo-i-06.md).
+- Desarrollo Java+Vite: [frontend](frontend/README.md) y [backend](backend/README.md).
 
-- [Instrucciones, recorridos y límites del frontend](frontend/README.md).
-- [Arranque y comprobación del backend](backend/README.md).
-- [Validación completa, criterios y límites del prototipo](docs/diseno/validacion-prototipo.md).
+## Estado
 
-- [Carga reproducible de catálogos ficticios](docs/planificacion/datos-demo-i-02.md).
-- [QA manual de I-02](docs/planificacion/qa-manual-i-02.md).
+I04, I05 e I06 están **implementadas y verificadas técnicamente, listas para QA manual**. La aceptación de cada una sigue pendiente del usuario. Ver avances [I04](docs/planificacion/avance-i-04.md), [I05](docs/planificacion/avance-i-05.md) e [I06](docs/planificacion/avance-i-06.md).
 
-- [Carga reproducible de reservas 2026/2027](docs/planificacion/datos-demo-i-03.md).
+Validación final:174pruebas backend,66unitarias frontend,110UI con red simulada y32casos integrados del paquete en Chromium/Firefox; PDFs completos de104filas. Carga local:50sesiones,5963solicitudes medidas,0errores y p95 dentro de objetivos. La muestra de lecturas contra Supabase remoto excedió objetivos: el resultado local no acredita rendimiento remoto. [Evidencias y reproducción](docs/planificacion/regresion-paquete-i-06.md).
 
-## Estado y próximas entregas
-
-I-04 está **implementada y verificada, pendiente de QA y aceptación del usuario**. Ver [avance](docs/planificacion/avance-i-04.md) y [QA I-04](docs/planificacion/qa-manual-i-04.md).
-
-Los planes detallados de [I-05 · Consultas e indicadores](docs/planificacion/i-05-consultas-e-indicadores.md) e [I-06 · Demo y validación final](docs/planificacion/i-06-demo-y-validacion-final.md) fueron aprobados por bloques el 26/09/2026; implementación todavía no iniciada. El [QA manual final conjunto I-04/I-05/I-06](docs/planificacion/qa-final-i-04-i-05-i-06.md) está planificado, no ejecutado, y conserva aceptación separada por entrega. [Registro de acuerdos](docs/planificacion/preparacion-i-05-i-06.md).
+Los datos manuales y QA2029 se preservaron. No se ejecutó ningún restablecimiento remoto; hacerlo requiere autorización sobre destino y alcance concretos.

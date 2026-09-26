@@ -1,0 +1,13 @@
+# Guion de presentación
+
+Recorrido de15–20minutos sobre el paquete, después de revisar [preparación y manifiesto](manifiesto-qa-final.md). No sustituye el [QA completo F01–F12](qa-final-i-04-i-05-i-06.md). No ejecutar seeds/reset al abrir la demo.
+
+1. **Arranque e ingreso (2min).** Mostrar Compose saludable y abrir8082. Ingresar como Bedel; explicar la separación de roles. Otra ventana Docente permite contrastar consultas sin acciones ni contactos privados. La cuenta inhabilitada no accede.
+2. **Escenarios conservados (2min).** Agenda14/07/2027,Historia07–08,aula103,reserva24. Mostrar reserva28 con fecha18/08 y origen17/08; reserva29 con patrón martes y una clase movida almiércoles17/03. Recargar conserva el estado.
+3. **Lectura de volumen e impresión (3min).** Listado23/08/2027:104vigentes,20por página. Pasar a página2, abrir detalle y volver manteniendo filtros. Imprimir:104filas, no20. Comparar General65 y aula10413;25/08 vacío. Mostrar PDF completo ya verificado si no se desea imprimir físicamente.
+4. **Indicadores (3min).**23/08:52horas reservadas sobre320habilitadas,16,3%visible,780alumnos-hora,pico125alumnos/8clases. Semana23–27:56horas/1600,855alumnos-hora. Explicar que son previsiones, no personas únicas ni asistencia observada. El entorno exacto5176 permite mostrar20%ponderado, historia y cobertura desconocida sin alterar datos compartidos.
+5. **Una operación propia (3–5min).** Crear la esporádica «QA final» del manifiesto, revisar y confirmar. Cambiar alumnos20→25 y mostrar historial/recarga y deltas. Si F06–F08 ya se ejecutaron, abrir sus IDs registrados y mostrar el resultado, sin repetir altas accidentalmente. Docente ve la programación y no el historial administrativo.
+6. **Calendario y seguridad de persistencia (2min).** Mostrar la revisión de impacto QA2029 según F09; confirmar solo al ejecutar ese caso deliberadamente. Explicar rechazo por interferencia y atomicidad mediante el resultado técnico, sin provocar una caída remota.
+7. **Cierre operativo (2min).** Enseñar las instrucciones de parada/reinicio, reporte de carga local y ensayo de reset selectivo aislado. Carga:5963solicitudes/0errores; el resultado local no acredita latencia Supabase, cuya muestra excedió objetivos. Reset remoto nunca implícito. Registrar aceptación separada de I04/I05/I06 únicamente si el usuario la expresa.
+
+Para continuar otro día, `docker compose --env-file frontend/.env.local start` con el mismo `DEMO_PORT`. Los datos remotos permanecen. Conservar IDs de QA nuevos en el registro; no restablecerlos ni borrarlos para dejar una apariencia de entorno vacío. Ante fallo, guardar evidencia sin secretos y registrar el caso afectado.

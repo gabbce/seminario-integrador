@@ -1,6 +1,6 @@
 # Avance I-06
 
-Estado: implementación en curso. I-04/I-05/I-06 mantienen aceptación manual pendiente. I-05 está verificada funcionalmente; la referencia remota de latencia excede objetivos y no acredita RNF. El protocolo completo local de I-06.3 pasó, sin extrapolar a Supabase remoto.
+Estado: I-06 implementada y verificada técnicamente, lista para QA manual. I-04/I-05/I-06 mantienen aceptación manual pendiente. I-05 está verificada funcionalmente; la referencia remota de latencia excede objetivos y no acredita RNF. El protocolo completo local de I-06.3 pasó, sin extrapolar a Supabase remoto.
 
 ## I-06.1 · Paquete Compose
 
@@ -47,4 +47,10 @@ Regresión final Java174/174, sin fallos/errores/omitidas; UI con red simulada11
 
 Operaciones I04: Chromium8/8. En el primer intento Firefox sobre la misma base,15/16 totales pasaron y una reprogramación esporádica chocó con el destino ya ocupado por Chromium; aplicación rechazó correctamente sin cambio. El guion ahora limita a un navegador por corrida y exige20reservas iniciales, recreando base entre motores. Revisión Luna high cerró esa corrección; Firefox repetido completo sobre base nueva:8/8 aprobados.
 
-Cierre de I-06.3: [reporte final](../evidencias/i06-regresion.json). Comparación de inventario remoto antes/después:337reservas/5150clases/28aulas, calendarios/cursos y disponibilidad protegida idénticos semánticamente (solo orden de recursos normalizado). V15 aplicada normalmente al recrear Compose; ningún seed/reset remoto. Contenedores de ensayos retirados por sus IDs. Revisiones GPT-6 Luna high de especificación/estándares cerradas con correcciones incorporadas. Resta I-06.4 documental para entregar QA al usuario; no se aceptó ninguna entrega manualmente.
+Cierre de I-06.3: [reporte final](../evidencias/i06-regresion.json). Comparación de inventario remoto antes/después:337reservas/5150clases/28aulas, calendarios/cursos y disponibilidad protegida idénticos semánticamente (solo orden de recursos normalizado). V15 aplicada normalmente al recrear Compose; ningún seed/reset remoto. Contenedores de ensayos retirados por sus IDs. Revisiones GPT-6 Luna high de especificación/estándares cerradas con correcciones incorporadas. Al cerrar ese corte quedaba I-06.4 documental, completada debajo; no se aceptó ninguna entrega manualmente.
+
+## I-06.4 · Entrega del QA y presentación
+
+Documentación operativa completada: [manifiesto final](manifiesto-qa-final.md), [F01–F12](qa-final-i-04-i-05-i-06.md), [registro manual](registro-qa-final.md) y [guion](guion-demo-final.md). README/índices reflejan consultas/indicadores persistentes y paquete final. Datos de operaciones propios con deltas,17viernes del primer período2027 contrastados por calendario y preparación real de solo lectura (aulas103/105/204/107/108 disponibles), estado QA2029id4/reserva23 y secuencia de impacto explícitos. No se crearon reservas para completar el manifiesto.
+
+Verificación técnica de I-06.3 en `ef1a804`; este corte solo cambia documentación. Carga/reinicio/reset y credenciales se distinguen; ninguna instrucción depende de `/tmp`. Revisión GPT-6 Luna high de especificación/estándares completada: se corrigió una sección obsoleta del índice general que todavía indicaba implementación no iniciada. Enlaces locales y diff check verificados. No se ha ejecutado QA manual ni se acepta I04/I05/I06 en nombre del usuario. Restablecimiento remoto no ejecutado.

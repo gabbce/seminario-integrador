@@ -17,7 +17,7 @@ El proxy /api apunta a Java en 8080; AULAS_API_TARGET permite cambiarlo en .env.
 
 ## Alcance actual
 
-Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Aulas, cursos, calendario, preparación y confirmación periódica, agenda/listado mínimos y detalle usan PostgreSQL a través de Java. Los datos ficticios de esos módulos persisten al recargar. I-04 incorpora altas esporádicas, cancelación, cabecera, aulas, reprogramación e impacto atómico de calendario, con verificación remota por operación. Los indicadores aún usan el conjunto separado del prototipo hasta I-05. La identidad de acceso no se puede cambiar mediante controles de demostración.
+Login, sesión, perfil y permisos usan Supabase y Java reales. La gestión de cuentas (alta, perfil, rol, estado, email y contraseña) también está conectada. Aulas, cursos, calendario, preparación y confirmación periódica, agenda/listados filtrados y paginados y detalle usan PostgreSQL a través de Java. Los datos ficticios de esos módulos persisten al recargar. I-04 incorpora altas esporádicas, cancelación, cabecera, aulas, reprogramación e impacto atómico de calendario, con verificación remota por operación. I-05 conecta indicadores históricos, curvas/semana e impresión completa a Java. La identidad de acceso no se puede cambiar mediante controles de demostración.
 
 El prototipo completo, con escenarios y controles de fallos, permanece en prototype/v1. Los documentos de diseño y su QA describen esa referencia. No constituyen evidencia de integración persistente.
 
@@ -27,7 +27,7 @@ El prototipo completo, con escenarios y controles de fallos, permanece en protot
 npm run build
 npm run lint
 npm test
-npx playwright install chromium
+npx playwright install chromium firefox
 npm run test:e2e
 ```
 
@@ -41,13 +41,13 @@ npm run test:e2e:real
 
 Usa Vite en 5175 y lee la contraseña desde backend/.env o AULAS_DEMO_PASSWORD. No habilita trazas ni video. Verifica ingreso, perfiles, roles, operaciones Auth, aulas, calendario, referencias, reservas y dataset. Crea registros ficticios QA (año 2028, cursos, cuentas y aulas); las cuentas creadas se deshabilitan y las aulas se dan de baja. La prueba de confirmación periódica también crea una reserva ficticia que se conserva para QA. No borra registros previos. Nunca imprimir tokens ni contraseñas en aserciones.
 
-Las 44 pruebas históricas de navegador están en e2e/prototype/, excluidas de esta suite. Se ejecutan en la rama prototype/v1; se adaptarán por módulo durante I-02 a I-05.
+Las 44 pruebas históricas de navegador están en e2e/prototype/, excluidas de esta suite. Se ejecutan en la rama prototype/v1; las suites actuales cubren los módulos persistentes I-01 a I-06.
 
 ## Organización
 
 - src/auth-client.ts y src/use-session.ts: cliente y ciclo de sesión.
 - src/App.tsx: acceso y carga de la aplicación.
-- src/OperationalApp.tsx: navegación, referencias y reservas desde Java; indicadores todavía con el conjunto del prototipo.
+- src/OperationalApp.tsx: navegación, referencias y reservas desde Java; consultas e indicadores persistentes, con permisos por rol.
 - src/pages/, src/components/ y src/App.css: recorridos y diseño B.
 - [Avance I-01](../docs/planificacion/avance-i-01.md) y [QA de ingreso real](../docs/planificacion/qa-i-01.md).
 
@@ -84,3 +84,7 @@ Selección individual/múltiple, revisión antes/después y confirmación por Ja
 I-04.5: Calendario académico usa revisión de impacto del backend antes de confirmar. Muestra clases e interferencias/alternativas informativas; la incertidumbre conserva UUID/propuesta en sessionStorage por actor y permite consultar/reintentar tras recarga. Pruebas `calendar-impact.spec.ts`; recorrido remoto explícito `npm run test:e2e:real -- e2e/calendar-impact-real.spec.ts` crea un año QA nuevo y conserva sus datos, sin editar calendarios 2026/2027.
 
 La [guía QA I-04](../docs/planificacion/qa-manual-i-04.md) detalla roles, fechas y resultados esperados; el estado técnico y la evidencia están en [avance](../docs/planificacion/avance-i-04.md).
+
+## Paquete y QA final
+
+I05/I06 implementadas y verificadas técnicamente; aceptación manual I04/I05/I06 pendiente. Para demo usar [Compose](../docs/planificacion/ejecutar-demo-i-06.md) y [QA final](../docs/planificacion/qa-final-i-04-i-05-i-06.md); este modo de desarrollo se conserva. Las consultas e indicadores usan datos persistentes.

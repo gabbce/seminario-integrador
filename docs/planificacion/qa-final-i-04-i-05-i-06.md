@@ -1,13 +1,13 @@
 # QA final conjunto · I-04, I-05 e I-06
 
-**Estado: planificación del QA aprobada por el usuario el 26/09/2026. Ejecución y aceptación de I-04/I-05/I-06 pendientes; ningún caso ejecutado por este documento.** I-04 está implementada/verificada con aceptación pendiente; I-05 está implementada y verificada funcionalmente (limitación de latencia remota registrada) e I-06 pendiente de implementación; esta guía todavía no se entrega como QA final listo. Esta guía conserva la cobertura de [QA I-04](qa-manual-i-04.md); sus detalles siguen siendo aplicables.
+**Lista para QA manual del usuario.** I04/I05/I06 implementadas y verificadas técnicamente; ejecución y aceptación manual de las tres pendientes. La limitación de latencia remota está registrada; no se declara RNF remoto. Usar el [manifiesto operativo](manifiesto-qa-final.md), la [plantilla de resultados](registro-qa-final.md) y el [guion de presentación](guion-demo-final.md). Esta guía conserva la cobertura de [QA I04](qa-manual-i-04.md), cuyos detalles siguen aplicando.
 
 ## Preparación y datos
 
 1. Registrar commit del paquete, entorno/destino, fecha institucional y versiones de Chromium/Firefox. Escritorio 1366×768 y consultas Docente 390×844; navegación por teclado y ampliación de zoom sin perder controles esenciales.
 2. Preparar Admin, Bedel y Docente y cuenta inhabilitada existentes; contraseñas por canal privado, nunca en resultados. Dos perfiles de navegador independientes. Mantener sesiones y roles existentes.
 3. Registrar manifiesto de datasets I-03/I-04/I-05 y reservas QA ajenas. Preservar datos y condiciones de los escenarios, incluido año QA 2029. Los IDs actuales son referencias, resolver por claves del dataset cuando corresponda. No restablecer para iniciar la lectura.
-4. Antes de entregar esta guía como ejecutable, el implementador completará las referencias pendientes I-05/I-06: dataset y filtros exactos con >100 filas diarias, intervalo histórico con habilitación/tipo conocidos, cifras globales y filtradas del volumen, casos sin datos y comandos Compose/reset definitivos. Registrar esperados independientes de la API bajo prueba. No presentar referencias pendientes como QA listo.
+4. Consultar las referencias completas del [manifiesto final](manifiesto-qa-final.md): IDs/fechas/filtros, cifras independientes, historia exacta aislada, comandos Compose/reset y evidencias. El entorno compartido ya está preparado; no cargar ni restablecer para empezar.
 5. Usar datos pequeños aislados para cifras exactas que la base compartida no puede garantizar. Documentar cómo acceder a ese entorno desde la misma interfaz; no añadir selectores de simulación al producto. No extrapolar mediciones aisladas a Supabase remoto.
 6. Crear las operaciones manuales en cursos/reservas propios («QA final» y comisión identificable), sin modificar las series de referencia. Fechas propuestas siguen QA I-04 (2027/QA 2029); si transcurrieron, preparar referencias futuras equivalentes, registrar el cambio y recalcular esperados antes de ejecutar.
 
@@ -17,7 +17,7 @@
 
 **Rol:** quien prepara el entorno, luego Admin/Bedel/Docente. **Datos:** configuración privada existente y manifiesto previo.
 
-Desde checkout limpio/configurado, construir e iniciar con Compose según instrucciones finales. Abrir login, ingresar con cada rol, recargar una ruta de detalle y acceder directamente a ella. Rechazar cuenta inhabilitada. Parar/reiniciar y consultar las mismas reservas.
+Desde checkout limpio/configurado, construir e iniciar con Compose según [instrucciones definitivas](ejecutar-demo-i-06.md); esperar salud HTTP200/UP. Abrir login, ingresar con cada rol, recargar una ruta de detalle y acceder directamente a ella. Rechazar cuenta inhabilitada. Parar/reiniciar y consultar las mismas reservas.
 
 **Esperado:** un mismo origen sirve React/API, rutas profundas funcionan, permisos correctos, datos/identidades conservados. No se ejecuta carga/reset al arrancar ni se requiere PostgreSQL local. Documentar diagnóstico de falta de conexión/puerto ocupado sin detener servicios ajenos.
 
@@ -63,7 +63,7 @@ Seguir secciones2–3 del QA I-04: alta esporádica múltiple en receso, confirm
 
 ### F07 · Aulas y reprogramación — I-04, I-05
 
-**Rol:** Admin o Bedel. **Datos:** reservas QA propias esporádica y periódica.
+**Rol:** Admin o Bedel. **Datos:** reservas QA propias esporádica y periódica, con fechas/deltas exactos en [manifiesto](manifiesto-qa-final.md#operaciones-nuevas-f06f08).
 
 Seguir sección4 de QA I-04: reasignar una/varias esporádicas, un patrón periódico completo incluyendo clase reprogramada y mover fecha/horario dos veces conservando origen. Probar conflicto externo/interno y fuera de período.
 
@@ -117,4 +117,4 @@ Por caso anotar estado (pendiente/aprobado/fallido/bloqueado/no ejecutado), rol,
 
 Los resultados del rendimiento se registran aparte por operación y entorno, siguiendo documento 11. Una prueba fallida no se convierte en aceptación por finalizar el guion. Compartir un caso entre entregas no elimina su trazabilidad ni permite cerrar las tres automáticamente.
 
-Planes de referencia: [I-05](i-05-consultas-e-indicadores.md) y [I-06](i-06-demo-y-validacion-final.md). La guía se completará con los datos y comandos efectivos al implementar, conservando estos casos y criterios aprobados.
+Planes de referencia: [I-05](i-05-consultas-e-indicadores.md) y [I-06](i-06-demo-y-validacion-final.md). Datos/comandos/esperados completados en el manifiesto; resultados manuales conservados como pendientes.

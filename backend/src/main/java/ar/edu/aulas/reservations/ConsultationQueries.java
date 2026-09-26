@@ -38,6 +38,13 @@ public class ConsultationQueries {
     }
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Result listing(String mode,LocalDate date,Long courseId,Integer year,String room,String type,String status,int page,int size) {
+        return listingRead(mode,date,courseId,year,room,type,status,page,size,false);
+    }
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public Result printDay(LocalDate date,String room,String type,String status) {
+        return listingRead("day",date,null,null,room,type,status,0,20,true);
+    }
+    private Result listingRead(String mode,LocalDate date,Long courseId,Integer year,String room,String type,String status,int page,int size,boolean complete) {
         if(!Set.of("day","course").contains(mode)||!Set.of("active","cancelled","all").contains(status)||page<0||!Set.of(20,50,100).contains(size)) throw invalid();
         var args=new ArrayList<Object>();
         var applied=new LinkedHashMap<String,Object>();
@@ -55,7 +62,7 @@ public class ConsultationQueries {
         where+=filters(room,type,args);
         if(!status.equals("all")) where+=status.equals("cancelled")?" and d.estado='CANCELADA'":" and d.estado<>'CANCELADA'";
         long total=db.queryForObject("select count(*) "+FROM+where,Long.class,args.toArray());
-        return new Result(read(where,mode.equals("day")?TYPE+",d.hora_inicio,a.identificador,d.id_detalle":"d.fecha,d.hora_inicio,d.id_detalle",args,size,(long)page*size),total,page,size,applied);
+        return new Result(read(where,mode.equals("day")?TYPE+",d.hora_inicio,a.identificador,d.id_detalle":"d.fecha,d.hora_inicio,d.id_detalle",args,complete?null:size,complete?null:(long)page*size),total,page,complete?0:size,applied);
     }
     private String filters(String room,String type,List<Object> args) {
         if(room==null||type==null||!Set.of("","General","Multimedios","Laboratorio","Sin historia").contains(type)) throw invalid();

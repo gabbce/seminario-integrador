@@ -60,6 +60,17 @@ class ConsultationTests {
   assertThatThrownBy(()->queries.listing("course",null,course,2026,"","","all",0,20)).hasMessageContaining("filtros");
   assertThat(queries.agenda(date,"week","","").rows()).hasSize(119);
  }
+ @Test void printIncludesEveryFilteredIdentityBeyondOneHundred() {
+  var date=LocalDate.parse("2027-03-01");
+  var print=queries.printDay(date,"","","all");
+  assertThat(print.rows()).hasSize(120);assertThat(print.total()).isEqualTo(120);assertThat(print.size()).isZero();
+  var expected=new ArrayList<ConsultationQueries.Row>();
+  for(int page=0;page<6;page++) expected.addAll(queries.listing("day",date,null,null,"","","all",page,20).rows());
+  assertThat(print.rows()).containsExactlyElementsOf(expected);
+  assertThat(print.rows().stream().map(ConsultationQueries.Row::id)).doesNotHaveDuplicates();
+  assertThat(queries.printDay(date,"R0","General","cancelled").rows()).hasSize(1);
+  assertThat(queries.printDay(date.plusDays(1),"","","all").rows()).isEmpty();
+ }
  @Test void effectiveDestinationAndHistoricalTypeAreUsed() {
   db.update("update aulas.detalle_reserva set fecha_original=fecha,fecha='2027-03-02' where id_detalle=(select max(id_detalle) from aulas.detalle_reserva)");
   assertThat(queries.agenda(LocalDate.parse("2027-03-01"),"day","","").total()).isEqualTo(118);
@@ -77,7 +88,7 @@ class ConsultationTests {
     db.update("update aulas.usuario set rol=? where id_usuario=?",role,actor);
     db.update("insert into aulas."+(role.equals("DOCENTE")?"docente":role.equals("BEDEL")?"bedel":"administrador")+" values (?)",actor);
    });
-   for(String path:List.of("/api/consultas/agenda?date=2027-03-01","/api/consultas/listado?date=2027-03-01","/api/consultas/listado?mode=course&courseId="+course+"&year=2027")) {
+   for(String path:List.of("/api/consultas/agenda?date=2027-03-01","/api/consultas/listado?date=2027-03-01","/api/consultas/impresion-diaria?date=2027-03-01","/api/consultas/listado?mode=course&courseId="+course+"&year=2027")) {
     var body=mvc.perform(get(path).with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(119)).andReturn().getResponse().getContentAsString();
     assertThat(body).doesNotContain("private@test.local","teacherEmail","registrant","changes","cancelado_por");
    }

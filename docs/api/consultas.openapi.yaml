@@ -46,6 +46,24 @@ paths:
         '401': {description: Sesión inválida}
         '403': {description: Perfil no habilitado}
         '503': {description: Fallo técnico; permite reintento}
+  /api/consultas/impresion-diaria:
+    get:
+      description: Todos los roles activos. Una única respuesta con todas las filas diarias filtradas y ordenadas igual que listado. Snapshot REPEATABLE READ; no concatenar páginas mutables. No genera PDF. La UI imprime únicamente después de recibir el conjunto completo; error o cambio de filtros invalida la salida.
+      parameters:
+        - {name: date, in: query, required: true, schema: {type: string, format: date}}
+        - {$ref: '#/components/parameters/room'}
+        - {$ref: '#/components/parameters/type'}
+        - {name: status, in: query, schema: {type: string, enum: [active, cancelled, all], default: active}}
+      responses:
+        '200':
+          description: Conjunto completo, total exacto, page=0 y size=0. Misma proyección pública para los tres roles.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Result'}
+        '400': {description: Filtros inválidos}
+        '401': {description: Sesión inválida}
+        '403': {description: Perfil no habilitado}
+        '503': {description: No imprimir; permitir reintento}
 components:
   securitySchemes:
     bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
@@ -78,5 +96,5 @@ components:
         rows: {type: array, items: {$ref: '#/components/schemas/Row'}}
         total: {type: integer}
         page: {type: integer}
-        size: {type: integer, description: 0 indica conjunto completo de agenda}
+        size: {type: integer, description: 0 indica conjunto completo de agenda o impresión}
         filters: {type: object, additionalProperties: true, description: mode/view, from/to, room/type/status y curso/año efectivos}

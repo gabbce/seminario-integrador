@@ -1,3 +1,4 @@
+import { PrintDaily } from "../components/PrintDaily";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useRooms } from "../room-context";
 import { useConsultation } from "../consultations";
@@ -44,12 +45,21 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
   );
   const pages = Math.max(1, Math.ceil((query.data?.total ?? 0) / size));
   return (
-    <>
+    <div className="screen-list">
       <div className="page-heading">
         <div>
           <p className="eyebrow">CONSULTAS</p>
           <h1>Reservas</h1>
         </div>
+        {mode === "day" && (
+          <PrintDaily
+            key={`${date}:${room}:${type}:${status}`}
+            date={date}
+            room={room}
+            type={type}
+            status={status}
+          />
+        )}
       </div>
       <div className="toolbar">
         <div className="actions">
@@ -247,6 +257,6 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

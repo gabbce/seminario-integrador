@@ -13,6 +13,11 @@ public class ConsultationsController {
             @RequestParam(defaultValue="") String room,@RequestParam(defaultValue="") String type) {
         return queries.agenda(date,view,room,type);
     }
+    @GetMapping("/impresion-diaria")
+    public ConsultationQueries.Result printDay(@RequestParam LocalDate date,@RequestParam(defaultValue="") String room,
+            @RequestParam(defaultValue="") String type,@RequestParam(defaultValue="active") String status) {
+        return queries.printDay(date,room,type,status);
+    }
     @GetMapping("/listado")
     public ConsultationQueries.Result listing(@RequestParam(defaultValue="day") String mode,@RequestParam(required=false) LocalDate date,
             @RequestParam(required=false) Long courseId,@RequestParam(required=false) Integer year,

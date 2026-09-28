@@ -16,7 +16,7 @@ COPY backend/pom.xml backend/mvnw ./
 COPY backend/.mvn/ ./.mvn/
 COPY backend/src/main/ ./src/main/
 COPY --from=frontend /build/frontend/dist/ ./src/main/resources/static/
-RUN --mount=type=cache,target=/root/.m2 chmod +x mvnw && ./mvnw -B -DskipTests package
+RUN --mount=type=cache,target=/root/.m2/repository chmod +x mvnw && ./mvnw -B -DskipTests package
 COPY tools/docker/Healthcheck.java /build/Healthcheck.java
 RUN javac -d /build/health /build/Healthcheck.java
 

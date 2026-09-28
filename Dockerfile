@@ -16,7 +16,27 @@ COPY backend/pom.xml backend/mvnw ./
 COPY backend/.mvn/ ./.mvn/
 COPY backend/src/main/ ./src/main/
 COPY --from=frontend /build/frontend/dist/ ./src/main/resources/static/
-RUN --mount=type=cache,target=/root/.m2/repository chmod +x mvnw && ./mvnw -B -DskipTests package
+RUN --mount=type=cache,target=/root/.m2/repository \
+    set -eu; \
+    properties=.mvn/wrapper/maven-wrapper.properties; \
+    distribution_url=$(sed -n 's/^distributionUrl=//p' "$properties"); \
+    distribution_sha256=$(sed -n 's/^distributionSha256Sum=//p' "$properties"); \
+    distribution_file=${distribution_url##*/}; \
+    distribution_name=${distribution_file%.zip}; \
+    distribution_name=${distribution_name%-bin}; \
+    distribution_hash=$(printf '%s' "$distribution_url" | od -An -v -tu1 | awk '{ for (i = 1; i <= NF; i++) hash = (hash * 31 + $i) % 4294967296 } END { printf "%x", hash }'); \
+    distribution_home="$HOME/.m2/wrapper/dists/$distribution_name/$distribution_hash"; \
+    if [ ! -x "$distribution_home/bin/mvn" ]; then \
+      archive="/tmp/$distribution_file"; \
+      curl -fsSL "$distribution_url" -o "$archive"; \
+      printf '%s  %s\n' "$distribution_sha256" "$archive" | sha256sum -c -; \
+      mkdir -p "$distribution_home" /tmp/maven-distribution; \
+      unzip -q "$archive" -d /tmp/maven-distribution; \
+      mv "/tmp/maven-distribution/$distribution_name" "$distribution_home"; \
+      rm -f "$archive"; \
+    fi; \
+    chmod +x mvnw; \
+    ./mvnw -B -DskipTests package
 COPY tools/docker/Healthcheck.java /build/Healthcheck.java
 RUN javac -d /build/health /build/Healthcheck.java
 

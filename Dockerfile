@@ -30,9 +30,10 @@ RUN --mount=type=cache,target=/root/.m2/repository \
       archive="/tmp/$distribution_file"; \
       curl -fsSL "$distribution_url" -o "$archive"; \
       printf '%s  %s\n' "$distribution_sha256" "$archive" | sha256sum -c -; \
-      mkdir -p "$distribution_home" /tmp/maven-distribution; \
-      unzip -q "$archive" -d /tmp/maven-distribution; \
+      mkdir -p "${distribution_home%/*}" /tmp/maven-distribution; \
+      (cd /tmp/maven-distribution && jar xf "$archive"); \
       mv "/tmp/maven-distribution/$distribution_name" "$distribution_home"; \
+      chmod +x "$distribution_home/bin/mvn"; \
       rm -f "$archive"; \
     fi; \
     chmod +x mvnw; \

@@ -23,7 +23,9 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 Stack acordado: Java/Spring Boot, React/TypeScript/Vite, Tailwind/shadcn, Chart.js, Supabase PostgreSQL/Auth y Docker Compose para la app.
 
-Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración continúa en `feat/integracion`: I-01 e I-02 implementadas; cuentas, aulas, calendario y cursos persistentes. I-03 conecta preparación, confirmación y consulta mínima de reservas periódicas. I-04 conecta esporádicas, cancelación, edición, reprogramación e impacto de calendario; I-05 conecta consultas, impresión completa e indicadores históricos; I-06 entrega el paquete Compose y restablecimiento selectivo ensayado.
+Prototipo preservado en `prototype/v1` (`cc5bdc7`). La integración en `main` incluye I-01 e I-02; cuentas, aulas, calendario y cursos persistentes. I-03 conecta preparación, confirmación y consulta mínima de reservas periódicas. I-04 conecta esporádicas, cancelación, edición, reprogramación e impacto de calendario; I-05 conecta consultas, impresión completa e indicadores históricos; I-06 entrega el paquete Compose y restablecimiento selectivo ensayado.
+
+Las [credenciales de las cuentas de prueba](docs/credenciales-demo.md) sirven para la instancia compartida de integración.
 
 ## Ejecutar la demo
 

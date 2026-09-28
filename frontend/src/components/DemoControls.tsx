@@ -68,7 +68,7 @@ export function DemoControls({
         </div>
         <p>
           Acceso de prueba: admin@demo.local, bedel@demo.local o
-          docente@demo.local · Contraseña: Aulas2026.
+          docente@demo.local · Contraseña: Bedelprueba2026.
         </p>
         <h3>Pruebas de recuperación</h3>
         <p>

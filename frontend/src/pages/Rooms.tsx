@@ -2,7 +2,13 @@ import { FormError, FieldError } from "../components/FormError";
 import { useState, useEffect } from "react";
 import { type Room, type Role } from "../domain";
 import { api } from "../api";
-import { resourceLabels, resourcesFor } from "../equipment";
+import {
+  resourceLabels,
+  resourcesFor,
+  roomAttributes,
+  type Resource,
+} from "../equipment";
+import { useRooms } from "../room-context";
 import { Button } from "../components/ui/button";
 type RoomPage = {
   items: Room[];
@@ -16,8 +22,12 @@ export function Rooms({ role }: { role: Role }) {
   const [loadError, setLoadError] = useState("");
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [resource, setResource] = useState("");
+  const [resources, setResources] = useState<Resource[]>([]);
   const [board, setBoard] = useState("");
+  const [location, setLocation] = useState("");
+  const [floor, setFloor] = useState("");
+  const [maxCapacity, setMaxCapacity] = useState("");
+  const [computers, setComputers] = useState("");
   const [selected, setSelected] = useState<Room>();
   const [originalId, setOriginalId] = useState<string>();
   const [error, setError] = useState("");
@@ -34,8 +44,12 @@ export function Rooms({ role }: { role: Role }) {
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
+    const filters = new URLSearchParams({ query, type, state, board, resources: resources.join(","), capacity: String(capacity), location, sort: order, descending: String(descending), page: String(page), size: String(pageSize) });
+    if (floor !== "") filters.set("floor", floor);
+    if (maxCapacity !== "") filters.set("maxCapacity", maxCapacity);
+    if (computers !== "") filters.set("computers", computers);
     api<RoomPage>(
-      `/aulas?${new URLSearchParams({ query, type, state, board, resource, capacity: String(capacity), sort: order, descending: String(descending), page: String(page), size: String(pageSize) })}`,
+      `/aulas?${filters}`,
       { signal: controller.signal },
     )
       .then((result) => {
@@ -56,7 +70,11 @@ export function Rooms({ role }: { role: Role }) {
     type,
     state,
     board,
-    resource,
+    resources,
+    location,
+    floor,
+    maxCapacity,
+    computers,
     capacity,
     order,
     descending,
@@ -68,6 +86,42 @@ export function Rooms({ role }: { role: Role }) {
   const pages = Math.max(1, Math.ceil((data?.total ?? 0) / pageSize));
   const currentPage = data?.page ?? page;
   const visible = loadError ? [] : rooms;
+  const references = useRooms();
+  const locations = [
+    ...new Set(
+      references.map((r) => r.location).filter((l): l is string => !!l),
+    ),
+  ].sort();
+  const floors = [
+    ...new Set(
+      references
+        .map((r) => r.floor)
+        .filter((f): f is number => f !== undefined),
+    ),
+  ].sort((a, b) => a - b);
+  const filtered =
+    capacity > 0 ||
+    [query, type, state, board, location, floor, maxCapacity, computers].some(
+      Boolean,
+    ) ||
+    resources.length > 0;
+  function refine(apply: () => void) {
+    apply();
+    setPage(1);
+  }
+  function clearFilters() {
+    setQuery("");
+    setType("");
+    setState("");
+    setBoard("");
+    setResources([]);
+    setLocation("");
+    setFloor("");
+    setCapacity(0);
+    setMaxCapacity("");
+    setComputers("");
+    setPage(1);
+  }
   function edit(room: Room | undefined) {
     setSelected(
       room ?? {
@@ -131,133 +185,184 @@ export function Rooms({ role }: { role: Role }) {
           {message}
         </p>
       )}
-      <div className={selected ? "cancellation-layout inventory-layout" : ""}>
-        <section className="panel">
-          <div className="form-grid">
-            <label>
-              Buscar aula
-              <input
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPage(1);
-                }}
-              />
-            </label>
-            <label>
-              Tipo
-              <select
-                aria-label="Tipo de inventario"
-                value={type}
-                onChange={(e) => {
-                  setType(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="">Todos</option>
-                {["General", "Multimedios", "Laboratorio"].map((t) => (
+      <section
+        className="panel filter-panel"
+        aria-labelledby="room-filters-title"
+      >
+        <div className="filter-panel-head">
+          <h2 id="room-filters-title">Filtros</h2>
+          <Button variant="outline" disabled={!filtered} onClick={clearFilters}>
+            Limpiar filtros
+          </Button>
+        </div>
+        <div className="form-grid filter-grid">
+          <label>
+            Buscar aula
+            <input
+              placeholder="Identificador o edificio"
+              value={query}
+              onChange={(e) => refine(() => setQuery(e.target.value))}
+            />
+          </label>
+          <label>
+            Tipo
+            <select
+              aria-label="Tipo de inventario"
+              value={type}
+              onChange={(e) => refine(() => setType(e.target.value))}
+            >
+              <option value="">Todos</option>
+              {["General", "Multimedios", "Laboratorio"].map((t) => (
+                <option key={t}>{t}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Estado
+            <select
+              aria-label="Estado de inventario"
+              value={state}
+              onChange={(e) => refine(() => setState(e.target.value))}
+            >
+              <option value="">Operación habitual</option>
+              {["Habilitada", "Inhabilitada", "Mantenimiento", "Baja"].map(
+                (t) => (
                   <option key={t}>{t}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Estado
-              <select
-                aria-label="Estado de inventario"
-                value={state}
-                onChange={(e) => {
-                  setState(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="">Operación habitual</option>
-                {["Habilitada", "Inhabilitada", "Mantenimiento", "Baja"].map(
-                  (t) => (
-                    <option key={t}>{t}</option>
-                  ),
-                )}
-              </select>
-            </label>
-            <label>
-              Capacidad mínima (personas)
+                ),
+              )}
+            </select>
+          </label>
+          <label>
+            Edificio / ubicación
+            <select
+              aria-label="Edificio del inventario"
+              value={location}
+              onChange={(e) => refine(() => setLocation(e.target.value))}
+            >
+              <option value="">Todos</option>
+              {locations.map((l) => (
+                <option key={l}>{l}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Piso
+            <select
+              aria-label="Piso del inventario"
+              value={floor}
+              onChange={(e) => refine(() => setFloor(e.target.value))}
+            >
+              <option value="">Todos</option>
+              {floors.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Pizarrón
+            <select
+              aria-label="Pizarrón del inventario"
+              value={board}
+              onChange={(e) => refine(() => setBoard(e.target.value))}
+            >
+              <option value="">Cualquiera</option>
+              <option>Tiza</option>
+              <option>Fibrón</option>
+            </select>
+          </label>
+          <label>
+            Capacidad mínima (personas)
+            <input
+              type="number"
+              min="0"
+              value={capacity}
+              onChange={(e) =>
+                refine(() => setCapacity(Number(e.target.value)))
+              }
+            />
+          </label>
+          <label>
+            Capacidad máxima (personas)
+            <input
+              type="number"
+              min="0"
+              placeholder="Sin máximo"
+              value={maxCapacity}
+              onChange={(e) => refine(() => setMaxCapacity(e.target.value))}
+            />
+          </label>
+          <label>
+            PC mínimas (laboratorios)
+            <input
+              type="number"
+              min="0"
+              placeholder="Cualquiera"
+              value={computers}
+              onChange={(e) => refine(() => setComputers(e.target.value))}
+            />
+          </label>
+        </div>
+        <fieldset className="filter-resources">
+          <legend>Recursos requeridos</legend>
+          {(Object.keys(resourceLabels) as Resource[]).map((r) => (
+            <label key={r}>
               <input
-                type="number"
-                min="0"
-                value={capacity}
-                onChange={(e) => {
-                  setCapacity(Number(e.target.value));
-                  setPage(1);
-                }}
+                type="checkbox"
+                checked={resources.includes(r)}
+                onChange={(e) =>
+                  refine(() =>
+                    setResources(
+                      e.target.checked
+                        ? [...resources, r]
+                        : resources.filter((v) => v !== r),
+                    ),
+                  )
+                }
               />
+              {resourceLabels[r]}
             </label>
-          </div>
-          <details>
-            <summary>Filtrar características</summary>
-            <div className="form-grid">
+          ))}
+        </fieldset>
+      </section>
+      <div className={selected ? "cancellation-layout inventory-layout" : ""}>
+        <section
+          className="panel results-panel"
+          aria-labelledby="room-results-title"
+        >
+          <div className="results-head">
+            <h2 id="room-results-title">
+              Aulas encontradas{data ? ` · ${data.total}` : ""}
+            </h2>
+            <div className="results-sort">
               <label>
-                Recurso
+                Ordenar aulas por
                 <select
-                  aria-label="Recurso del inventario"
-                  value={resource}
-                  onChange={(e) => {
-                    setResource(e.target.value);
-                    setPage(1);
-                  }}
+                  value={order}
+                  onChange={(e) => refine(() => setOrder(e.target.value))}
                 >
-                  <option value="">Cualquiera</option>
-                  {Object.entries(resourceLabels).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
+                  <option value="id">Identificador</option>
+                  <option value="capacity">Capacidad</option>
+                  <option value="type">Tipo</option>
+                  <option value="state">Estado</option>
+                  <option value="location">Edificio</option>
+                  <option value="floor">Piso</option>
                 </select>
               </label>
               <label>
-                Pizarrón
+                Sentido del orden
                 <select
-                  aria-label="Pizarrón del inventario"
-                  value={board}
-                  onChange={(e) => {
-                    setBoard(e.target.value);
-                    setPage(1);
-                  }}
+                  value={descending ? "desc" : "asc"}
+                  onChange={(e) =>
+                    refine(() => setDescending(e.target.value === "desc"))
+                  }
                 >
-                  <option value="">Cualquiera</option>
-                  <option>Tiza</option>
-                  <option>Fibrón</option>
+                  <option value="asc">Ascendente</option>
+                  <option value="desc">Descendente</option>
                 </select>
               </label>
             </div>
-          </details>
-          <div className="form-grid">
-            <label>
-              Ordenar aulas por
-              <select
-                value={order}
-                onChange={(e) => {
-                  setOrder(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="id">Identificador</option>
-                <option value="capacity">Capacidad</option>
-                <option value="type">Tipo</option>
-                <option value="state">Estado</option>
-              </select>
-            </label>
-            <label>
-              Sentido del orden
-              <select
-                value={descending ? "desc" : "asc"}
-                onChange={(e) => {
-                  setDescending(e.target.value === "desc");
-                  setPage(1);
-                }}
-              >
-                <option value="asc">Ascendente</option>
-                <option value="desc">Descendente</option>
-              </select>
-            </label>
           </div>
           <div className="inventory-list">
             {visible.map((r) => (
@@ -270,6 +375,14 @@ export function Rooms({ role }: { role: Role }) {
                   <small>
                     {r.location} · Piso {r.floor}
                   </small>
+                  <ul
+                    className="room-attributes"
+                    aria-label={`Equipamiento de Aula ${r.id}`}
+                  >
+                    {roomAttributes(r).map((a) => (
+                      <li key={a}>{a}</li>
+                    ))}
+                  </ul>
                 </div>
                 <Button variant="outline" onClick={() => edit(r)}>
                   {role === "Docente" || r.state === "Baja" ? "Ver" : "Editar"}{" "}
@@ -333,6 +446,16 @@ export function Rooms({ role }: { role: Role }) {
             }}
           >
             <h2>{originalId ? `Aula ${originalId}` : "Nueva aula"}</h2>
+            {originalId && (
+              <ul
+                className="room-attributes"
+                aria-label={`Equipamiento actual de Aula ${originalId}`}
+              >
+                {roomAttributes(selected).map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            )}
             <fieldset
               disabled={busy || role === "Docente" || selected.state === "Baja"}
             >

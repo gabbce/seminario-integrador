@@ -39,6 +39,11 @@ public class IdentityManagement {
             return get(id);
         });
     }
+    /** Our own identity-flow messages explain what happened; infrastructure errors (SQL, network) stay generic. */
+    private static String cause(RuntimeException e) {
+        if(!(e instanceof IllegalStateException || e instanceof IllegalArgumentException) || e.getMessage()==null || e.getMessage().isBlank()) return "";
+        return ": "+e.getMessage().strip().replaceAll("[.\\s]+$","");
+    }
     private UUID authId(long user) {return db.queryForObject("select supabase_auth_id from aulas.usuario where id_usuario=?",UUID.class,user);}
     private void state(UUID id,String state) {db.update("update aulas.operacion_identidad set estado=? where id=? and estado<>'COMPLETA'",state,id);}
     private boolean claim(UUID id) {return db.update("update aulas.operacion_identidad set estado='ENVIADA' where id=? and estado='PREPARADA'",id)==1;}
@@ -67,7 +72,7 @@ public class IdentityManagement {
             });
             return accounts.get(db.queryForObject("select id_usuario from aulas.usuario where supabase_auth_id=?",Long.class,identity));
         } catch(DomainError e){if(e.status==409)state(operation.id(),"RECHAZADA");throw e;}
-        catch(RuntimeException e){throw new DomainError(503,"IDENTITY_INCOMPLETE","El alta no está completa. Reintentá con los mismos datos para comprobar y completar la operación.");}
+        catch(RuntimeException e){throw new DomainError(503,"IDENTITY_INCOMPLETE","El alta no está completa"+cause(e)+". Reintentá con los mismos datos para comprobar y completar la operación.");}
     }
     public AccountManagement.User email(long actor,long target,Email request) {
         String email=request.email()==null?"":request.email().strip().toLowerCase(Locale.ROOT);
@@ -95,7 +100,7 @@ public class IdentityManagement {
                 state(operation.id(),"COMPLETA");return accounts.get(target);
             });
         } catch(DomainError e){if(e.status==400)state(operation.id(),"RECHAZADA");throw e;}
-        catch(RuntimeException e){throw new DomainError(503,"IDENTITY_INCOMPLETE","Auth y el perfil pueden haber quedado desincronizados. Reintentá para comprobar el correo vigente y completar el cambio.");}
+        catch(RuntimeException e){throw new DomainError(503,"IDENTITY_INCOMPLETE","Auth y el perfil pueden haber quedado desincronizados"+cause(e)+". Reintentá para comprobar el correo vigente y completar el cambio.");}
     }
     public void password(long actor,long target,Password request) {
         password(request.password(),request.confirmation());

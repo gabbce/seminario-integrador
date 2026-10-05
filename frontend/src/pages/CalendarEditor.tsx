@@ -53,9 +53,11 @@ export function CalendarEditor({
       const failure = await action();
       if (failure) setError(failure);
       return failure;
-    } catch {
+    } catch (e) {
       const failure =
-        "No se pudo guardar. Revisá el estado antes de reintentar.";
+        e instanceof Error && e.message
+          ? e.message
+          : "No se pudo guardar. Revisá el estado antes de reintentar.";
       setError(failure);
       return failure;
     } finally {
@@ -178,8 +180,12 @@ export function CalendarEditor({
           let result: Preview | undefined;
           try {
             result = await preview?.(draft);
-          } catch {
-            setError("No se pudo revisar el impacto. Reintentá la consulta.");
+          } catch (e) {
+            setError(
+              e instanceof Error && e.message
+                ? e.message
+                : "No se pudo revisar el impacto. Reintentá la consulta.",
+            );
           } finally {
             setBusy(false);
           }

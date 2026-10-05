@@ -86,6 +86,19 @@ class AccountManagementTests {
   org.mockito.Mockito.verify(auth,org.mockito.Mockito.times(1)).changePassword(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.anyString());
  }
 
+ @Test void rejectedPasswordDoesNotBlockANewAttemptForTheSameEmail() {
+  long admin=account("ADMINISTRADOR");
+  org.mockito.Mockito.when(auth.findByEmail(org.mockito.ArgumentMatchers.anyString())).thenReturn(java.util.Optional.empty());
+  org.mockito.Mockito.when(auth.create(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.eq("123"),org.mockito.ArgumentMatchers.any()))
+   .thenThrow(DomainError.invalid("La contraseña no cumple la política de Supabase: debe tener al menos 6 caracteres."));
+  org.mockito.Mockito.when(auth.create(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.eq("Docente2026"),org.mockito.ArgumentMatchers.any()))
+   .thenAnswer(i->new ar.edu.aulas.accounts.AuthAdmin.Identity(UUID.randomUUID(),"docente.nueva@test.local",i.getArgument(2).toString()));
+  var weak=new ar.edu.aulas.accounts.IdentityManagement.Create(UUID.randomUUID(),"Docente","Nueva","docente.nueva@test.local","Docente",true,null,null,"123","123");
+  assertThatThrownBy(()->identities.create(admin,weak)).isInstanceOf(DomainError.class).hasMessageContaining("al menos 6 caracteres");
+  // The administrator discards the form and starts over: a new operation for the same e-mail must work.
+  var retry=new ar.edu.aulas.accounts.IdentityManagement.Create(UUID.randomUUID(),"Docente","Nueva","docente.nueva@test.local","Docente",true,null,null,"Docente2026","Docente2026");
+  assertThat(identities.create(admin,retry).email()).isEqualTo("docente.nueva@test.local");
+ }
  @Test void foreignIdentityIsConflictAndUnappliedEmailCanRecover() {
   long admin=account("ADMINISTRADOR"),target=account("BEDEL");
   org.mockito.Mockito.when(auth.findByEmail("ocupado@test.local")).thenReturn(java.util.Optional.of(new ar.edu.aulas.accounts.AuthAdmin.Identity(UUID.randomUUID(),"ocupado@test.local","foreign")));

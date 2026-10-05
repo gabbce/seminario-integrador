@@ -35,7 +35,14 @@ public class AccountProvisioner {
         // Network calls hold no JDBC transaction/connection. Auth enforces email uniqueness.
         var identity=op.authId()==null ? auth.findByEmail(desired.email()) : auth.findById(op.authId());
         if ((op.completed() || op.authId()!=null) && identity.isEmpty()) throw new IllegalStateException("La identidad preparada ya no existe; requiere revisión");
-        var user=identity.orElseGet(()->auth.create(desired,password,op.id()));
+        var user=identity.orElseGet(()->{
+            try {return auth.create(desired,password,op.id());}
+            catch(ar.edu.aulas.api.DomainError rejected) {
+                // Auth refused the data, so no identity exists: free the e-mail for a corrected attempt.
+                if(rejected.status==400) db.update("delete from aulas.preparacion_cuenta where id=? and auth_id is null and not completada",op.id());
+                throw rejected;
+            }
+        });
         if (!op.id().toString().equals(user.operationId()) || !desired.email().equalsIgnoreCase(user.email())
             || (op.authId()!=null && !op.authId().equals(user.id())))
             throw new IllegalStateException("Identidad existente ajena o incompatible; no se vinculó ni modificó");

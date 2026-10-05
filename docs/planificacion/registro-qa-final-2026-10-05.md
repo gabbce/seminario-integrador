@@ -90,6 +90,23 @@ Cambios de infraestructura y pruebas, sin tocar código de la aplicación:
 
 En la suite simulada, T-02 («lost-before») pasó en esta corrida.
 
+## Cambios pedidos en la revisión del 05/10 (posteriores a esta ejecución)
+
+Después de la ejecución se incorporaron seis pedidos de la revisión. Cambian la interfaz y el backend, así que **hay que repetir F03 (agenda) y las regresiones de Aulas y Cuentas (I-02)** sobre una imagen reconstruida.
+
+| Pedido | Cambio | Verificación |
+|---|---|---|
+|Separar los paneles de filtros de las tablas|Aulas y Cuentas tienen un panel «Filtros» propio (tono distinto y «Limpiar filtros») y un panel de resultados con total y orden.|Capturas a 1366 y 390 px, sin desborde horizontal.|
+|Filtros de aulas por todos los datos relevantes|Se agregan edificio, piso, capacidad máxima, varios recursos a la vez y PC mínimas. La búsqueda de texto cubre identificador y edificio. Backend: `GET /api/aulas` acepta `resources`, `maxCapacity`, `location`, `floor` y `computers`.|`RoomsTests.filtersCoverEveryRoomAttribute`; recorrido UI 7/7 sobre datos reales.|
+|Agenda por día sin desplazamiento lateral|La vista Día es una línea de tiempo: una fila por aula y las horas 07–23 a lo ancho. Las clases cortas muestran solo la materia; el resumen completo queda en el tooltip y en el detalle.|0 px de desborde a 1366 y 390 px; `consultations.spec` sin cambios.|
+|«Crear docentes» da error y no lo explica|Causa: un rechazo de Supabase (contraseña de menos de 6 caracteres) dejaba trabado ese correo («preparación incompatible») y se informaba de forma genérica. Ahora se libera la preparación rechazada, el mensaje dice la regla incumplida y el formulario anuncia y valida el mínimo.|`AccountManagementTests.rejectedPasswordDoesNotBlockANewAttemptForTheSameEmail`, `SupabaseRejectionTests` (4); recorrido UI.|
+|Errores con la razón real|Mensajes concretos de Supabase (contraseña, correo existente o inválido) y de configuración faltante; motivo incluido en los 503 de identidad; el asistente muestra el motivo en el paso 2 y separa año, fin de semana, repetida y horario con la fecha concreta (QA-16, QA-17); el editor de calendario conserva el mensaje del servidor.|Recorrido UI 6/6.|
+|El detalle del aula muestra sus atributos|Cada aula del inventario y su panel de detalle listan pizarrón, recursos y PC.|Recorrido UI.|
+
+Suites después de los cambios: backend **180/180**, unitarias **66/66**, simuladas **109/110** (solo el PDF de Firefox, T-04), `lint` y `tsc` OK.
+
+Quedó una preparación de alta trabada para `qa-politica-20261005@demo.local`, generada por una prueba de hoy antes del arreglo. Solo afecta a ese correo ficticio. También se creó la cuenta ficticia `qa-docente-20261005@demo.local` (id 9) al reproducir el error.
+
 ## Decisión por entrega
 
 | Entrega | Decisión explícita del usuario | Fecha/evidencia | Incidencias pendientes |

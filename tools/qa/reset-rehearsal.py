@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[2]
 output=root/'artifacts/qa/reset';output.mkdir(parents=True,exist_ok=True);output.chmod(0o700)
 identity='aulas-reset-'+secrets.token_hex(5);network=None;database=None;commands=[]
 def run(argv,**kw):
-    result=subprocess.run(argv,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,**kw)
+    result=subprocess.run(argv,text=True,encoding='utf-8',stdout=subprocess.PIPE,stderr=subprocess.PIPE,**kw)
     if result.returncode:raise RuntimeError('Command failed: '+argv[0]+' (private output omitted)')
     return result.stdout.strip()
 def sql(statement):return run(['docker','exec','-i',database,'psql','-X','-v','ON_ERROR_STOP=1','-U','qa','-d','aulas_reset','-A','-t'],input=statement)
@@ -23,8 +23,8 @@ def command(label,options,success=True):
     for key in ['SPRING_DATASOURCE_URL','SPRING_DATASOURCE_USERNAME','SPRING_DATASOURCE_PASSWORD','AULAS_ENVIRONMENT']:
         argv+=['-e',key]
     argv += [args.image,'--spring.main.web-application-type=none',*options]
-    result=subprocess.run(argv,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=environment)
-    file=output/(label+'.log');file.touch(mode=0o600);file.chmod(0o600);file.write_text(result.stdout)
+    result=subprocess.run(argv,text=True,encoding='utf-8',stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=environment)
+    file=output/(label+'.log');file.touch(mode=0o600);file.chmod(0o600);file.write_text(result.stdout,encoding='utf-8')
     if (result.returncode==0)!=success:raise RuntimeError(label+' unexpected outcome; see private log '+str(file))
     return result.stdout
 def preview(label):
@@ -65,7 +65,7 @@ try:
 finally:
     for cidfile in commands:
         if cidfile.exists():
-            container_id=cidfile.read_text().strip()
+            container_id=cidfile.read_text(encoding='utf-8').strip()
             if len(container_id)==64 and all(c in '0123456789abcdef' for c in container_id):subprocess.run(['docker','rm','-f',container_id],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             cidfile.unlink()
     if database:subprocess.run(['docker','rm','-f',database],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

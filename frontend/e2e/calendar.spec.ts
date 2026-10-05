@@ -143,7 +143,7 @@ for (const width of [390, 1440])
       page.getByRole("button", { name: "Revisar impacto", exact: true }),
     ).toHaveCount(1);
     await page.screenshot({
-      path: `/tmp/i024-calendario-${width}.png`,
+      path: `../artifacts/qa/screens/i024-calendario-${width}.png`,
       fullPage: true,
     });
     expect(

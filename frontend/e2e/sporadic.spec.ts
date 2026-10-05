@@ -208,12 +208,12 @@ for (const width of [390, 1440])
     const control = await setup(page);
     await prepare(page);
     await page.screenshot({
-      path: `/tmp/i041-seleccion-${width}.png`,
+      path: `../artifacts/qa/screens/i041-seleccion-${width}.png`,
       fullPage: true,
     });
     await review(page);
     await page.screenshot({
-      path: `/tmp/i041-revision-${width}.png`,
+      path: `../artifacts/qa/screens/i041-revision-${width}.png`,
       fullPage: true,
     });
     const confirm = page.getByRole("button", {
@@ -231,7 +231,7 @@ for (const width of [390, 1440])
       "2",
     ]);
     await page.screenshot({
-      path: `/tmp/i041-exito-${width}.png`,
+      path: `../artifacts/qa/screens/i041-exito-${width}.png`,
       fullPage: true,
     });
     await page
@@ -270,7 +270,7 @@ for (const width of [390, 1440])
           page.getByText("El aula del 2027-07-12 ya no está disponible."),
         ).toBeVisible();
         await page.screenshot({
-          path: `/tmp/i041-conflicto-${width}.png`,
+          path: `../artifacts/qa/screens/i041-conflicto-${width}.png`,
           fullPage: true,
         });
         expect(control.booking).toBeNull();
@@ -285,7 +285,7 @@ for (const width of [390, 1440])
           }),
         ).toBeVisible();
         await page.screenshot({
-          path: `/tmp/i041-${mode}-${width}.png`,
+          path: `../artifacts/qa/screens/i041-${mode}-${width}.png`,
           fullPage: true,
         });
         await page
@@ -323,7 +323,7 @@ test("esporádica Docente solo consulta alternativas informativas", async ({
   await expect(
     page.getByRole("button", { name: "Preparar reserva" }),
   ).toHaveCount(0);
-  await page.screenshot({ path: "/tmp/i041-docente.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i041-docente.png", fullPage: true });
 });
 
 test("esporádica exclusión explícita y validación de conjunto vacío", async ({
@@ -347,7 +347,7 @@ test("esporádica exclusión explícita y validación de conjunto vacío", async
     page.getByText(/14 de julio de 2027.*Exclusión manual/),
   ).toBeVisible();
   await page.screenshot({
-    path: "/tmp/i041-exclusion-390.png",
+    path: "../artifacts/qa/screens/i041-exclusion-390.png",
     fullPage: true,
   });
   await page.getByRole("button", { name: "Volver", exact: true }).click();
@@ -360,7 +360,7 @@ test("esporádica exclusión explícita y validación de conjunto vacío", async
     page.getByRole("button", { name: "Buscar aulas" }),
   ).toBeDisabled();
   await page.screenshot({
-    path: "/tmp/i041-validacion-390.png",
+    path: "../artifacts/qa/screens/i041-validacion-390.png",
     fullPage: true,
   });
 });

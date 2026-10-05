@@ -2,7 +2,7 @@
 import json,sys,collections
 from pathlib import Path
 root=Path(__file__).resolve().parents[2]
-data=json.loads((root/'backend/src/main/resources/demo/volumen-i05-v1.json').read_text())
+data=json.loads((root/'backend/src/main/resources/demo/volumen-i05-v1.json').read_text(encoding='utf-8'))
 rows=[]
 for e in data['entries']:
     for original in e['dates']:
@@ -30,12 +30,12 @@ assert len(printing)==104 and sum((r['end']-r['start'])/60 for r in printing)==5
 assert sum(r['students']*(r['end']-r['start'])/60 for r in printing)==780 and max(curves.values())==125,'Print student metrics drifted'
 print('2027-08-23:',len(printing),'rows;',sum((r['end']-r['start'])/60 for r in printing),'room-hours;',sum(r['students']*(r['end']-r['start'])/60 for r in printing),'student-hours;',max(curves.values()),'peak students')
 if len(sys.argv)>1:
-    before=json.loads(Path(sys.argv[1]).read_text())
+    before=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
     occupied={(o['date'],o['room'],t) for b in before['reservations'] for o in b['occurrences'] if not o['cancelled'] for t in range(int(o['start'][:2])*60+int(o['start'][3:5]),int(o['end'][:2])*60+int(o['end'][3:5]),30)}
     assert not(occupied & slots.keys()),'Proposed intervals conflict with existing reservations'
     print('Existing intervals compatible:',len(before['reservations']),'reservations')
 if len(sys.argv)>2:
-    after=json.loads(Path(sys.argv[2]).read_text())
+    after=json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))
     byid={b['id']:b for b in after['reservations']}
     assert all(byid.get(b['id'])==b for b in before['reservations']),'Previous content changed'
     assert before['rooms']==after['rooms'],'Room/history references changed'

@@ -88,7 +88,7 @@ test("I04 dataset integrado real y privacidad entre sesiones", async ({
     page.getByRole("heading", { name: "Historial de cambios" }),
   ).toBeVisible();
   await page.screenshot({
-    path: "/tmp/i046-real-periodic-1440.png",
+    path: "../artifacts/qa/screens/i046-real-periodic-1440.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 1000 });
@@ -97,7 +97,7 @@ test("I04 dataset integrado real y privacidad entre sesiones", async ({
     page.getByText(/Cancelación ficticia del conjunto I-04/),
   ).toBeVisible();
   await page.screenshot({
-    path: "/tmp/i046-real-partial-390.png",
+    path: "../artifacts/qa/screens/i046-real-partial-390.png",
     fullPage: true,
   });
   expect(
@@ -149,7 +149,7 @@ test("I04 dataset integrado real y privacidad entre sesiones", async ({
       second.getByRole("button", { name: "Reprogramar clases" }),
     ).toHaveCount(0);
     await second.screenshot({
-      path: "/tmp/i046-real-docente-390.png",
+      path: "../artifacts/qa/screens/i046-real-docente-390.png",
       fullPage: true,
     });
     console.log(

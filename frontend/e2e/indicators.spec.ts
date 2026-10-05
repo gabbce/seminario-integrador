@@ -74,7 +74,7 @@ for (const width of [1366, 390])
     await page.getByLabel("Aula", { exact: true }).selectOption("A");
     await expect(page.getByText("25 %", { exact: true })).toBeVisible();
     await page.screenshot({
-      path: `/tmp/i053-summary-${width}.png`,
+      path: `../artifacts/qa/screens/i053-summary-${width}.png`,
       fullPage: true,
     });
     fail = true;
@@ -208,7 +208,7 @@ test("curvas diarias y semana típica presentan datos autoritativos", async ({
     "50 alumnos previstos · 2 clases simultáneas",
   );
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.screenshot({ path: "/tmp/i054-curves.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i054-curves.png", fullPage: true });
   await page
     .getByRole("button", { name: "Semana típica", exact: true })
     .click();
@@ -227,7 +227,7 @@ test("curvas diarias y semana típica presentan datos autoritativos", async ({
     "4 fechas aportantes",
   );
   await expect(page.locator(".weekly-comparison")).toContainText("40");
-  await page.screenshot({ path: "/tmp/i054-week.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i054-week.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: "/tmp/i054-week-mobile.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i054-week-mobile.png", fullPage: true });
 });

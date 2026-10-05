@@ -117,7 +117,7 @@ for (const width of [390, 1440]) {
     await review(page);
     expect(c.requests).toHaveLength(0);
     await page.screenshot({
-      path: `/tmp/i045-review-${width}.png`,
+      path: `../artifacts/qa/screens/i045-review-${width}.png`,
       fullPage: true,
     });
     expect(
@@ -142,7 +142,7 @@ for (const width of [390, 1440]) {
       "2027-07-09",
     );
     await page.screenshot({
-      path: `/tmp/i045-success-${width}.png`,
+      path: `../artifacts/qa/screens/i045-success-${width}.png`,
       fullPage: true,
     });
     expect(
@@ -167,7 +167,7 @@ for (const width of [390, 1440]) {
     ).toBeVisible();
     await expect(page.getByText(/laura@example.test/)).toBeVisible();
     await page.screenshot({
-      path: `/tmp/i045-conflict-${width}.png`,
+      path: `../artifacts/qa/screens/i045-conflict-${width}.png`,
       fullPage: true,
     });
     expect(
@@ -198,7 +198,7 @@ for (const width of [390, 1440]) {
       "2027-07-09",
     );
     await page.screenshot({
-      path: `/tmp/i045-stale-${width}.png`,
+      path: `../artifacts/qa/screens/i045-stale-${width}.png`,
       fullPage: true,
     });
     c.mode = "normal";
@@ -233,7 +233,7 @@ for (const width of [390, 1440]) {
         page.getByRole("button", { name: "Consultar resultado" }),
       ).toBeEnabled();
       await page.screenshot({
-        path: `/tmp/i045-${mode}-${width}.png`,
+        path: `../artifacts/qa/screens/i045-${mode}-${width}.png`,
         fullPage: true,
       });
       if (mode === "lost-after")

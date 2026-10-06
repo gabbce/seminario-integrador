@@ -1422,7 +1422,7 @@ body {
 }
 
 .metric-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-bottom:24px; }
-.metric-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-bottom:24px; }
+.metric-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-bottom:24px; }
 .metric-card { display:flex; gap:24px; align-items:center; }
 .metric-card > svg { width:52px; height:52px; padding:12px; border-radius:50%; background:#e9ede3; color:#185340; flex-shrink:0; }
 .metric-card div { display:grid; gap:6px; }
@@ -1669,4 +1669,42 @@ body {
 }
 .agenda-grid .booking-short strong {
   margin-right: 4px;
+}
+
+/* Indicators: room attribute filters (DA-87) and the period comparison (DA-88). */
+.metric-resources {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.metric-resources legend {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.metric-resources label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+.metric-resources input {
+  width: 20px;
+  height: 20px;
+  accent-color: #194d3a;
+}
+.metric-comparison th small {
+  display: block;
+  font-weight: 400;
+  color: #59665f;
+}
+.metric-comparison {
+  margin-bottom: 24px;
+}
+.metric-comparison td {
+  font-variant-numeric: tabular-nums;
 }

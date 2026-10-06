@@ -238,8 +238,8 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-29; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin/Bedel.
-- **Flujo y resultado:** Elegir rango/cuatrimestre/vista/filtros; calcular horas, ocupación y demanda atendida, picos por franja, semana típica y alumnos-hora.
-- **Controles y alternativas:** Excluir canceladas; sin denominador no porcentaje. No medir conflictos, asistencia real o individuos únicos. Historia de aula y medias por días elegibles según documento 09.
+- **Flujo y resultado:** Elegir rango/cuatrimestre/vista/filtros, incluidos edificio, piso, capacidad y recursos del aula (DA-87); calcular horas, ocupación y demanda atendida, picos por franja, semana típica y alumnos-hora. Opcionalmente comparar dos períodos con promedios por día hábil y diferencia B − A (DA-88).
+- **Controles y alternativas:** Excluir canceladas; sin denominador no porcentaje. No medir conflictos, asistencia real o individuos únicos. Historia de aula y medias por días elegibles según documento 09. Capacidad máxima menor que la mínima es un filtro inválido. En la comparación, un período con cobertura desconocida no muestra ocupación ni diferencia.
 - **Interfaz:** UI-14. **Aceptación:** CA-M01 a CA-M11.
 
 ## Extensiones acordadas, sin renumerar los originales

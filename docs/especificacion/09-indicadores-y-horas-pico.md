@@ -75,7 +75,11 @@ Comparar pico de concurrencia prevista y volumen de alumnos-hora, además de cla
 
 ### Rangos seleccionados
 
-Reutilizar las mismas vistas y fórmulas con inicio/fin seleccionados, además del acceso rápido por cuatrimestre (DA-44). No introducir otra clase de reporte o métrica. La semana típica se calcula sobre los días elegibles del rango y debe mostrar ese rango.
+Reutilizar las mismas vistas y fórmulas con inicio/fin seleccionados, además del acceso rápido por cuatrimestre (DA-44). No introducir otra clase de reporte o métrica, salvo la comparación de dos períodos de DA-88. La semana típica se calcula sobre los días elegibles del rango y debe mostrar ese rango.
+
+### Filtros de aulas y comparación de períodos (DA-87/88)
+
+Edificio, piso, rango de capacidad y recursos recortan el conjunto de aulas; el mismo conjunto alimenta horas reservadas y habilitadas. Se usan los datos actuales del aula y el tipo histórico de cada módulo. La comparación de dos períodos muestra, para cada uno, la ocupación y los promedios por día hábil de horas reservadas, clases y alumnos-hora, junto con los picos promedio de la semana típica, y la diferencia B − A. No compara totales. Si un período tiene cobertura desconocida, su ocupación y la diferencia correspondiente quedan sin calcular.
 
 ## Cantidad de alumnos prevista (DA-46)
 

@@ -117,6 +117,25 @@ class IndicatorTests {
   assertThat(result.weekly().week().get(1).dates()).hasSize(4);assertThat(result.weekly().week().get(1).peakStudents()).isZero();
   var none=queries.series(LocalDate.parse("2027-03-06"),LocalDate.parse("2027-03-07"),"","","week");assertThat(none.weekly().eligible()).isFalse();assertThat(none.weekly().peakStudents()).isNull();assertThat(none.weekly().week().getFirst().slots().getFirst().students()).isNull();
  }
+ @Test void roomAttributesNarrowBothReservedAndAvailableHours() throws Exception {
+  db.update("update aulas.aula set ubicacion='Norte',piso=1,capacidad=30,aire=true where id_aula=?",b);
+  occurrence(a,day.toString(),"07:00",4,30);occurrence(b,day.toString(),"07:00",2,20);
+  // Room B alone: 1 h reserved of 2 h enabled.
+  var north=queries.summary(day,day,new IndicatorQueries.RoomFilter("","Norte",null,0,null,List.of()),"");
+  assertThat(north.hours()).isEqualTo(1);assertThat(north.availableHours()).isEqualTo(2);assertThat(north.occupancy()).isEqualTo(50);
+  assertThat(queries.summary(day,day,new IndicatorQueries.RoomFilter("","",1,0,null,List.of()),"").availableHours()).isEqualTo(2);
+  // Room A alone (capacity 80): 2 h reserved of 8 h enabled.
+  var large=queries.summary(day,day,new IndicatorQueries.RoomFilter("","",null,50,null,List.of()),"");
+  assertThat(large.hours()).isEqualTo(2);assertThat(large.availableHours()).isEqualTo(8);assertThat(large.occupancy()).isEqualTo(25);
+  assertThat(queries.summary(day,day,new IndicatorQueries.RoomFilter("","",null,0,40,List.of("air")),"").rooms()).extracting(IndicatorQueries.Breakdown::label).containsExactly("B");
+  var none=queries.summary(day,day,new IndicatorQueries.RoomFilter("","",null,0,null,List.of("projector")),"");
+  assertThat(none.availableHours()).isZero();assertThat(none.occupancy()).isNull();
+  assertThat(queries.series(day,day,new IndicatorQueries.RoomFilter("","Norte",null,0,null,List.of()),"","day").studentHours()).isEqualTo(20);
+  assertThatThrownBy(()->queries.summary(day,day,new IndicatorQueries.RoomFilter("","",null,50,40,List.of()),"")).hasMessageContaining("rango válido");
+  assertThatThrownBy(()->queries.summary(day,day,new IndicatorQueries.RoomFilter("","",null,0,null,List.of("pcs")),"")).hasMessageContaining("rango válido");
+  mvc.perform(get("/api/indicadores/resumen?from=2027-03-01&to=2027-03-01&location=Norte&resources=air").with(jwt().jwt(j->j.subject(auth.toString()))))
+   .andExpect(status().isOk()).andExpect(jsonPath("$.availableHours").value(2.0)).andExpect(jsonPath("$.hours").value(1.0));
+ }
  @Test void rolesAndInvalidRange() throws Exception {
   mvc.perform(get("/api/indicadores/resumen?from=2027-03-01&to=2027-03-01").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isOk()).andExpect(jsonPath("$.availableHours").value(10));
   new TransactionTemplate(manager).executeWithoutResult(tx->{db.update("delete from aulas.administrador where id_usuario=?",actor);db.update("update aulas.usuario set rol='DOCENTE' where id_usuario=?",actor);db.update("insert into aulas.docente values (?)",actor);});

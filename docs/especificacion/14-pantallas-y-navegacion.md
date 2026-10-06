@@ -46,7 +46,7 @@ No incluir panel de auditoría, gestión académica, notificaciones internas, re
 | UI-11 | Feriados del año | Lista por fecha; agregar/corregir/quitar, impacto sobre clases, restricciones temporales. | DA-13/17/55/69 |
 | UI-12 | Revisar cambio de calendario | Cambio propuesto, nuevas clases con aula del patrón, conflictos bloqueantes y confirmación conjunta. | DA-54 a DA-60 |
 | UI-13 | Usuarios | Buscar, crear, editar, deshabilitar/rehabilitar y restablecer contraseña ingresada por Admin; errores del proveedor y alta incompleta. | CU-02 a 05, DA-63/64/77 |
-| UI-14 | Estadísticas | Filtros por fecha/rango/cuatrimestre y aula/tipo donde corresponda; horas, ocupación, demanda atendida y horas pico. | CU-29, DA-38 a DA-46 |
+| UI-14 | Estadísticas | Filtros por fecha/rango/cuatrimestre, aula/tipo y atributos de aula (edificio, piso, capacidad, recursos); horas, ocupación, demanda atendida y horas pico. Comparación de dos períodos con diferencia B − A. | CU-29, DA-38 a DA-46, DA-87/88 |
 | UI-15 | Listado diario imprimible | Resultados completos de filtros activos, sin controles de operación; impresión/PDF de navegador. | CU-26, DA-37 |
 
 UI-08 y UI-12 pueden implementarse como pasos o diálogos de la sección correspondiente; este inventario no exige una URL o página independiente para cada uno.

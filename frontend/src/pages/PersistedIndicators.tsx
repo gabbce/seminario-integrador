@@ -8,6 +8,8 @@ import { useApiQuery } from "../use-api-query";
 import { institutionalNow } from "../institutional-time";
 import type { IndicatorSeries } from "../indicator-api";
 import { Button } from "../components/ui/button";
+import { MetricComparison } from "../components/MetricComparison";
+import { resourceLabels, type Resource } from "../equipment";
 const MetricCurve = lazy(() =>
   import("../components/MetricCurve").then((m) => ({ default: m.MetricCurve })),
 );
@@ -19,36 +21,137 @@ export function PersistedIndicators() {
     calendars = useCalendars();
   const [params, setParams] = useSearchParams();
   const today = institutionalNow().slice(0, 10);
-  const mode = params.get("mode") === "week" ? "week" : "day";
+  const mode =
+    params.get("mode") === "week"
+      ? "week"
+      : params.get("mode") === "compare"
+        ? "compare"
+        : "day";
   const date = params.get("date") || today,
     room = params.get("room") || "",
     type = params.get("type") || "";
-  const period = params.get("period") || "custom";
-  const [year, term] = period.split(":");
-  const calendar = calendars.find((c) => c.year === Number(year));
-  const bounds =
-    term === "first" ? calendar?.terms.first : calendar?.terms.second;
-  const from =
+  // A term uses its calendar bounds; a custom range uses its own dates.
+  function range(periodKey: string, fromKey: string, toKey: string) {
+    const period = params.get(periodKey) || "custom";
+    const [year, term] = period.split(":");
+    const calendar = calendars.find((c) => c.year === Number(year));
+    const bounds =
+      term === "first" ? calendar?.terms.first : calendar?.terms.second;
+    const label =
+      period === "custom"
+        ? "Rango personalizado"
+        : `${term === "first" ? 1 : 2}.º cuatrimestre ${year}`;
+    return period === "custom"
+      ? {
+          period,
+          label,
+          from: params.get(fromKey) || today,
+          to: params.get(toKey) || today,
+        }
+      : { period, label, from: bounds?.[0] || "", to: bounds?.[1] || "" };
+  }
+  const first =
     mode === "day"
-      ? date
-      : period === "custom"
-        ? params.get("from") || today
-        : bounds?.[0] || "";
-  const to =
-    mode === "day"
-      ? date
-      : period === "custom"
-        ? params.get("to") || today
-        : bounds?.[1] || "";
+      ? { period: "custom", label: date, from: date, to: date }
+      : range("period", "from", "to");
+  const second = range("periodB", "fromB", "toB");
+  const { from, to } = first;
+  // Room attributes narrow the set of rooms for reserved and available hours alike (DA-87).
+  const location = params.get("location") || "",
+    floor = params.get("floor") || "",
+    minCapacity = params.get("minCapacity") || "",
+    maxCapacity = params.get("maxCapacity") || "";
+  const resources = (params.get("resources") || "")
+    .split(",")
+    .filter((r): r is Resource => r in resourceLabels);
+  const roomFilters: Record<string, string> = { room, type };
+  if (location) roomFilters.location = location;
+  if (floor) roomFilters.floor = floor;
+  if (minCapacity) roomFilters.minCapacity = minCapacity;
+  if (maxCapacity) roomFilters.maxCapacity = maxCapacity;
+  if (resources.length) roomFilters.resources = resources.join(",");
+  const locations = [
+    ...new Set(rooms.map((r) => r.location).filter((l): l is string => !!l)),
+  ].sort();
+  const floors = [
+    ...new Set(
+      rooms.map((r) => r.floor).filter((f): f is number => f !== undefined),
+    ),
+  ].sort((a, b) => a - b);
+  // Build on the URL the browser already holds, not on this render's copy, so two quick edits
+  // (before the router re-renders) do not overwrite each other.
   function change(patch: Record<string, string>) {
-    const next = new URLSearchParams(params);
+    const next = new URLSearchParams(window.location.search);
     Object.entries(patch).forEach(([k, v]) => next.set(k, v));
     setParams(next, { replace: true });
   }
-  const valid = !!from && !!to && from <= to;
+  function periodControls(
+    label: string,
+    suffix: string,
+    keys: { period: string; from: string; to: string },
+    value: { period: string; from: string; to: string },
+  ) {
+    return (
+      <>
+        <label>
+          {label}
+          <select
+            aria-label={label}
+            value={value.period}
+            onChange={(e) => change({ [keys.period]: e.target.value })}
+          >
+            {calendars.flatMap((c) =>
+              (["first", "second"] as const)
+                .filter((t) => c.terms[t][0] && c.terms[t][1])
+                .map((t) => (
+                  <option key={`${c.year}:${t}`} value={`${c.year}:${t}`}>
+                    {t === "first" ? 1 : 2}.º cuatrimestre · {c.year}
+                  </option>
+                )),
+            )}
+            <option value="custom">Rango personalizado</option>
+          </select>
+        </label>
+        {value.period === "custom" && (
+          <>
+            <label>
+              Desde{suffix}
+              <input
+                type="date"
+                value={value.from}
+                onChange={(e) => change({ [keys.from]: e.target.value })}
+              />
+            </label>
+            <label>
+              Hasta{suffix}
+              <input
+                type="date"
+                value={value.to}
+                onChange={(e) => change({ [keys.to]: e.target.value })}
+              />
+            </label>
+          </>
+        )}
+      </>
+    );
+  }
+  const capacityValid =
+    !minCapacity || !maxCapacity || Number(maxCapacity) >= Number(minCapacity);
+  const valid =
+    !!from &&
+    !!to &&
+    from <= to &&
+    (mode !== "compare" ||
+      (!!second.from && !!second.to && second.from <= second.to));
+  const ready = valid && capacityValid;
   const query = useApiQuery<IndicatorSeries>(
-    valid
-      ? `/indicadores/serie?${new URLSearchParams({ from, to, room, type, view: mode })}`
+    ready
+      ? `/indicadores/serie?${new URLSearchParams({ from, to, ...roomFilters, view: mode === "day" ? "day" : "week" })}`
+      : null,
+  );
+  const compared = useApiQuery<IndicatorSeries>(
+    ready && mode === "compare"
+      ? `/indicadores/serie?${new URLSearchParams({ from: second.from, to: second.to, ...roomFilters, view: "week" })}`
       : null,
   );
   const m = query.data?.summary;
@@ -59,7 +162,12 @@ export function PersistedIndicators() {
       <div className="page-heading">
         <div>
           <p className="eyebrow">
-            INDICADORES · {mode === "day" ? "DÍA" : "SEMANA TÍPICA"}
+            INDICADORES ·{" "}
+            {mode === "day"
+              ? "DÍA"
+              : mode === "week"
+                ? "SEMANA TÍPICA"
+                : "COMPARACIÓN"}
           </p>
           <h1>Uso de aulas y horas pico</h1>
           <p>Programación de clases · De 07:00 a 23:00</p>
@@ -78,6 +186,12 @@ export function PersistedIndicators() {
         >
           Semana típica
         </Button>
+        <Button
+          variant={mode === "compare" ? "default" : "outline"}
+          onClick={() => change({ mode: "compare" })}
+        >
+          Comparar períodos
+        </Button>
       </div>
       <section
         className="panel metric-filters"
@@ -93,46 +207,20 @@ export function PersistedIndicators() {
             />
           </label>
         ) : (
-          <label>
-            Período
-            <select
-              aria-label="Período"
-              value={period}
-              onChange={(e) => change({ period: e.target.value })}
-            >
-              {calendars.flatMap((c) =>
-                (["first", "second"] as const)
-                  .filter((t) => c.terms[t][0] && c.terms[t][1])
-                  .map((t) => (
-                    <option key={`${c.year}:${t}`} value={`${c.year}:${t}`}>
-                      {t === "first" ? 1 : 2}.º cuatrimestre · {c.year}
-                    </option>
-                  )),
-              )}
-              <option value="custom">Rango personalizado</option>
-            </select>
-          </label>
+          periodControls(
+            mode === "compare" ? "Período A" : "Período",
+            "",
+            { period: "period", from: "from", to: "to" },
+            first,
+          )
         )}
-        {mode === "week" && period === "custom" && (
-          <>
-            <label>
-              Desde
-              <input
-                type="date"
-                value={from}
-                onChange={(e) => change({ from: e.target.value })}
-              />
-            </label>
-            <label>
-              Hasta
-              <input
-                type="date"
-                value={to}
-                onChange={(e) => change({ to: e.target.value })}
-              />
-            </label>
-          </>
-        )}
+        {mode === "compare" &&
+          periodControls(
+            "Período B",
+            " (B)",
+            { period: "periodB", from: "fromB", to: "toB" },
+            second,
+          )}
         <label>
           Aula
           <select
@@ -161,11 +249,113 @@ export function PersistedIndicators() {
             )}
           </select>
         </label>
+        <label>
+          Edificio
+          <select
+            aria-label="Edificio"
+            value={location}
+            onChange={(e) => change({ location: e.target.value })}
+          >
+            <option value="">Todos los edificios</option>
+            {locations.map((l) => (
+              <option key={l}>{l}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Piso
+          <select
+            aria-label="Piso"
+            value={floor}
+            onChange={(e) => change({ floor: e.target.value })}
+          >
+            <option value="">Todos los pisos</option>
+            {floors.map((f) => (
+              <option key={f} value={String(f)}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Capacidad mínima (personas)
+          <input
+            type="number"
+            min="0"
+            placeholder="Sin mínimo"
+            value={minCapacity}
+            onChange={(e) => change({ minCapacity: e.target.value })}
+          />
+        </label>
+        <label>
+          Capacidad máxima (personas)
+          <input
+            type="number"
+            min="0"
+            placeholder="Sin máximo"
+            value={maxCapacity}
+            onChange={(e) => change({ maxCapacity: e.target.value })}
+          />
+        </label>
+        <fieldset className="metric-resources">
+          <legend>Recursos del aula</legend>
+          {(Object.keys(resourceLabels) as Resource[]).map((r) => (
+            <label key={r}>
+              <input
+                type="checkbox"
+                checked={resources.includes(r)}
+                onChange={(e) =>
+                  change({
+                    resources: (e.target.checked
+                      ? [...resources, r]
+                      : resources.filter((x) => x !== r)
+                    ).join(","),
+                  })
+                }
+              />
+              {resourceLabels[r]}
+            </label>
+          ))}
+        </fieldset>
       </section>
       {!valid ? (
         <p role="alert">
           Elegí una fecha o rango válido (inicio anterior o igual al fin).
         </p>
+      ) : !capacityValid ? (
+        <p role="alert">
+          La capacidad máxima no puede ser menor que la mínima.
+        </p>
+      ) : mode === "compare" ? (
+        query.error || compared.error ? (
+          <section className="panel" role="alert">
+            <h2>No pudimos consultar los indicadores</h2>
+            <p>{query.error || compared.error}</p>
+            <Button
+              onClick={() => {
+                query.retry();
+                compared.retry();
+              }}
+            >
+              Reintentar consulta
+            </Button>
+          </section>
+        ) : !query.data || !compared.data ? (
+          <p role="status">Consultando indicadores…</p>
+        ) : (
+          <MetricComparison
+            a={{
+              label: first.label,
+              range: `${first.from} — ${first.to}`,
+              data: query.data,
+            }}
+            b={{
+              label: second.label,
+              range: `${second.from} — ${second.to}`,
+              data: compared.data,
+            }}
+          />
+        )
       ) : query.error ? (
         <section className="panel" role="alert">
           <h2>No pudimos consultar los indicadores</h2>
@@ -190,6 +380,12 @@ export function PersistedIndicators() {
               anterior al registro. La ocupación no se calcula.
             </p>
           )}
+          {m.eligible && !m.unknownCoverage && !m.availableHours && (
+            <p className="closed-notice">
+              <strong>Sin horas habilitadas</strong>. La ocupación no se calcula
+              para los filtros elegidos.
+            </p>
+          )}
           {m.forecast && (
             <p className="muted">
               Previsión: las fechas futuras proyectan el último estado conocido
@@ -205,22 +401,19 @@ export function PersistedIndicators() {
                 <small>Horas-aula</small>
               </div>
             </article>
-            <article className="panel metric-card">
-              <ChartPie />
-              <div>
-                <span>Ocupación</span>
-                <strong>
-                  {m.occupancy === null ? "—" : `${number(m.occupancy)} %`}
-                </strong>
-                <small>
-                  {m.unknownCoverage
-                    ? "Cobertura desconocida"
-                    : !m.availableHours
-                      ? "Sin horas habilitadas"
-                      : `${number(m.hours)} / ${number(m.availableHours)} h habilitadas`}
-                </small>
-              </div>
-            </article>
+            {/* Without a computable occupancy the card is left out; the notice above says why. */}
+            {m.occupancy !== null && (
+              <article className="panel metric-card">
+                <ChartPie />
+                <div>
+                  <span>Ocupación</span>
+                  <strong>{number(m.occupancy)} %</strong>
+                  <small>
+                    {number(m.hours)} / {number(m.availableHours)} h habilitadas
+                  </small>
+                </div>
+              </article>
+            )}
             <article className="panel metric-card">
               <CalendarDays />
               <div>
@@ -231,7 +424,10 @@ export function PersistedIndicators() {
             </article>
           </section>
           {weekly && (
-            <MetricWeek key={`${from}:${to}:${room}:${type}`} data={weekly} />
+            <MetricWeek
+              key={`${from}:${to}:${new URLSearchParams(roomFilters)}`}
+              data={weekly}
+            />
           )}
           {daily && (
             <>

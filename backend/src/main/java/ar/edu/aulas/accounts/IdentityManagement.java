@@ -87,7 +87,10 @@ public class IdentityManagement {
                 // Re-read Auth before retrying the same desired email; the pending operation
                 // excludes competing identity changes. Repeating this assignment is idempotent.
                 db.update("update aulas.operacion_identidad set estado='ENVIADA' where id=? and estado in ('PREPARADA','ENVIADA')",operation.id());
-                remote=auth.changeEmail(identity,email);
+                try {remote=auth.changeEmail(identity,email);}
+                // A definitive Auth rejection (invalid or taken e-mail) applied nothing: close the operation
+                // so it does not keep the profile and later e-mail changes blocked. Uncertain results stay pending.
+                catch(DomainError rejected){state(operation.id(),"RECHAZADA");throw rejected;}
             }
             if(!identity.equals(remote.id()) || !email.equalsIgnoreCase(remote.email())) throw new IllegalStateException();
             state(operation.id(),"CONFIRMADA");

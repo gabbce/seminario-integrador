@@ -111,4 +111,18 @@ class AccountManagementTests {
   assertThatThrownBy(()->identities.email(admin,target,email)).isInstanceOf(DomainError.class);
   assertThat(identities.email(admin,target,email).email()).isEqualTo("nuevo@test.local");
  }
+ @Test void takenEmailClosesTheChangeAndKeepsTheProfileEditable() {
+  long admin=account("ADMINISTRADOR"),target=account("BEDEL");
+  UUID authId=db.queryForObject("select supabase_auth_id from aulas.usuario where id_usuario=?",UUID.class,target);
+  org.mockito.Mockito.when(auth.findById(authId)).thenReturn(java.util.Optional.of(new ar.edu.aulas.accounts.AuthAdmin.Identity(authId,"anterior@test.local",null)));
+  org.mockito.Mockito.when(auth.changeEmail(authId,"ocupado@test.local")).thenThrow(DomainError.conflict("El correo ya está registrado en Supabase Auth."));
+  org.mockito.Mockito.when(auth.changeEmail(authId,"libre@test.local")).thenReturn(new ar.edu.aulas.accounts.AuthAdmin.Identity(authId,"libre@test.local",null));
+  var taken=new ar.edu.aulas.accounts.IdentityManagement.Email(UUID.randomUUID(),0L,"ocupado@test.local");
+  assertThatThrownBy(()->identities.email(admin,target,taken)).isInstanceOf(DomainError.class).hasMessageContaining("ya está registrado");
+  assertThat(db.queryForObject("select estado from aulas.operacion_identidad where id=?",String.class,taken.operationId())).isEqualTo("RECHAZADA");
+  // The rejected change no longer blocks the profile nor a corrected e-mail.
+  assertThat(accounts.edit(admin,target,edit(0,"Bedel",true)).version()).isEqualTo(1);
+  var corrected=new ar.edu.aulas.accounts.IdentityManagement.Email(UUID.randomUUID(),1L,"libre@test.local");
+  assertThat(identities.email(admin,target,corrected).email()).isEqualTo("libre@test.local");
+ }
 }

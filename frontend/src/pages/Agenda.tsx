@@ -5,7 +5,7 @@ import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
 import { weekDates, closedDay, roomDaySlots, roomDayTypes } from "../agenda";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { minutes, dateLabel, type Booking } from "../domain";
@@ -63,6 +63,10 @@ export function Agenda({
     ? { state: { returnTo: location.pathname + location.search } }
     : undefined;
   const go = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 720;
+  }, [view]);
   const shown = rooms.filter(
     (r) =>
       (!room || r.id === room) &&
@@ -242,28 +246,25 @@ export function Agenda({
             </p>
           )}
           <p className="agenda-scroll-hint">
-            Cada fila es un aula y las horas van de 07:00 a 23:00. Elegí una
-            clase para ver su detalle.
+            Desplazá la agenda horizontalmente para ver todas las aulas y
+            verticalmente para recorrer los horarios.
           </p>
           <div
             role="region"
             aria-label="Agenda diaria por aulas"
             tabIndex={0}
-            className={`agenda-desktop agenda-timeline ${closedDay(date, calendar) ? "closed-day" : ""}`}
+            className={`agenda-desktop ${closedDay(date, calendar) ? "closed-day" : ""}`}
+            ref={scrollRef}
           >
-            <div className="timeline-row timeline-header" aria-hidden="true">
-              <div className="room-head">Aula</div>
-              <div className="timeline-hours">
-                {Array.from({ length: 16 }, (_, i) => (
-                  <span key={i} style={{ left: `${(i / 16) * 100}%` }}>
-                    {String(i + 7).padStart(2, "0")}:00
-                  </span>
-                ))}
-              </div>
-            </div>
-            {shown.map((r) => (
-              <div className="timeline-row" key={r.id}>
-                <div className="room-head">
+            <div
+              className="agenda-grid"
+              style={{
+                gridTemplateColumns: `76px repeat(${shown.length}, minmax(190px, 1fr))`,
+              }}
+            >
+              <div className="room-head">Hora</div>
+              {shown.map((r) => (
+                <div className="room-head" key={r.id}>
                   <strong>
                     {r.id.startsWith("Lab") ? r.id : `Aula ${r.id}`}
                   </strong>
@@ -272,8 +273,16 @@ export function Agenda({
                     {persisted ? roomDayTypes(r, date).join(" / ") : r.type}
                   </small>
                 </div>
+              ))}
+              <div className="time-column">
+                {Array.from({ length: 16 }, (_, i) => (
+                  <div key={i}>{String(i + 7).padStart(2, "0")}:00</div>
+                ))}
+              </div>
+              {shown.map((r) => (
                 <div
-                  className={`timeline-track ${!persisted && r.state && r.state !== "Habilitada" ? "unavailable-room" : ""}`}
+                  className={`room-column ${!persisted && r.state && r.state !== "Habilitada" ? "unavailable-room" : ""}`}
+                  key={r.id}
                 >
                   {persisted &&
                     roomDaySlots(r, date).map(
@@ -282,10 +291,7 @@ export function Agenda({
                           <div
                             key={i}
                             className="agenda-unavailable-slot"
-                            style={{
-                              left: `${(i / 32) * 100}%`,
-                              width: `${100 / 32}%`,
-                            }}
+                            style={{ top: i * 60, height: 60 }}
                             title={`${start}–${end} · ${state}`}
                           >
                             <span>{state}</span>
@@ -295,33 +301,33 @@ export function Agenda({
                     )}
                   {entries
                     .filter((x) => x.o.room === r.id)
-                    .map(({ b, o }) => {
-                      const summary = `${o.start}–${o.end} · ${b.subject} · ${b.course} · ${b.teacher} · ${b.students} alumnos`;
-                      return (
-                        <button
-                          className={`booking ${persisted ? b.type : r.type}`}
-                          key={o.id ?? `${b.id}-${o.date}-${o.start}`}
-                          style={{
-                            left: `${((minutes(o.start) - 420) / 960) * 100}%`,
-                            width: `${((minutes(o.end) - minutes(o.start)) / 960) * 100}%`,
-                          }}
-                          title={summary}
-                          aria-label={summary}
-                          onClick={() =>
-                            go(
-                              `/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`,
-                              detailState,
-                            )
-                          }
-                        >
-                          <span>{o.start}</span>
-                          <strong>{b.subject}</strong>
-                        </button>
-                      );
-                    })}
+                    .map(({ b, o }) => (
+                      <button
+                        className={`booking ${persisted ? b.type : r.type}`}
+                        key={o.id ?? `${b.id}-${o.date}-${o.start}`}
+                        style={{
+                          top: (minutes(o.start) - 420) * 2,
+                          height: (minutes(o.end) - minutes(o.start)) * 2,
+                        }}
+                        onClick={() =>
+                          go(
+                            `/reservas/${b.id}?fecha=${o.date}&hora=${o.start}`,
+                            detailState,
+                          )
+                        }
+                      >
+                        <span>
+                          {o.start}–{o.end}
+                        </span>
+                        <strong>{b.subject}</strong>
+                        <span>{b.course}</span>
+                        <span>{b.teacher}</span>
+                        <span>{b.students} alumnos</span>
+                      </button>
+                    ))}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           <div className="agenda-mobile">
             {entries.length ? (

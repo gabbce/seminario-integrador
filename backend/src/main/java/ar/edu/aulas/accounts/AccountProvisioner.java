@@ -35,14 +35,7 @@ public class AccountProvisioner {
         // Network calls hold no JDBC transaction/connection. Auth enforces email uniqueness.
         var identity=op.authId()==null ? auth.findByEmail(desired.email()) : auth.findById(op.authId());
         if ((op.completed() || op.authId()!=null) && identity.isEmpty()) throw new IllegalStateException("La identidad preparada ya no existe; requiere revisión");
-        var user=identity.orElseGet(()->{
-            try {return auth.create(desired,password,op.id());}
-            catch(ar.edu.aulas.api.DomainError rejected) {
-                // Auth refused the data, so no identity exists: free the e-mail for a corrected attempt.
-                if(rejected.status==400) db.update("delete from aulas.preparacion_cuenta where id=? and auth_id is null and not completada",op.id());
-                throw rejected;
-            }
-        });
+        var user=identity.orElseGet(()->create(op,desired,password));
         if (!op.id().toString().equals(user.operationId()) || !desired.email().equalsIgnoreCase(user.email())
             || (op.authId()!=null && !op.authId().equals(user.id())))
             throw new IllegalStateException("Identidad existente ajena o incompatible; no se vinculó ni modificó");
@@ -50,7 +43,7 @@ public class AccountProvisioner {
         transactions.executeWithoutResult(status -> {
             var current=operation(desired.email(),true);
             if (current.authId()!=null && !current.authId().equals(user.id())) throw new IllegalStateException("La referencia Auth cambió; requiere revisión");
-            db.update("update aulas.preparacion_cuenta set auth_id=? where id=?",user.id(),op.id());
+            db.update("update aulas.preparacion_cuenta set auth_id=?,envio=null,envio_desde=null where id=?",user.id(),op.id());
         });
         return transactions.execute(status -> {
             var current=operation(desired.email(),true);
@@ -72,5 +65,36 @@ public class AccountProvisioner {
             db.update("update aulas.preparacion_cuenta set completada=true where id=?",op.id());
             return user.id();
         });
+    }
+    /** Only one attempt sends the Auth create of a preparation, so a definitive rejection can free the e-mail
+     *  without discarding an identity that a concurrent attempt is still creating. */
+    private AuthAdmin.Identity create(Operation op,AccountSpec desired,String password) {
+        UUID attempt=UUID.randomUUID();
+        // An abandoned claim (process stopped mid-request) expires well after the HTTP timeouts.
+        if (db.update("""
+            update aulas.preparacion_cuenta set envio=?,envio_desde=current_timestamp
+            where id=? and auth_id is null and not completada
+            and (envio is null or envio_desde < current_timestamp - interval '2 minutes')
+            """,attempt,op.id())!=1)
+            throw new IllegalStateException("otra solicitud está creando esta cuenta en este momento");
+        try {return auth.create(desired,password,op.id());}
+        catch(ar.edu.aulas.api.DomainError rejected) {
+            // Auth refused the data and no other attempt is sending: free the e-mail for a corrected attempt,
+            // unless Auth already holds an identity for it (for example, the late result of an earlier timeout).
+            if (rejected.status==400 && noIdentity(desired.email()))
+                db.update("delete from aulas.preparacion_cuenta where id=? and envio=? and auth_id is null and not completada",op.id(),attempt);
+            else release(op.id(),attempt);
+            throw rejected;
+        } catch(RuntimeException uncertain) {
+            // The identity may exist: keep the preparation so a retry checks Auth before creating again.
+            release(op.id(),attempt);
+            throw uncertain;
+        }
+    }
+    private boolean noIdentity(String email) {
+        try { return auth.findByEmail(email).isEmpty(); } catch(RuntimeException unknown) { return false; }
+    }
+    private void release(UUID id,UUID attempt) {
+        db.update("update aulas.preparacion_cuenta set envio=null,envio_desde=null where id=? and envio=?",id,attempt);
     }
 }

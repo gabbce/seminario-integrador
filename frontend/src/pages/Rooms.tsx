@@ -27,7 +27,6 @@ export function Rooms({ role }: { role: Role }) {
   const [location, setLocation] = useState("");
   const [floor, setFloor] = useState("");
   const [maxCapacity, setMaxCapacity] = useState("");
-  const [computers, setComputers] = useState("");
   const [selected, setSelected] = useState<Room>();
   const [originalId, setOriginalId] = useState<string>();
   const [error, setError] = useState("");
@@ -47,7 +46,6 @@ export function Rooms({ role }: { role: Role }) {
     const filters = new URLSearchParams({ query, type, state, board, resources: resources.join(","), capacity: String(capacity), location, sort: order, descending: String(descending), page: String(page), size: String(pageSize) });
     if (floor !== "") filters.set("floor", floor);
     if (maxCapacity !== "") filters.set("maxCapacity", maxCapacity);
-    if (computers !== "") filters.set("computers", computers);
     api<RoomPage>(
       `/aulas?${filters}`,
       { signal: controller.signal },
@@ -74,7 +72,6 @@ export function Rooms({ role }: { role: Role }) {
     location,
     floor,
     maxCapacity,
-    computers,
     capacity,
     order,
     descending,
@@ -101,9 +98,7 @@ export function Rooms({ role }: { role: Role }) {
   ].sort((a, b) => a - b);
   const filtered =
     capacity > 0 ||
-    [query, type, state, board, location, floor, maxCapacity, computers].some(
-      Boolean,
-    ) ||
+    [query, type, state, board, location, floor, maxCapacity].some(Boolean) ||
     resources.length > 0;
   function refine(apply: () => void) {
     apply();
@@ -119,7 +114,6 @@ export function Rooms({ role }: { role: Role }) {
     setFloor("");
     setCapacity(0);
     setMaxCapacity("");
-    setComputers("");
     setPage(1);
   }
   function edit(room: Room | undefined) {
@@ -291,16 +285,6 @@ export function Rooms({ role }: { role: Role }) {
               placeholder="Sin máximo"
               value={maxCapacity}
               onChange={(e) => refine(() => setMaxCapacity(e.target.value))}
-            />
-          </label>
-          <label>
-            PC mínimas (laboratorios)
-            <input
-              type="number"
-              min="0"
-              placeholder="Cualquiera"
-              value={computers}
-              onChange={(e) => refine(() => setComputers(e.target.value))}
             />
           </label>
         </div>

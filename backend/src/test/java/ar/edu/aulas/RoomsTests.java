@@ -43,15 +43,13 @@ class RoomsTests {
   rooms.save(bedel,null,new RoomsService.Room(null,tag+"-lab",null,"Laboratorio",24,"Habilitada",tag+" Norte",2,"Tiza",List.of("fans","air"),12,null));
   rooms.save(bedel,null,new RoomsService.Room(null,tag+"-multi",null,"Multimedios",60,"Habilitada",tag+" Sur",1,"Fibrón",List.of("fans","projector","computer"),null,null));
   java.util.function.Function<RoomsService.Filters,List<String>> ids=f->rooms.list(f,"id",false,1,20).items().stream().map(RoomsService.Room::id).toList();
-  assertThat(ids.apply(new RoomsService.Filters(tag+" Sur","","","",List.of(),0,null,"",null,0))).containsExactly(tag+"-multi");
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),0,null,tag+" Norte",2,0))).containsExactly(tag+"-lab");
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),0,null,tag+" Norte",1,0))).isEmpty();
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),20,30,"",null,0))).containsExactly(tag+"-lab");
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of("projector","computer"),0,null,"",null,0))).containsExactly(tag+"-multi");
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of("air","projector"),0,null,"",null,0))).isEmpty();
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),0,null,"",null,10))).containsExactly(tag+"-lab");
-  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),0,null,"",null,13))).isEmpty();
-  assertThatThrownBy(()->rooms.list(new RoomsService.Filters(tag,"","","",List.of(),30,20,"",null,0),"id",false,1,20)).isInstanceOf(DomainError.class);
+  assertThat(ids.apply(new RoomsService.Filters(tag+" Sur","","","",List.of(),0,null,"",null))).containsExactly(tag+"-multi");
+  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),0,null,tag+" Norte",2))).containsExactly(tag+"-lab");
+  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),0,null,tag+" Norte",1))).isEmpty();
+  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of(),20,30,"",null))).containsExactly(tag+"-lab");
+  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of("projector","computer"),0,null,"",null))).containsExactly(tag+"-multi");
+  assertThat(ids.apply(new RoomsService.Filters(tag,"","","",List.of("air","projector"),0,null,"",null))).isEmpty();
+  assertThatThrownBy(()->rooms.list(new RoomsService.Filters(tag,"","","",List.of(),30,20,"",null),"id",false,1,20)).isInstanceOf(DomainError.class);
  }
  @Test void batchHistoriesKeepEachRoomChronologyAcrossDetailListAndReferences() {
   long bedel=actor("BEDEL");String prefix="Historial-"+UUID.randomUUID();

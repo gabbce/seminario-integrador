@@ -99,10 +99,11 @@ export function Users() {
         ["IDENTITY_INCOMPLETE", "AUDIT_INCOMPLETE"].includes(e.code ?? "")
       )
         setRecovering(true);
+      // A rejected operation is closed (a taken e-mail answers 409): the next attempt needs a new UUID.
       if (
         e instanceof ApiError &&
         ((e.status === 400 && mode !== "create") ||
-          (e.status === 409 && mode === "create") ||
+          e.status === 409 ||
           e.code === "PASSWORD_UNCERTAIN")
       )
         setOperationId(crypto.randomUUID());

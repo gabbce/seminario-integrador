@@ -124,6 +124,17 @@ La revisión del PR encontró dos regresiones de cuentas, un filtro fuera de alc
 
 Suites después de las correcciones: backend **183/183** (PostgreSQL 17.6 con Testcontainers), unitarias **66/66** y simuladas **108/110**. Fallan el PDF de Firefox (T-04) y `reservations.spec` «sin aulas compatibles», que pasó 3/3 al repetirla sola: es intermitente cuando la suite del backend corre en paralelo. `lint` y `tsc` OK.
 
+### Ampliación pedida el 06/10
+
+| Pedido | Cambio | Verificación |
+|---|---|---|
+|Filtrar la agenda por curso y por docente|DA-86: `GET /api/consultas/agenda` acepta `courseId` (materia, comisión y año) y `teacher` (docente de la lista fija), combinables con fecha, tipo y aula. La agenda Día, la Semana y la lista móvil muestran solo esas clases y solo las aulas donde están, con el aviso «Mostrando solo las clases de …. Los espacios vacíos no indican aulas libres». Se actualizaron DA-86, UI-03, CU-28, el capítulo 08 y `consultas.openapi.yaml`.|`ConsultationTests.agendaNarrowsToACourseOrTeacher`; `agenda-filters.spec`.|
+|Sin desplazamiento horizontal en la grilla diaria|La grilla muestra las aulas que entran a lo ancho (columna mínima de 190 px) y pagina el resto con «Aulas anteriores» y «Aulas siguientes». Indica el rango («Aulas 7–12 de 12») y cuántas clases quedan en otras páginas, como pide `14-pantallas-y-navegacion.md:107`. La página de aulas queda en la URL (`aulas=`) y vuelve a la primera al cambiar fecha o filtros. Las filas pasan a 1 px por minuto (30 px por módulo, la mitad de alto). Cada bloque reparte los mismos datos según su duración: una línea si dura 30 min, tres si dura 1 h y cuatro si dura más, con el resumen completo en el tooltip.|`agenda-filters.spec` a 1366 px: 6 aulas por página y `scrollWidth` ≤ `clientWidth`; a 390 px, lista móvil sin desborde.|
+
+Hay que repetir F03 (agenda) con estos cambios. El spec de prototipo `e2e/prototype/agenda-many.spec.ts`, que esperaba desplazamiento horizontal, no corre en ninguna configuración vigente y no se actualizó.
+
+Suites después de la ampliación: backend **184/184**, unitarias **66/66** y simuladas **110/111** (solo falla el PDF de Firefox, T-04). `lint`, `tsc` y `build` OK.
+
 ## Decisión por entrega
 
 | Entrega | Decisión explícita del usuario | Fecha/evidencia | Incidencias pendientes |

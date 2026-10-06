@@ -287,6 +287,7 @@ export default function App({
                         <Agenda
                           bookings={[]}
                           persisted
+                          courses={courses}
                           date={agendaDate}
                           setDate={setAgendaDate}
                           operator={role !== "Docente"}

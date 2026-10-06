@@ -95,6 +95,7 @@ Registro de las 85 decisiones vigentes de la especificación v1.0.
 | DA-83 | Tipo de aula y equipamiento solicitados quedan fijos cuando comienza la serie, igual que docente, curso y alumnos. | Si cambian, cancelar futuras afectadas y crear otra reserva. Reasignaciones de aula/horario deben seguir cumpliendo el pedido original. |
 | DA-84 | Reprogramar una ocurrencia periódica solo dentro de los períodos asignados. | Para recuperar fuera, cancelar la original y registrar una esporádica, respetando año, apertura, feriados y disponibilidad. |
 | DA-85 | La ocupación se calcula por disponibilidad del espacio: fechas, apertura institucional, feriados e HistorialAula. El estado administrativo del año controla operaciones, no altera estadísticas. Solo cuentan módulos completos disponibles de 30 minutos. | Precisa los «cierres» de DA-39; no requiere historial de estados del año. Habilitar un aula a las 10:10 aporta disponibilidad desde las 10:30. |
+| DA-86 | La agenda diaria y semanal agrega filtros por curso (materia, comisión y año) y por docente de la lista fija, combinables con fecha, tipo y aula. | Ampliación pedida el 06/10/2026 para consultar dónde y cuándo cursa un curso o dicta un docente. Con el filtro activo la agenda avisa que muestra solo esas clases y que un espacio vacío no indica un aula libre. El nombre del docente ya es visible para los tres roles (DA-35). No cambia listados ni indicadores. |
 
 ## Cierre de decisiones relevadas
 

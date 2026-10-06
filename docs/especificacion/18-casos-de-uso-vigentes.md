@@ -230,8 +230,8 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-28; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Todos.
-- **Flujo y resultado:** Elegir día/semana, fecha, tipo y aula; mostrar agenda con datos autorizados. Roles operativos pueden abrir modificación/cancelación.
-- **Controles y alternativas:** Docente solo consulta y usa móvil; canceladas no ocupan. Franjas cerradas/no reservables no se muestran como disponibilidad por estar vacías.
+- **Flujo y resultado:** Elegir día/semana, fecha, tipo y aula, y opcionalmente curso y docente (DA-86); mostrar agenda con datos autorizados. Roles operativos pueden abrir modificación/cancelación.
+- **Controles y alternativas:** Docente solo consulta y usa móvil; canceladas no ocupan. Franjas cerradas/no reservables no se muestran como disponibilidad por estar vacías. Con filtro de curso o docente, avisar que los espacios vacíos no indican aulas libres. Si las aulas no entran a lo ancho, paginar por aulas e indicarlo, sin desplazamiento horizontal.
 - **Interfaz:** UI-03. **Aceptación:** CA-C04/05/06/07.
 
 ## CU-29 — Visualizar indicadores

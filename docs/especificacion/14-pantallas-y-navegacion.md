@@ -35,7 +35,7 @@ No incluir panel de auditoría, gestión académica, notificaciones internas, re
 | ID | Pantalla | Contenido y acciones | Trazabilidad |
 |---|---|---|---|
 | UI-01 | Ingreso | Email, contraseña y errores de Auth; sin registro público. | CU-01, DA-61/62 |
-| UI-03 | Agenda | Día/semana, fecha, tipo y aula; bloques de ocurrencias no canceladas con curso/comisión/docente/horario. | CU-28, DA-34/35/36 |
+| UI-03 | Agenda | Día/semana, fecha, tipo, aula, curso y docente; bloques de ocurrencias no canceladas con curso/comisión/docente/horario. La grilla diaria muestra las aulas que entran a lo ancho y pagina el resto, indicando el rango de aulas y las clases en otras páginas. | CU-28, DA-34/35/36/86 |
 | UI-04 | Disponibilidad | Tipo, alumnos previstos, características, fecha/período y horarios; resultados por fecha esporádica o patrón periódico, con disponibilidad completa y conflictos informativos. | CU-18/19/20, DA-24 a DA-30 |
 | UI-05 | Nueva reserva | Flujo guiado descrito debajo, sin borrador persistente. | CU-21/22/23 |
 | UI-06 | Listados | Pestañas por día y por curso/año; filtros, estado de ocurrencia, paginación y acceso a detalle. | CU-26/27, DA-36 |

@@ -14,7 +14,7 @@ No se envían emails al docente ni a otros usuarios. El email guardado es un dat
 
 ## Agenda de ocupación
 
-Administrador, Bedel y Docente acceden a una agenda diaria o semanal, con selección de fecha y filtros por tipo y aula. Mostrar curso, comisión, nombre del docente, aula y horario de cada ocurrencia vigente.
+Administrador, Bedel y Docente acceden a una agenda diaria o semanal, con selección de fecha y filtros por tipo, aula, curso y docente (DA-86). Mostrar curso, comisión, nombre del docente, aula y horario de cada ocurrencia vigente.
 
 Docente solo consulta. Bedel y Administrador pueden abrir desde la agenda las operaciones de modificación y cancelación. Esto no modifica las reglas temporales: las ocurrencias ya iniciadas no se pueden editar ni cancelar.
 

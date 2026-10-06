@@ -198,4 +198,4 @@ Administradores y Bedeles pueden consultar ocupación, horas reservadas, demanda
 
 ## Documentos complementarios
 
-Las fuentes originales se conservan como material de referencia; las decisiones vigentes se describen en DA-01 a DA-85. El documento 18 contiene los casos vigentes y sus criterios de aceptación. Este catálogo conserva la numeración RF/CU; el comportamiento de la app es el vigente aquí y en el documento 18.
+Las fuentes originales se conservan como material de referencia; las decisiones vigentes se describen en DA-01 a DA-86. El documento 18 contiene los casos vigentes y sus criterios de aceptación. Este catálogo conserva la numeración RF/CU; el comportamiento de la app es el vigente aquí y en el documento 18.

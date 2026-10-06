@@ -224,26 +224,31 @@ input[readonly] {
 .room-head small {
   font-size: 12px;
 }
+/* One pixel per minute (Agenda.tsx PX_PER_MINUTE): 30 px per module, 60 px per hour, 07–23 h. */
 .room-column {
   position: relative;
-  height: 1920px;
+  height: 960px;
   border-right: 1px solid #d8dcd5;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0,
+    transparent 29px,
+    #f3f4f0 29px,
+    #f3f4f0 30px,
+    transparent 30px,
     transparent 59px,
-    #eff0ec 59px,
-    #eff0ec 60px
+    #e3e6df 59px,
+    #e3e6df 60px
   );
 }
 .time-column {
   background: #fffdf9;
 }
 .time-column div {
-  height: 120px;
-  border-bottom: 1px solid #eff0ec;
-  padding: 8px;
-  font-size: 14px;
+  height: 60px;
+  border-bottom: 1px solid #e3e6df;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 .booking {
   position: absolute;
@@ -1617,4 +1622,51 @@ body {
   border-radius: 999px;
   background: #f5f1e9;
   font-size: 12px;
+}
+
+/* Day agenda pages its rooms instead of scrolling sideways (screens 14: page by rooms and say so). */
+.agenda-room-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.agenda-room-pager span {
+  font-size: 14px;
+  color: #3f4a43;
+  text-align: center;
+}
+@media (max-width: 800px) {
+  .agenda-room-pager {
+    display: none;
+  }
+}
+
+/* Compact day-grid blocks: the same data in fewer lines so a 30-minute module (30 px) stays readable. */
+.agenda-grid .booking {
+  left: 4px;
+  right: 4px;
+  padding: 3px 8px;
+  gap: 3px;
+  line-height: 1.2;
+  border-radius: 6px;
+}
+.agenda-grid .booking strong {
+  font-size: 13.5px;
+}
+.agenda-grid .booking span {
+  font-size: 11.5px;
+}
+.agenda-grid .booking > span,
+.agenda-grid .booking > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agenda-grid .booking-short {
+  justify-content: center;
+}
+.agenda-grid .booking-short strong {
+  margin-right: 4px;
 }

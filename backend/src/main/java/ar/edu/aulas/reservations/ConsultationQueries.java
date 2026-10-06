@@ -27,14 +27,21 @@ public class ConsultationQueries {
     private static final String TYPE="coalesce(h.tipo,'Sin historia')";
     private static final String SELECT="select d.id_detalle,r.id_reserva,r.id_curso,m.id_materia,m.nombre,c.comision,y.anio_calendario,r.nombre_docente,r.apellido_docente,r.cantidad_alumnos,d.fecha,d.hora_inicio,d.cantidad_modulos,a.identificador,"+TYPE+" as tipo,d.estado ";
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
-    public Result agenda(LocalDate date,String view,String room,String type) {
-        if(date==null || !Set.of("day","week").contains(view)) throw invalid();
+    public Result agenda(LocalDate date,String view,String room,String type) {return agenda(date,view,room,type,null,"");}
+    /** Course (subject, commission and year) and teacher narrow the agenda to the classes of that course or teacher (DA-86). */
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public Result agenda(LocalDate date,String view,String room,String type,Long courseId,String teacher) {
+        if(date==null || !Set.of("day","week").contains(view) || (courseId!=null && courseId<1) || teacher==null) throw invalid();
         LocalDate from=view.equals("week")?date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)):date;
         LocalDate to=view.equals("week")?from.plusDays(4):date;
         var args=new ArrayList<Object>(List.of(from,to));
         String where=" where d.fecha between ? and ? and d.estado<>'CANCELADA'"+filters(room,type,args);
+        if(courseId!=null) {where+=" and r.id_curso=?";args.add(courseId);}
+        String who=teacher.strip();
+        if(!who.isEmpty()) {where+=" and r.docente_externo_id=?";args.add(who);}
         var rows=read(where,"d.fecha,d.hora_inicio,a.identificador,d.id_detalle",args,null,null);
-        return new Result(rows,rows.size(),0,0,Map.of("view",view,"from",from.toString(),"to",to.toString(),"room",room,"type",type,"status","active"));
+        return new Result(rows,rows.size(),0,0,Map.of("view",view,"from",from.toString(),"to",to.toString(),"room",room,"type",type,"status","active",
+            "courseId",courseId==null?"":courseId.toString(),"teacher",who));
     }
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Result listing(String mode,LocalDate date,Long courseId,Integer year,String room,String type,String status,int page,int size) {

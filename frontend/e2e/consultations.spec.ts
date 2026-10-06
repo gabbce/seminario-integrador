@@ -132,12 +132,12 @@ test("consulta paginada, filtros, retorno y errores; sin descarga global", async
   await expect(page.getByText("121 resultados")).toBeVisible();
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.screenshot({
-    path: "/tmp/i05-listado-desktop.png",
+    path: "../artifacts/qa/screens/i05-listado-desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
-    path: "/tmp/i05-listado-mobile.png",
+    path: "../artifacts/qa/screens/i05-listado-mobile.png",
     fullPage: true,
   });
   expect(globals).toBe(0);
@@ -236,7 +236,7 @@ test("agenda conserva tipo histórico, franjas y fecha al abrir día desde seman
   await expect(page.getByLabel("Fecha de agenda")).toHaveValue("2027-03-03");
   await expect(page.locator(".eyebrow").first()).toHaveText("AGENDA DIARIA");
   await page.screenshot({
-    path: "/tmp/i05-agenda-historical.png",
+    path: "../artifacts/qa/screens/i05-agenda-historical.png",
     fullPage: true,
   });
 });

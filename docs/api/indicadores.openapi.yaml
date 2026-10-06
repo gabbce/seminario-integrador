@@ -10,6 +10,11 @@ paths:
         - {name: to, in: query, required: true, schema: {type: string, format: date}}
         - {name: room, in: query, schema: {type: string}, description: Identificador visible, vacío todas}
         - {name: type, in: query, schema: {type: string, enum: ['', General, Multimedios, Laboratorio, Sin historia]}, description: Tipo al inicio del módulo, no tipo actual}
+        - {name: location, in: query, schema: {type: string}, description: "Edificio actual del aula. DA-87"}
+        - {name: floor, in: query, schema: {type: integer}, description: "Piso actual del aula. DA-87"}
+        - {name: minCapacity, in: query, schema: {type: integer, minimum: 0, default: 0}, description: "Capacidad actual mínima, en personas. DA-87"}
+        - {name: maxCapacity, in: query, schema: {type: integer, minimum: 0}, description: "Capacidad actual máxima; no menor que la mínima. DA-87"}
+        - {name: resources, in: query, schema: {type: string}, description: "Recursos requeridos separados por coma: fans, air, projector, television, computer. Nunca cantidad de PC (DA-30). DA-87"}
       responses:
         '200':
           description: Cifras exactas de módulos; percentage sin redondeo, null si no puede calcularse. forecast indica rango con fechas futuras según reloj institucional.
@@ -29,6 +34,11 @@ paths:
         - {name: view, in: query, schema: {type: string, enum: [day, week], default: day}, description: day exige from=to}
         - {name: room, in: query, schema: {type: string}}
         - {name: type, in: query, schema: {type: string, enum: ['', General, Multimedios, Laboratorio, Sin historia]}}
+        - {name: location, in: query, schema: {type: string}, description: "Edificio actual del aula. DA-87"}
+        - {name: floor, in: query, schema: {type: integer}, description: "Piso actual del aula. DA-87"}
+        - {name: minCapacity, in: query, schema: {type: integer, minimum: 0, default: 0}, description: "Capacidad actual mínima, en personas. DA-87"}
+        - {name: maxCapacity, in: query, schema: {type: integer, minimum: 0}, description: "Capacidad actual máxima; no menor que la mínima. DA-87"}
+        - {name: resources, in: query, schema: {type: string}, description: "Recursos requeridos separados por coma: fans, air, projector, television, computer. Nunca cantidad de PC (DA-30). DA-87"}
       responses:
         '200':
           description: Resumen y vista solicitada; la otra vista es null.

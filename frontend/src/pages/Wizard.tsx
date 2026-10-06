@@ -757,6 +757,9 @@ export function Wizard({
                     ? "No pudimos consultar la disponibilidad"
                     : "Consultando disponibilidad…"}
                 </h2>
+                {response.status === "error" && response.error && (
+                  <p>{response.error}</p>
+                )}
                 <p>La preparación se conserva en esta pantalla.</p>
                 {response.status === "error" && (
                   <Button type="button" onClick={response.retry}>

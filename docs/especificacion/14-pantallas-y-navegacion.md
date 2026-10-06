@@ -35,7 +35,7 @@ No incluir panel de auditoría, gestión académica, notificaciones internas, re
 | ID | Pantalla | Contenido y acciones | Trazabilidad |
 |---|---|---|---|
 | UI-01 | Ingreso | Email, contraseña y errores de Auth; sin registro público. | CU-01, DA-61/62 |
-| UI-03 | Agenda | Día/semana, fecha, tipo y aula; bloques de ocurrencias no canceladas con curso/comisión/docente/horario. | CU-28, DA-34/35/36 |
+| UI-03 | Agenda | Día/semana, fecha, tipo, aula, curso y docente; bloques de ocurrencias no canceladas con curso/comisión/docente/horario. La grilla diaria muestra las aulas que entran a lo ancho y pagina el resto, indicando el rango de aulas y las clases en otras páginas. | CU-28, DA-34/35/36/86 |
 | UI-04 | Disponibilidad | Tipo, alumnos previstos, características, fecha/período y horarios; resultados por fecha esporádica o patrón periódico, con disponibilidad completa y conflictos informativos. | CU-18/19/20, DA-24 a DA-30 |
 | UI-05 | Nueva reserva | Flujo guiado descrito debajo, sin borrador persistente. | CU-21/22/23 |
 | UI-06 | Listados | Pestañas por día y por curso/año; filtros, estado de ocurrencia, paginación y acceso a detalle. | CU-26/27, DA-36 |
@@ -46,7 +46,7 @@ No incluir panel de auditoría, gestión académica, notificaciones internas, re
 | UI-11 | Feriados del año | Lista por fecha; agregar/corregir/quitar, impacto sobre clases, restricciones temporales. | DA-13/17/55/69 |
 | UI-12 | Revisar cambio de calendario | Cambio propuesto, nuevas clases con aula del patrón, conflictos bloqueantes y confirmación conjunta. | DA-54 a DA-60 |
 | UI-13 | Usuarios | Buscar, crear, editar, deshabilitar/rehabilitar y restablecer contraseña ingresada por Admin; errores del proveedor y alta incompleta. | CU-02 a 05, DA-63/64/77 |
-| UI-14 | Estadísticas | Filtros por fecha/rango/cuatrimestre y aula/tipo donde corresponda; horas, ocupación, demanda atendida y horas pico. | CU-29, DA-38 a DA-46 |
+| UI-14 | Estadísticas | Filtros por fecha/rango/cuatrimestre, aula/tipo y atributos de aula (edificio, piso, capacidad, recursos); horas, ocupación, demanda atendida y horas pico. Comparación de dos períodos con diferencia B − A. | CU-29, DA-38 a DA-46, DA-87/88 |
 | UI-15 | Listado diario imprimible | Resultados completos de filtros activos, sin controles de operación; impresión/PDF de navegador. | CU-26, DA-37 |
 
 UI-08 y UI-12 pueden implementarse como pasos o diálogos de la sección correspondiente; este inventario no exige una URL o página independiente para cada uno.

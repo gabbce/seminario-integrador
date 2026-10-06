@@ -11,7 +11,7 @@ for(const role of ["bedel","docente"]) test(`I05 consultas persistentes ${role}`
   await expect(page.getByText("Historia",{exact:true}).first()).toBeVisible();
   await page.getByRole("button",{name:"Semana",exact:true}).click();
   await expect(page.getByRole("region",{name:"Agenda semanal"})).toContainText("Historia");
-  await page.setViewportSize({width:1366,height:768});await page.screenshot({path:`/tmp/i05-agenda-real-${role}.png`,fullPage:true});
+  await page.setViewportSize({width:1366,height:768});await page.screenshot({path:`../artifacts/qa/screens/i05-agenda-real-${role}.png`,fullPage:true});
   await page.goto("/reservas?date=2027-07-14&room=103");
   await expect(page.getByRole("button",{name:"Historia",exact:true})).toBeVisible();
   await page.getByRole("button",{name:"Historia",exact:true}).click();await expect(page.getByRole("heading",{name:"Historia",exact:true})).toBeVisible();
@@ -27,6 +27,6 @@ for(const role of ["bedel","docente"]) test(`I05 consultas persistentes ${role}`
   await expect(page.locator(".print-list tbody tr")).toHaveCount(result.body.total);
   expect(result.status).toBe(200);expect(result.body.rows.some((r:{subject:string})=>r.subject==="Historia")).toBe(true);
   expect(JSON.stringify(result.body)).not.toMatch(/teacherEmail|registrant|changes|@/);
-  if(role==="docente") {await expect(page.getByRole("button",{name:"Historia",exact:true})).toBeVisible();await page.setViewportSize({width:390,height:844});await page.screenshot({path:"/tmp/i05-listado-real-mobile.png",fullPage:true});}
+  if(role==="docente") {await expect(page.getByRole("button",{name:"Historia",exact:true})).toBeVisible();await page.setViewportSize({width:390,height:844});await page.screenshot({path:"../artifacts/qa/screens/i05-listado-real-mobile.png",fullPage:true});}
   expect(errors).toEqual([]);
 });

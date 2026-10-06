@@ -34,3 +34,19 @@ export function compatible(
     (requirements.resources ?? []).every((r) => room.resources?.includes(r))
   );
 }
+/** Human-readable equipment of a room: board, resources and descriptive PCs. */
+export function roomAttributes(room: {
+  type: string;
+  board?: string;
+  resources?: Resource[];
+  computers?: number;
+}): string[] {
+  const attributes = [
+    ...(room.board ? [`Pizarrón de ${room.board.toLowerCase()}`] : []),
+    ...(room.resources ?? []).map((r) => resourceLabels[r]),
+    ...(room.type === "Laboratorio" ? [`${room.computers ?? 0} PC`] : []),
+  ];
+  return room.resources?.length
+    ? attributes
+    : [...attributes, "Sin recursos adicionales"];
+}

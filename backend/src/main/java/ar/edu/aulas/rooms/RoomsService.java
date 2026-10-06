@@ -38,14 +38,25 @@ public class RoomsService {
  public Room get(long id){return queryRooms(SELECT+" where a.id_aula=?",id).stream().findFirst().orElseThrow(()->new DomainError(404,"NOT_FOUND","El aula no existe."));}
  @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
  public List<Room> references(){return queryRooms(SELECT+" order by a.identificador,a.id_aula");}
+ /** Inventory filters: room attributes narrow the search; empty or null values do not filter. PC count is descriptive only and never filters (DA-30). */
+ public record Filters(String query,String type,String state,String board,List<String> resources,int capacity,Integer maxCapacity,String location,Integer floor) {}
  @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
  public Page list(String query,String type,String state,String board,String resource,int capacity,String sort,boolean descending,int page,int size) {
-  if(page<1 || !List.of(20,50,100).contains(size) || capacity<0)throw DomainError.invalid("Paginación o capacidad inválidas.");
-  String column=switch(sort){case "id"->"a.identificador";case "capacity"->"a.capacidad";case "type"->"a.tipo";case "state"->"a.estado";default->throw DomainError.invalid("Orden inválido.");};
-  String where=" where a.capacidad>=? and strpos(lower(a.identificador),lower(?))>0";var args=new ArrayList<Object>(List.of(capacity,query.strip()));
-  if(state.isEmpty())where+=" and a.baja_en is null";else if(state.equals("Baja"))where+=" and a.baja_en is not null";else{where+=" and a.baja_en is null and a.estado=?";args.add(state);}
-  if(!type.isEmpty()){where+=" and a.tipo=?";args.add(type);}if(!board.isEmpty()){where+=" and a.pizarron=?";args.add(board);}
-  if(!resource.isEmpty()){String field=switch(resource){case "fans"->"a.ventiladores";case "air"->"a.aire";case "projector"->"m.proyector";case "television"->"m.televisor";case "computer"->"m.computadora";default->throw DomainError.invalid("Recurso inválido.");};where+=" and "+field;}
+  return list(new Filters(query,type,state,board,resource.isEmpty()?List.of():List.of(resource),capacity,null,"",null),sort,descending,page,size);
+ }
+ @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+ public Page list(Filters f,String sort,boolean descending,int page,int size) {
+  if(page<1 || !List.of(20,50,100).contains(size) || f.capacity()<0)throw DomainError.invalid("Paginación o capacidad inválidas.");
+  if(f.maxCapacity()!=null && f.maxCapacity()<f.capacity())throw DomainError.invalid("La capacidad máxima no puede ser menor que la mínima.");
+  String column=switch(sort){case "id"->"a.identificador";case "capacity"->"a.capacidad";case "type"->"a.tipo";case "state"->"a.estado";case "location"->"a.ubicacion";case "floor"->"a.piso";default->throw DomainError.invalid("Orden inválido.");};
+  String text=f.query().strip();
+  String where=" where a.capacidad>=? and (strpos(lower(a.identificador),lower(?))>0 or strpos(lower(a.ubicacion),lower(?))>0)";var args=new ArrayList<Object>(List.of(f.capacity(),text,text));
+  if(f.state().isEmpty())where+=" and a.baja_en is null";else if(f.state().equals("Baja"))where+=" and a.baja_en is not null";else{where+=" and a.baja_en is null and a.estado=?";args.add(f.state());}
+  if(!f.type().isEmpty()){where+=" and a.tipo=?";args.add(f.type());}if(!f.board().isEmpty()){where+=" and a.pizarron=?";args.add(f.board());}
+  if(f.maxCapacity()!=null){where+=" and a.capacidad<=?";args.add(f.maxCapacity());}
+  if(!f.location().isBlank()){where+=" and a.ubicacion=?";args.add(f.location().strip());}
+  if(f.floor()!=null){where+=" and a.piso=?";args.add(f.floor());}
+  for(String resource:new LinkedHashSet<>(f.resources())){String field=switch(resource){case "fans"->"a.ventiladores";case "air"->"a.aire";case "projector"->"m.proyector";case "television"->"m.televisor";case "computer"->"m.computadora";default->throw DomainError.invalid("Recurso inválido.");};where+=" and coalesce("+field+",false)";}
   String from=" from aulas.aula a left join aulas.aula_multimedios m using(id_aula) left join aulas.aula_laboratorio l using(id_aula)";
   long total=db.queryForObject("select count(*)"+from+where,Long.class,args.toArray());int current=(int)Math.min(page,Math.max(1,(total+size-1)/size));args.add(size);args.add((current-1)*size);
   return new Page(queryRooms(SELECT+where+" order by "+column+(descending?" desc":" asc")+",a.id_aula limit ? offset ?",args.toArray()),total,current,size,db.queryForObject("select count(*) from aulas.aula where baja_en is null and estado='Habilitada'",Long.class));

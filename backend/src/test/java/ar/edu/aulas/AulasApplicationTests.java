@@ -162,6 +162,42 @@ class AulasApplicationTests {
         assertThat(jdbc.queryForObject("select auth_id from aulas.preparacion_cuenta where email=?",java.util.UUID.class,account.email())).isEqualTo(auth.users.get(account.email()).id());
         assertThat(jdbc.queryForObject("select completada from aulas.preparacion_cuenta where email=?",Boolean.class,account.email())).isTrue();
     }
+    @Test void rejectedAttemptDoesNotFreeAPreparationAnotherAttemptIsCreating() throws Exception {
+        var sending=new java.util.concurrent.CountDownLatch(1); var answer=new java.util.concurrent.CountDownLatch(1);
+        var auth=new FakeAuth() {
+            @Override public Identity create(ar.edu.aulas.accounts.AccountSpec a,String password,java.util.UUID op) {
+                if (password.length()<6) throw ar.edu.aulas.api.DomainError.invalid("La contraseña no cumple la política de Supabase: debe tener al menos 6 caracteres.");
+                sending.countDown();
+                try { answer.await(10,java.util.concurrent.TimeUnit.SECONDS); } catch(InterruptedException e) { throw new IllegalStateException(e); }
+                return super.create(a,password,op);
+            }
+        };
+        var service=new ar.edu.aulas.accounts.AccountProvisioner(jdbc,manager,auth);
+        var account=spec("concurrent@test.local"); var operation=java.util.UUID.randomUUID();
+        try(var executor=java.util.concurrent.Executors.newSingleThreadExecutor()) {
+            var first=executor.submit(()->service.prepare(account,"Valida123",operation,id->{}));
+            assertThat(sending.await(10,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            // A second attempt of the same operation cannot send nor free the preparation while the first is in flight.
+            assertThatThrownBy(()->service.prepare(account,"123",operation,id->{})).hasMessageContaining("otra solicitud");
+            assertThat(jdbc.queryForObject("select count(*) from aulas.preparacion_cuenta where id=?",Long.class,operation)).isEqualTo(1);
+            answer.countDown();
+            var created=first.get(10,java.util.concurrent.TimeUnit.SECONDS);
+            assertThat(jdbc.queryForObject("select completada from aulas.preparacion_cuenta where id=?",Boolean.class,operation)).isTrue();
+            assertThat(jdbc.queryForObject("select count(*) from aulas.usuario where supabase_auth_id=?",Long.class,created)).isEqualTo(1);
+        }
+        assertThat(auth.creates).isEqualTo(1);
+    }
+    @Test void abandonedCreateClaimExpires() {
+        var auth=new FakeAuth(); var service=new ar.edu.aulas.accounts.AccountProvisioner(jdbc,manager,auth);
+        var account=spec("abandoned@test.local"); var operation=java.util.UUID.randomUUID();
+        jdbc.update("insert into aulas.preparacion_cuenta(id,email,nombre,apellido,rol,activo,envio,envio_desde) values (?,?,?,?,?,?,?,current_timestamp)",
+            operation,account.email(),account.nombre(),account.apellido(),account.rol(),account.activo(),java.util.UUID.randomUUID());
+        assertThatThrownBy(()->service.prepare(account,"Valida123",operation,id->{})).hasMessageContaining("otra solicitud");
+        jdbc.update("update aulas.preparacion_cuenta set envio_desde=current_timestamp - interval '3 minutes' where id=?",operation);
+        service.prepare(account,"Valida123",operation,id->{});
+        assertThat(auth.creates).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select envio is null and completada from aulas.preparacion_cuenta where id=?",Boolean.class,operation)).isTrue();
+    }
     private long insertUser(Connection c, String role, String email) throws SQLException {
         try (var s = c.prepareStatement("insert into aulas.usuario(supabase_auth_id,email,nombre,apellido,rol) values (?,?,'Nombre','Apellido',?) returning id_usuario")) {
             s.setObject(1, java.util.UUID.randomUUID()); s.setString(2,email); s.setString(3,role);

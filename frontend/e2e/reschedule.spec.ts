@@ -211,7 +211,7 @@ async function propose(page: Page, multiple = false) {
       .fill("2027-03-23");
   }
   await page.screenshot({
-    path: `/tmp/i044-form-${multiple}-${page.viewportSize()!.width}.png`,
+    path: `../artifacts/qa/screens/i044-form-${multiple}-${page.viewportSize()!.width}.png`,
     fullPage: true,
   });
   await page
@@ -233,7 +233,7 @@ for (const width of [390, 1440]) {
       await propose(page, periodic);
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
-        path: `/tmp/i044-review-${periodic}-${width}.png`,
+        path: `../artifacts/qa/screens/i044-review-${periodic}-${width}.png`,
         fullPage: true,
       });
       await page
@@ -255,7 +255,7 @@ for (const width of [390, 1440]) {
         roomVersions: { "3": 0 },
       });
       await page.screenshot({
-        path: `/tmp/i044-success-${periodic}-${width}.png`,
+        path: `../artifacts/qa/screens/i044-success-${periodic}-${width}.png`,
         fullPage: true,
       });
       await page
@@ -266,7 +266,7 @@ for (const width of [390, 1440]) {
         page.getByText("Fecha original: 15 de marzo de 2027", { exact: true }),
       ).toBeVisible();
       await page.screenshot({
-        path: `/tmp/i044-history-${periodic}-${width}.png`,
+        path: `../artifacts/qa/screens/i044-history-${periodic}-${width}.png`,
         fullPage: true,
       });
       expect(
@@ -293,7 +293,7 @@ for (const width of [390, 1440]) {
       "2027-03-16",
     );
     await page.screenshot({
-      path: `/tmp/i044-conflict-${width}.png`,
+      path: `../artifacts/qa/screens/i044-conflict-${width}.png`,
       fullPage: true,
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -317,7 +317,7 @@ for (const width of [390, 1440]) {
         page.getByRole("heading", { name: "Comprobar reprogramación" }),
       ).toBeVisible();
       await page.screenshot({
-        path: `/tmp/i044-${mode}-${width}.png`,
+        path: `../artifacts/qa/screens/i044-${mode}-${width}.png`,
         fullPage: true,
       });
       await page

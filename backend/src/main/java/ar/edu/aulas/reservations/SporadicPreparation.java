@@ -39,12 +39,17 @@ public class SporadicPreparation {
             LocalDate date;
             try {date=LocalDate.parse(slot.date());if(!date.toString().equals(slot.date())) throw new IllegalArgumentException();}
             catch(RuntimeException e) {throw DomainError.invalid("Indicá fechas válidas.");}
-            if(date.getYear()!=r.year() || date.getDayOfWeek().getValue()>5 || !dates.add(slot.date()))
-                throw DomainError.invalid("Elegí fechas distintas de lunes a viernes del mismo año.");
+            // One specific reason per rule, naming the date, so the operator knows what to fix.
+            if(date.getYear()!=r.year())
+                throw DomainError.invalid("La fecha "+slot.date()+" no pertenece al año lectivo "+r.year()+".");
+            if(date.getDayOfWeek().getValue()>5)
+                throw DomainError.invalid("La fecha "+slot.date()+" es "+(date.getDayOfWeek()==java.time.DayOfWeek.SATURDAY?"sábado":"domingo")+": solo se reservan días de lunes a viernes.");
+            if(!dates.add(slot.date()))
+                throw DomainError.invalid("La fecha "+slot.date()+" está repetida.");
             if(slot.modules()==null || slot.modules()<1 || slot.modules()>32 || slot.start()==null
                 || !slot.start().matches("(0[7-9]|1[0-9]|2[0-2]):(00|30)")
                 || LocalTime.parse(slot.start()).toSecondOfDay()+slot.modules()*1800>23*3600)
-                throw DomainError.invalid("Los horarios deben estar entre 07 y 23, en módulos de 30 minutos.");
+                throw DomainError.invalid("El horario del "+slot.date()+" debe quedar entre 07 y 23, en módulos de 30 minutos.");
         }
     }
     @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)

@@ -80,6 +80,27 @@ class ConsultationTests {
   assertThat(queries.agenda(LocalDate.parse("2027-03-01"),"day","","General").total()).isEqualTo(118);
   assertThat(queries.agenda(LocalDate.parse("2027-03-01"),"day","","Laboratorio").total()).isZero();
  }
+ @Test void agendaNarrowsToACourseOrTeacher() throws Exception {
+  var date=LocalDate.parse("2027-03-01");
+  long other=new TransactionTemplate(manager).execute(tx->{
+   long year=db.queryForObject("select id_anio_lectivo from aulas.anio_lectivo where anio_calendario=2027",Long.class);
+   long matter=db.queryForObject("insert into aulas.materia(nombre,nombre_normalizado) values ('Otra','otra') returning id_materia",Long.class);
+   long otherCourse=db.queryForObject("insert into aulas.curso(id_materia,comision,id_anio_lectivo) values (?,'B',?) returning id_curso",Long.class,matter,year);
+   long booking=db.queryForObject("insert into aulas.reserva(registrado_por,id_curso,docente_externo_id,nombre_docente,apellido_docente,email_docente,cantidad_alumnos,tipo_aula) values (?,?,'D-02','Ana','Ruiz','ana@test.local',20,'General') returning id_reserva",Long.class,actor,otherCourse);
+   db.update("insert into aulas.reserva_esporadica values (?)",booking);
+   db.update("insert into aulas.detalle_reserva(id_reserva,id_aula,fecha,hora_inicio,cantidad_modulos) select ?,id_aula,'2027-03-01',time '17:00',2 from aulas.aula where identificador='R0'",booking);
+   return otherCourse;
+  });
+  assertThat(queries.agenda(date,"day","","").total()).isEqualTo(120);
+  assertThat(queries.agenda(date,"day","","",other,"").rows()).extracting(ConsultationQueries.Row::courseId).containsExactly(Long.toString(other));
+  assertThat(queries.agenda(date,"week","","",course,"").total()).isEqualTo(119);
+  assertThat(queries.agenda(date,"day","","",null,"D-02").total()).isEqualTo(1);
+  assertThat(queries.agenda(date,"day","R0","",null,"D-01").total()).isEqualTo(19);
+  assertThat(queries.agenda(date,"day","","",course,"D-02").total()).isZero();
+  assertThatThrownBy(()->queries.agenda(date,"day","","",0L,"")).hasMessageContaining("filtros");
+  mvc.perform(get("/api/consultas/agenda?date=2027-03-01&courseId="+other+"&teacher=D-02").with(jwt().jwt(j->j.subject(auth.toString()))))
+   .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1)).andExpect(jsonPath("$.filters.teacher").value("D-02"));
+ }
  @Test void apiRequiresSessionAndNeverLeaksPrivateData() throws Exception {
   mvc.perform(get("/api/consultas/agenda?date=2027-03-01")).andExpect(status().isUnauthorized());
   for(String role:List.of("DOCENTE","BEDEL","ADMINISTRADOR")) {

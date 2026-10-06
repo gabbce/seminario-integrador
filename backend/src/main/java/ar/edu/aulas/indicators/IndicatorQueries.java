@@ -26,10 +26,21 @@ public class IndicatorQueries {
         Set<Long> classes=new HashSet<>();
         Breakdown row(String label) {return new Breakdown(label,reserved/2.0,available/2.0,classes.size());}
     }
+    /** Room attributes that narrow the set of rooms (DA-87). The same rooms feed reserved and available hours,
+     *  so occupancy stays valid. They use the current room data; only the type comes from the room history. PC count never filters (DA-30). */
+    public record RoomFilter(String room,String location,Integer floor,int minCapacity,Integer maxCapacity,List<String> resources) {
+        public static RoomFilter of(String room) {return new RoomFilter(room,"",null,0,null,List.of());}
+    }
+    private static final Map<String,String> RESOURCES=Map.of("fans","a.ventiladores","air","a.aire",
+        "projector","exists(select 1 from aulas.aula_multimedios m where m.id_aula=a.id_aula and m.proyector)",
+        "television","exists(select 1 from aulas.aula_multimedios m where m.id_aula=a.id_aula and m.televisor)",
+        "computer","exists(select 1 from aulas.aula_multimedios m where m.id_aula=a.id_aula and m.computadora)");
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
-    public Summary summary(LocalDate from,LocalDate to,String room,String type) {
-        validate(from,to,room,type);
-        return summarize(from,to,room,type,source(from,to,room));
+    public Summary summary(LocalDate from,LocalDate to,String room,String type) {return summary(from,to,RoomFilter.of(room),type);}
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public Summary summary(LocalDate from,LocalDate to,RoomFilter rooms,String type) {
+        validate(from,to,rooms,type);
+        return summarize(from,to,rooms.room(),type,source(from,to,rooms));
     }
     public record Slot(String start,String end,Double students,Double classes) {}
     public record Day(String date,List<Slot> slots,long peakStudents,long peakClasses,List<String> peakStudentSlots,List<String> peakClassSlots,double studentHours,int classes) {}
@@ -52,10 +63,12 @@ public class IndicatorQueries {
         var peaks=new ArrayList<String>();for(int i=0;i<32;i++)if(values[i]==max)peaks.add(time(i)+"–"+time(i+1));return peaks;
     }
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
-    public Series series(LocalDate from,LocalDate to,String room,String type,String view) {
-        validate(from,to,room,type);
+    public Series series(LocalDate from,LocalDate to,String room,String type,String view) {return series(from,to,RoomFilter.of(room),type,view);}
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public Series series(LocalDate from,LocalDate to,RoomFilter filter,String type,String view) {
+        validate(from,to,filter,type);
         if(!Set.of("day","week").contains(view)||view.equals("day")&&!from.equals(to))throw new DomainError(400,"INVALID_VIEW","La vista diaria requiere una única fecha.");
-        var source=source(from,to,room);var summary=summarize(from,to,room,type,source);
+        var source=source(from,to,filter);var summary=summarize(from,to,filter.room(),type,source);
         var rooms=new HashMap<Long,Room>();source.rooms().forEach(r->rooms.put(r.id(),r));
         var curves=new TreeMap<LocalDate,Curve>();
         for(var o:source.occurrences())for(int i=0;i<o.modules();i++) {
@@ -129,20 +142,33 @@ public class IndicatorQueries {
         }
         return true;
     }
-    private void validate(LocalDate from,LocalDate to,String room,String type) {
-        if(from==null||to==null||from.isAfter(to)||from.getYear()<1||to.getYear()>9999||room==null||type==null||!Set.of("","General","Multimedios","Laboratorio","Sin historia").contains(type)) throw new DomainError(400,"INVALID_RANGE","Elegí un rango válido y revisá los filtros.");
+    private void validate(LocalDate from,LocalDate to,RoomFilter rooms,String type) {
+        if(from==null||to==null||from.isAfter(to)||from.getYear()<1||to.getYear()>9999||rooms==null||rooms.room()==null||rooms.location()==null||rooms.resources()==null||type==null||!Set.of("","General","Multimedios","Laboratorio","Sin historia").contains(type)
+            ||rooms.minCapacity()<0||(rooms.maxCapacity()!=null&&rooms.maxCapacity()<rooms.minCapacity())||!RESOURCES.keySet().containsAll(rooms.resources()))
+            throw new DomainError(400,"INVALID_RANGE","Elegí un rango válido y revisá los filtros.");
     }
-    private Source source(LocalDate from,LocalDate to,String room) {
-        var args=room.isEmpty()?new Object[]{}:new Object[]{room};String roomWhere=room.isEmpty()?"":" where a.identificador=?";
+    /** SQL conditions on alias a for the selected set of rooms. */
+    private static String roomWhere(RoomFilter f,List<Object> args) {
+        var sql=new StringBuilder();
+        if(!f.room().isEmpty()){sql.append(" and a.identificador=?");args.add(f.room());}
+        if(!f.location().isBlank()){sql.append(" and a.ubicacion=?");args.add(f.location().strip());}
+        if(f.floor()!=null){sql.append(" and a.piso=?");args.add(f.floor());}
+        if(f.minCapacity()>0){sql.append(" and a.capacidad>=?");args.add(f.minCapacity());}
+        if(f.maxCapacity()!=null){sql.append(" and a.capacidad<=?");args.add(f.maxCapacity());}
+        for(String resource:new TreeSet<>(f.resources())) sql.append(" and coalesce(").append(RESOURCES.get(resource)).append(",false)");
+        return sql.toString();
+    }
+    private Source source(LocalDate from,LocalDate to,RoomFilter filter) {
+        var args=new ArrayList<Object>();String roomWhere=roomWhere(filter,args);
         var history=new HashMap<Long,List<History>>();
-        var hargs=new ArrayList<Object>();hargs.add(instant(to,LocalTime.MAX).atOffset(ZoneOffset.UTC));hargs.add(instant(from,LocalTime.MIN).atOffset(ZoneOffset.UTC));if(!room.isEmpty())hargs.add(room);
-        db.query("select h.* from aulas.historial_aula h join aulas.aula a using(id_aula) where h.desde<=? and (h.hasta is null or h.hasta>?)"+(room.isEmpty()?"":" and a.identificador=?")+" order by h.desde desc,h.id desc",rs->{
+        var hargs=new ArrayList<Object>();hargs.add(instant(to,LocalTime.MAX).atOffset(ZoneOffset.UTC));hargs.add(instant(from,LocalTime.MIN).atOffset(ZoneOffset.UTC));hargs.addAll(args);
+        db.query("select h.* from aulas.historial_aula h join aulas.aula a using(id_aula) where h.desde<=? and (h.hasta is null or h.hasta>?)"+roomWhere+" order by h.desde desc,h.id desc",rs->{
             var until=rs.getObject("hasta",OffsetDateTime.class);
             history.computeIfAbsent(rs.getLong("id_aula"),k->new ArrayList<>()).add(new History(rs.getObject("desde",OffsetDateTime.class).toInstant(),until==null?null:until.toInstant(),rs.getString("tipo"),rs.getString("estado").equals("Habilitada")&&!rs.getBoolean("baja")));
         },hargs.toArray());
-        var rooms=db.query("select a.id_aula,a.identificador from aulas.aula a"+roomWhere+" order by a.identificador",(rs,n)->new Room(rs.getLong(1),rs.getString(2),history.getOrDefault(rs.getLong(1),List.of())),args);
-        var oargs=new ArrayList<Object>(List.of(from,to));if(!room.isEmpty())oargs.add(room);
-        var occurrences=db.query("select d.id_detalle,d.id_aula,d.fecha,d.hora_inicio,d.cantidad_modulos,r.cantidad_alumnos from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.aula a using(id_aula) where d.fecha between ? and ? and d.estado<>'CANCELADA'"+(room.isEmpty()?"":" and a.identificador=?"),(rs,n)->new Occurrence(rs.getLong(1),rs.getLong(2),rs.getDate(3).toLocalDate(),rs.getTime(4).toLocalTime(),rs.getInt(5),rs.getInt(6)),oargs.toArray());
+        var rooms=db.query("select a.id_aula,a.identificador from aulas.aula a where true"+roomWhere+" order by a.identificador",(rs,n)->new Room(rs.getLong(1),rs.getString(2),history.getOrDefault(rs.getLong(1),List.of())),args.toArray());
+        var oargs=new ArrayList<Object>(List.of(from,to));oargs.addAll(args);
+        var occurrences=db.query("select d.id_detalle,d.id_aula,d.fecha,d.hora_inicio,d.cantidad_modulos,r.cantidad_alumnos from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.aula a using(id_aula) where d.fecha between ? and ? and d.estado<>'CANCELADA'"+roomWhere,(rs,n)->new Occurrence(rs.getLong(1),rs.getLong(2),rs.getDate(3).toLocalDate(),rs.getTime(4).toLocalTime(),rs.getInt(5),rs.getInt(6)),oargs.toArray());
         var years=db.queryForList("select anio_calendario from aulas.anio_lectivo where anio_calendario between ? and ?",Integer.class,from.getYear(),to.getYear());
         var holidays=new HashSet<>(db.query("select fecha from aulas.feriado where fecha between ? and ?",(rs,n)->rs.getDate(1).toLocalDate(),from,to));
         var eligible=new TreeSet<LocalDate>();long coveredDays=0;

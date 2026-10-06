@@ -155,7 +155,7 @@ for (const width of [390, 1440]) {
     const control = await setup(page);
     await edit(page);
     await page.screenshot({
-      path: `/tmp/i043a-form-${width}.png`,
+      path: `../artifacts/qa/screens/i043a-form-${width}.png`,
       fullPage: true,
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -176,7 +176,7 @@ for (const width of [390, 1440]) {
       courseId: "8",
     });
     await page.screenshot({
-      path: `/tmp/i043a-success-${width}.png`,
+      path: `../artifacts/qa/screens/i043a-success-${width}.png`,
       fullPage: true,
     });
     await page.getByRole("button", { name: "Ver detalle actualizado" }).click();
@@ -188,7 +188,7 @@ for (const width of [390, 1440]) {
       page.getByText("Datos compartidos: alumnos 20 → 25", { exact: false }),
     ).toBeVisible();
     await page.screenshot({
-      path: `/tmp/i043a-history-${width}.png`,
+      path: `../artifacts/qa/screens/i043a-history-${width}.png`,
       fullPage: true,
     });
     expect(
@@ -214,7 +214,7 @@ for (const width of [390, 1440]) {
       "Ana Ruiz",
     );
     await page.screenshot({
-      path: `/tmp/i043a-conflict-${width}.png`,
+      path: `../artifacts/qa/screens/i043a-conflict-${width}.png`,
       fullPage: true,
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -241,7 +241,7 @@ for (const width of [390, 1440]) {
         }),
       ).toBeVisible();
       await page.screenshot({
-        path: `/tmp/i043a-${mode}-${width}.png`,
+        path: `../artifacts/qa/screens/i043a-${mode}-${width}.png`,
         fullPage: true,
       });
       await page.getByRole("button", { name: "Consultar resultado" }).click();

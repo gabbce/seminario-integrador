@@ -1,0 +1,8 @@
+# Archivos que se leen o ejecutan dentro de contenedores Linux, o que se verifican por hash: siempre LF.
+# Sin esto, Git for Windows (core.autocrlf=true) los baja con CRLF y la imagen no se construye.
+mvnw text eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.properties text eol=lf
+*.sql text eol=lf
+*.json text eol=lf

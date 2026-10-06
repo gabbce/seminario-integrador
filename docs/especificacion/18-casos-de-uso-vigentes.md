@@ -230,16 +230,16 @@ Las precondiciones específicas se expresan en cada flujo. La salida indica post
 
 - **Fuente:** RF-28; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Todos.
-- **Flujo y resultado:** Elegir día/semana, fecha, tipo y aula; mostrar agenda con datos autorizados. Roles operativos pueden abrir modificación/cancelación.
-- **Controles y alternativas:** Docente solo consulta y usa móvil; canceladas no ocupan. Franjas cerradas/no reservables no se muestran como disponibilidad por estar vacías.
+- **Flujo y resultado:** Elegir día/semana, fecha, tipo y aula, y opcionalmente curso y docente (DA-86); mostrar agenda con datos autorizados. Roles operativos pueden abrir modificación/cancelación.
+- **Controles y alternativas:** Docente solo consulta y usa móvil; canceladas no ocupan. Franjas cerradas/no reservables no se muestran como disponibilidad por estar vacías. Con filtro de curso o docente, avisar que los espacios vacíos no indican aulas libres. Si las aulas no entran a lo ancho, paginar por aulas e indicarlo, sin desplazamiento horizontal.
 - **Interfaz:** UI-03. **Aceptación:** CA-C04/05/06/07.
 
 ## CU-29 — Visualizar indicadores
 
 - **Fuente:** RF-29; ajustes DA del registro y capítulo temático correspondiente.
 - **Actor:** Admin/Bedel.
-- **Flujo y resultado:** Elegir rango/cuatrimestre/vista/filtros; calcular horas, ocupación y demanda atendida, picos por franja, semana típica y alumnos-hora.
-- **Controles y alternativas:** Excluir canceladas; sin denominador no porcentaje. No medir conflictos, asistencia real o individuos únicos. Historia de aula y medias por días elegibles según documento 09.
+- **Flujo y resultado:** Elegir rango/cuatrimestre/vista/filtros, incluidos edificio, piso, capacidad y recursos del aula (DA-87); calcular horas, ocupación y demanda atendida, picos por franja, semana típica y alumnos-hora. Opcionalmente comparar dos períodos con promedios por día hábil y diferencia B − A (DA-88).
+- **Controles y alternativas:** Excluir canceladas; sin denominador no porcentaje. No medir conflictos, asistencia real o individuos únicos. Historia de aula y medias por días elegibles según documento 09. Capacidad máxima menor que la mínima es un filtro inválido. En la comparación, un período con cobertura desconocida no muestra ocupación ni diferencia.
 - **Interfaz:** UI-14. **Aceptación:** CA-M01 a CA-M11.
 
 ## Extensiones acordadas, sin renumerar los originales

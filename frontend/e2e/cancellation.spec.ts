@@ -167,7 +167,7 @@ for (const width of [390, 1440]) {
     const control = await setup(page);
     await review(page);
     await page.screenshot({
-      path: `/tmp/i042-review-${width}.png`,
+      path: `../artifacts/qa/screens/i042-review-${width}.png`,
       fullPage: true,
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -180,7 +180,7 @@ for (const width of [390, 1440]) {
     ).toBeVisible();
     expect(control.requests[0].detailIds).toEqual(["11", "12"]);
     await page.screenshot({
-      path: `/tmp/i042-success-${width}.png`,
+      path: `../artifacts/qa/screens/i042-success-${width}.png`,
       fullPage: true,
     });
     await page.getByRole("button", { name: "Ver detalle actualizado" }).click();
@@ -195,7 +195,7 @@ for (const width of [390, 1440]) {
       page.getByText("Bedel QA · 25/9/26, 09:00", { exact: false }),
     ).toHaveCount(2);
     await page.screenshot({
-      path: `/tmp/i042-history-${width}.png`,
+      path: `../artifacts/qa/screens/i042-history-${width}.png`,
       fullPage: true,
     });
     await expect(
@@ -225,7 +225,7 @@ for (const width of [390, 1440]) {
     );
     await expect(page.getByRole("checkbox").nth(1)).toBeChecked();
     await page.screenshot({
-      path: `/tmp/i042-conflict-${width}.png`,
+      path: `../artifacts/qa/screens/i042-conflict-${width}.png`,
       fullPage: true,
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -249,7 +249,7 @@ for (const width of [390, 1440]) {
         page.getByRole("button", { name: "Consultar resultado" }),
       ).toBeVisible();
       await page.screenshot({
-        path: `/tmp/i042-${mode}-${width}.png`,
+        path: `../artifacts/qa/screens/i042-${mode}-${width}.png`,
         fullPage: true,
       });
       await page.getByRole("button", { name: "Consultar resultado" }).click();
@@ -299,7 +299,7 @@ test("cancelación individual mantiene otras futuras y permite corregir revisió
   await page
     .getByRole("button", { name: "Revisar cancelación", exact: true })
     .click();
-  await page.screenshot({ path: "/tmp/i042-single-390.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i042-single-390.png", fullPage: true });
   await page
     .getByRole("button", { name: "Confirmar cancelación", exact: true })
     .click();

@@ -10,8 +10,9 @@ public class ConsultationsController {
     public ConsultationsController(ConsultationQueries queries) {this.queries=queries;}
     @GetMapping("/agenda")
     public ConsultationQueries.Result agenda(@RequestParam LocalDate date,@RequestParam(defaultValue="day") String view,
-            @RequestParam(defaultValue="") String room,@RequestParam(defaultValue="") String type) {
-        return queries.agenda(date,view,room,type);
+            @RequestParam(defaultValue="") String room,@RequestParam(defaultValue="") String type,
+            @RequestParam(required=false) Long courseId,@RequestParam(defaultValue="") String teacher) {
+        return queries.agenda(date,view,room,type,courseId,teacher);
     }
     @GetMapping("/impresion-diaria")
     public ConsultationQueries.Result printDay(@RequestParam LocalDate date,@RequestParam(defaultValue="") String room,

@@ -13,6 +13,8 @@ paths:
         - {name: view, in: query, schema: {type: string, enum: [day, week], default: day}}
         - {$ref: '#/components/parameters/room'}
         - {$ref: '#/components/parameters/type'}
+        - {name: courseId, in: query, schema: {type: integer, minimum: 1}, description: "Solo clases de ese curso (materia, comisión y año). DA-86"}
+        - {name: teacher, in: query, schema: {type: string}, description: "Solo clases de ese docente de la lista fija (por ejemplo D-01). DA-86"}
       responses:
         '200':
           description: Intervalo efectivo y todas las filas sin paginar; tipo histórico al inicio, Sin historia si no hay cobertura.

@@ -5,6 +5,8 @@ import type { User } from "../users";
 import { Button } from "../components/ui/button";
 import { useEffect } from "react";
 import { api, ApiError } from "../api";
+/** Supabase Auth minimum (supabase/config.toml · minimum_password_length). */
+const MIN_PASSWORD = 6;
 type AccountPage = {
   items: User[];
   total: number;
@@ -68,6 +70,11 @@ export function Users() {
         password !== confirmation
       )
         return "Las contraseñas no coinciden.";
+      if (
+        (mode === "create" || mode === "password") &&
+        password.length < MIN_PASSWORD
+      )
+        return `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres (política de Supabase).`;
       const path =
         mode === "create"
           ? "/administracion/cuentas"
@@ -92,10 +99,11 @@ export function Users() {
         ["IDENTITY_INCOMPLETE", "AUDIT_INCOMPLETE"].includes(e.code ?? "")
       )
         setRecovering(true);
+      // A rejected operation is closed (a taken e-mail answers 409): the next attempt needs a new UUID.
       if (
         e instanceof ApiError &&
         ((e.status === 400 && mode !== "create") ||
-          (e.status === 409 && mode === "create") ||
+          e.status === 409 ||
           e.code === "PASSWORD_UNCERTAIN")
       )
         setOperationId(crypto.randomUUID());
@@ -138,9 +146,26 @@ export function Users() {
           {message}
         </p>
       )}
-      <div className={selected ? "cancellation-layout inventory-layout" : ""}>
-        <section className="panel">
-          <div className="form-grid">
+      <section
+        className="panel filter-panel"
+        aria-labelledby="account-filters-title"
+      >
+        <div className="filter-panel-head">
+          <h2 id="account-filters-title">Filtros</h2>
+          <Button
+            variant="outline"
+            disabled={!query && !role && !status}
+            onClick={() => {
+              setQuery("");
+              setRole("");
+              setStatus("");
+              setPage(1);
+            }}
+          >
+            Limpiar filtros
+          </Button>
+        </div>
+        <div className="form-grid filter-grid">
             <label>
               Buscar nombre o correo
               <input
@@ -182,17 +207,30 @@ export function Users() {
                 <option value="inactive">Deshabilitadas</option>
               </select>
             </label>
-            <label>
-              Ordenar
-              <select
-                aria-label="Ordenar cuentas"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-              >
-                <option value="name">Apellido y nombre</option>
-                <option value="email">Correo</option>
-              </select>
-            </label>
+        </div>
+      </section>
+      <div className={selected ? "cancellation-layout inventory-layout" : ""}>
+        <section
+          className="panel results-panel"
+          aria-labelledby="account-results-title"
+        >
+          <div className="results-head">
+            <h2 id="account-results-title">
+              Cuentas encontradas{data ? ` · ${data.total}` : ""}
+            </h2>
+            <div className="results-sort">
+              <label>
+                Ordenar
+                <select
+                  aria-label="Ordenar cuentas"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  <option value="name">Apellido y nombre</option>
+                  <option value="email">Correo</option>
+                </select>
+              </label>
+            </div>
           </div>
           <div className="inventory-list">
             {(!loadError ? users : []).map((u) => (
@@ -423,10 +461,15 @@ export function Users() {
                       required
                       type="password"
                       autoComplete="new-password"
+                      minLength={MIN_PASSWORD}
+                      aria-describedby="password-policy"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </label>
+                  <small id="password-policy" className="field-hint">
+                    Mínimo {MIN_PASSWORD} caracteres.
+                  </small>
                   <label>
                     Confirmar contraseña
                     <input

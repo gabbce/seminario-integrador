@@ -74,7 +74,7 @@ for (const width of [1366, 390])
     await page.getByLabel("Aula", { exact: true }).selectOption("A");
     await expect(page.getByText("25 %", { exact: true })).toBeVisible();
     await page.screenshot({
-      path: `/tmp/i053-summary-${width}.png`,
+      path: `../artifacts/qa/screens/i053-summary-${width}.png`,
       fullPage: true,
     });
     fail = true;
@@ -121,6 +121,10 @@ test("cobertura, cero denominador, sin fechas y respuesta tardía distintos", as
   await expect(
     page.getByText("Sin horas habilitadas", { exact: true }),
   ).toBeVisible();
+  // Without a computable occupancy its card is left out; the notice says why.
+  await expect(
+    page.getByRole("region", { name: "Resumen de indicadores" }),
+  ).not.toContainText("Ocupación");
   await page.getByLabel("Día", { exact: true }).fill("2027-03-02");
   await expect(page.getByText(/Cobertura histórica desconocida/)).toBeVisible();
   await page.getByLabel("Día", { exact: true }).fill("2027-03-01");
@@ -145,7 +149,12 @@ test("curvas diarias y semana típica presentan datos autoritativos", async ({
     const weekly = params.get("view") === "week";
     return r.fulfill({
       json: {
-        summary: { ...summary, from: params.get("from"), to: params.get("to"), classes: 2 },
+        summary: {
+          ...summary,
+          from: params.get("from"),
+          to: params.get("to"),
+          classes: 2,
+        },
         studentHours: weekly ? 30 : 50,
         daily: weekly
           ? null
@@ -208,13 +217,18 @@ test("curvas diarias y semana típica presentan datos autoritativos", async ({
     "50 alumnos previstos · 2 clases simultáneas",
   );
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.screenshot({ path: "/tmp/i054-curves.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i054-curves.png",
+    fullPage: true,
+  });
   await page
     .getByRole("button", { name: "Semana típica", exact: true })
     .click();
   await page.getByLabel("Hasta", { exact: true }).fill("2027-03-29");
   await page.getByLabel("Desde", { exact: true }).fill("2027-03-01");
-  await expect(page.getByText("Rango consultado: 2027-03-01 — 2027-03-29")).toBeVisible();
+  await expect(
+    page.getByText("Rango consultado: 2027-03-01 — 2027-03-29"),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: /Lunes 14:00–14:30: 15 alumnos previstos/,
@@ -227,7 +241,13 @@ test("curvas diarias y semana típica presentan datos autoritativos", async ({
     "4 fechas aportantes",
   );
   await expect(page.locator(".weekly-comparison")).toContainText("40");
-  await page.screenshot({ path: "/tmp/i054-week.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i054-week.png",
+    fullPage: true,
+  });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: "/tmp/i054-week-mobile.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i054-week-mobile.png",
+    fullPage: true,
+  });
 });

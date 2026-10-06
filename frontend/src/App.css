@@ -224,26 +224,31 @@ input[readonly] {
 .room-head small {
   font-size: 12px;
 }
+/* One pixel per minute (Agenda.tsx PX_PER_MINUTE): 30 px per module, 60 px per hour, 07–23 h. */
 .room-column {
   position: relative;
-  height: 1920px;
+  height: 960px;
   border-right: 1px solid #d8dcd5;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0,
+    transparent 29px,
+    #f3f4f0 29px,
+    #f3f4f0 30px,
+    transparent 30px,
     transparent 59px,
-    #eff0ec 59px,
-    #eff0ec 60px
+    #e3e6df 59px,
+    #e3e6df 60px
   );
 }
 .time-column {
   background: #fffdf9;
 }
 .time-column div {
-  height: 120px;
-  border-bottom: 1px solid #eff0ec;
-  padding: 8px;
-  font-size: 14px;
+  height: 60px;
+  border-bottom: 1px solid #e3e6df;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 .booking {
   position: absolute;
@@ -1417,7 +1422,7 @@ body {
 }
 
 .metric-filters { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-bottom:24px; }
-.metric-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-bottom:24px; }
+.metric-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-bottom:24px; }
 .metric-card { display:flex; gap:24px; align-items:center; }
 .metric-card > svg { width:52px; height:52px; padding:12px; border-radius:50%; background:#e9ede3; color:#185340; flex-shrink:0; }
 .metric-card div { display:grid; gap:6px; }
@@ -1550,3 +1555,156 @@ body {
   pointer-events: none;
 }
 .agenda-unavailable-slot span { padding: 4px; display: block; }
+
+/* Filters live in their own tinted panel, separate from the results they narrow. */
+.filter-panel {
+  background: #eef1ea;
+  border-color: #cfd6c8;
+  margin-bottom: 20px;
+}
+.filter-panel-head,
+.results-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 16px;
+}
+.filter-panel-head h2,
+.results-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.filter-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.filter-resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 16px;
+  border: 0;
+  padding: 0;
+}
+.filter-resources legend {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.filter-resources label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+.filter-resources input {
+  width: 20px;
+  height: 20px;
+  accent-color: #194d3a;
+}
+.results-sort {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.room-attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.room-attributes li {
+  padding: 2px 8px;
+  border: 1px solid #d8dcd5;
+  border-radius: 999px;
+  background: #f5f1e9;
+  font-size: 12px;
+}
+
+/* Day agenda pages its rooms instead of scrolling sideways (screens 14: page by rooms and say so). */
+.agenda-room-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.agenda-room-pager span {
+  font-size: 14px;
+  color: #3f4a43;
+  text-align: center;
+}
+@media (max-width: 800px) {
+  .agenda-room-pager {
+    display: none;
+  }
+}
+
+/* Compact day-grid blocks: the same data in fewer lines so a 30-minute module (30 px) stays readable. */
+.agenda-grid .booking {
+  left: 4px;
+  right: 4px;
+  padding: 3px 8px;
+  gap: 3px;
+  line-height: 1.2;
+  border-radius: 6px;
+}
+.agenda-grid .booking strong {
+  font-size: 13.5px;
+}
+.agenda-grid .booking span {
+  font-size: 11.5px;
+}
+.agenda-grid .booking > span,
+.agenda-grid .booking > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agenda-grid .booking-short {
+  justify-content: center;
+}
+.agenda-grid .booking-short strong {
+  margin-right: 4px;
+}
+
+/* Indicators: room attribute filters (DA-87) and the period comparison (DA-88). */
+.metric-resources {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.metric-resources legend {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.metric-resources label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+.metric-resources input {
+  width: 20px;
+  height: 20px;
+  accent-color: #194d3a;
+}
+.metric-comparison th small {
+  display: block;
+  font-weight: 400;
+  color: #59665f;
+}
+.metric-comparison {
+  margin-bottom: 24px;
+}
+.metric-comparison td {
+  font-variant-numeric: tabular-nums;
+}

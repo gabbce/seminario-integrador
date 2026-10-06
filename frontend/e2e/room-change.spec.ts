@@ -260,7 +260,7 @@ for (const width of [390, 1440]) {
       ).toBeVisible();
       expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
       await page.screenshot({
-        path: `/tmp/i043b-review-${periodic}-${width}.png`,
+        path: `../artifacts/qa/screens/i043b-review-${periodic}-${width}.png`,
         fullPage: true,
       });
       await page
@@ -275,7 +275,7 @@ for (const width of [390, 1440]) {
         control.requests[0].selections.flatMap((s) => s.detailIds),
       ).toEqual(["11", "12"]);
       await page.screenshot({
-        path: `/tmp/i043b-success-${periodic}-${width}.png`,
+        path: `../artifacts/qa/screens/i043b-success-${periodic}-${width}.png`,
         fullPage: true,
       });
       await page
@@ -306,7 +306,7 @@ for (const width of [390, 1440]) {
     await expect(page.getByRole("checkbox").first()).toBeChecked();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({
-      path: `/tmp/i043b-conflict-${width}.png`,
+      path: `../artifacts/qa/screens/i043b-conflict-${width}.png`,
       fullPage: true,
     });
   });
@@ -329,7 +329,7 @@ for (const width of [390, 1440]) {
         page.getByRole("heading", { name: "Comprobar cambio de aulas" }),
       ).toBeVisible();
       await page.screenshot({
-        path: `/tmp/i043b-${mode}-${width}.png`,
+        path: `../artifacts/qa/screens/i043b-${mode}-${width}.png`,
         fullPage: true,
       });
       await page

@@ -285,7 +285,7 @@ for (const width of [390, 1440])
     expect(control.requests.at(-1)?.year).toBe(2027);
     expect(control.requests.at(-1)?.period).toBe("first");
     await page.screenshot({
-      path: `/tmp/i031-aulas-${width}.png`,
+      path: `../artifacts/qa/screens/i031-aulas-${width}.png`,
       fullPage: true,
     });
     await expect(page.getByText("Aula QA-4", { exact: true })).toHaveCount(0);
@@ -302,7 +302,7 @@ for (const width of [390, 1440])
     await expect(page.getByText("Ver las 2 fechas a registrar")).toBeVisible();
     await page.getByText("Ver las 2 fechas a registrar").click();
     await page.screenshot({
-      path: `/tmp/i031-revision-${width}.png`,
+      path: `../artifacts/qa/screens/i031-revision-${width}.png`,
       fullPage: true,
     });
 
@@ -424,7 +424,7 @@ for (const width of [390, 1440])
     expect(control.confirmations).toBe(1);
     expect(control.operationId).toMatch(/^[0-9a-f-]{36}$/);
     await page.screenshot({
-      path: `/tmp/i032-exito-${width}.png`,
+      path: `../artifacts/qa/screens/i032-exito-${width}.png`,
       fullPage: true,
     });
     await page
@@ -445,7 +445,7 @@ for (const width of [390, 1440])
       page.getByRole("button", { name: "Cancelar clases", exact: true }),
     ).toBeVisible();
     await page.screenshot({
-      path: `/tmp/i032-detalle-${width}.png`,
+      path: `../artifacts/qa/screens/i032-detalle-${width}.png`,
       fullPage: true,
     });
     expect(
@@ -477,7 +477,7 @@ test("conflicto al confirmar conserva la propuesta", async ({ page }) => {
     page.getByRole("heading", { name: "Reserva confirmada" }),
   ).toHaveCount(0);
   await expect(page.locator('input[name="room-1"]').first()).toBeVisible();
-  await page.screenshot({ path: "/tmp/i032-conflicto.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i032-conflicto.png", fullPage: true });
 });
 
 test("respuesta perdida recupera la operación sin otro alta", async ({
@@ -592,12 +592,12 @@ for (const width of [390, 1440])
     expect(refreshBounds!.x).toBeGreaterThanOrEqual(0);
     expect(refreshBounds!.x + refreshBounds!.width).toBeLessThanOrEqual(width);
     await page.screenshot({
-      path: `/tmp/i033-alternativas-${width}.png`,
+      path: `../artifacts/qa/screens/i033-alternativas-${width}.png`,
       fullPage: true,
     });
     await page
       .locator(".form-actions")
-      .screenshot({ path: `/tmp/i033-acciones-${width}.png` });
+      .screenshot({ path: `../artifacts/qa/screens/i033-acciones-${width}.png` });
     expect(
       (
         await new AxeBuilder({ page })
@@ -660,7 +660,7 @@ test("alternativas Docente no muestran contactos ni acciones de selección", asy
   await expect(
     page.getByRole("button", { name: "Confirmar reserva" }),
   ).toHaveCount(0);
-  await page.screenshot({ path: "/tmp/i033-docente.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i033-docente.png", fullPage: true });
 });
 
 test("sin aulas compatibles no ofrece alternativas insuficientes", async ({

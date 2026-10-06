@@ -28,7 +28,7 @@ Contrato previo ampliado en `consultas.openapi.yaml`: GET `/api/consultas/impres
 Verificación:
 - `ConsultationTests`: 4/4, PostgreSQL aislado. 120 ocurrencias, >100, igualdad exacta con orden del listado, canceladas/vacío, los tres roles sin contactos.
 - `printing.spec.ts`: 3/3; Chromium y Firefox 155.0, página visible 2 de tamaño20 y 121 identidades impresas; filtros, error/reintento, vacío, conjunto incompleto y respuesta tardía invalidada. TypeScript, build y lint aprobados.
-- PDF navegador Chromium y Firefox: 10 páginas cada uno, 121 filas únicas/esperadas, sin controles. Inspección visual de primera página sin cortes ilegibles. Verificación reproducible: `python tools/qa/verify-print.py /tmp/i052-complete.pdf /tmp/i052-firefox-complete.pdf` con `pypdf`. PDFs/capturas son salidas regenerables del test, no insumos del QA.
+- PDF navegador Chromium y Firefox: 10 páginas cada uno, 121 filas únicas/esperadas, sin controles. Inspección visual de primera página sin cortes ilegibles. Verificación reproducible: `python tools/qa/verify-print.py artifacts/qa/screens/i052-complete.pdf artifacts/qa/screens/i052-firefox-complete.pdf` (desde la raíz del repo) con `pypdf`. PDFs/capturas son salidas regenerables del test, no insumos del QA.
 - Firefox usa un perfil de prueba propio, impresión silenciosa a PDF y espera el marcador EOF antes de cerrar. Referencia técnica de preferencias: [Mozilla, configuración de impresión](https://bugzilla.mozilla.org/show_bug.cgi?id=2023645#c0); no se activan flags experimentales. No cambia configuración del navegador del usuario.
 - Revisión gpt-6-luna high en ejes especificación y estándares: sin hallazgos pendientes. Lectura integrada de impresión en curso. Aceptación manual pendiente.
 

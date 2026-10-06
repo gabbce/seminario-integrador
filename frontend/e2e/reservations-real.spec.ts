@@ -49,7 +49,7 @@ test("I-03.1 real: preparación sin guardar y resumen servido por Java", async (
     page.getByText(`Ver las ${count} fechas a registrar`),
   ).toBeVisible();
   await page.screenshot({
-    path: "/tmp/i031-real-revision.png",
+    path: "../artifacts/qa/screens/i031-real-revision.png",
     fullPage: true,
   });
 });
@@ -87,14 +87,14 @@ test("I-03.2 real: confirma, recarga y consulta desde otra sesión", async ({
   await expect(
     page.getByRole("heading", { name: "Reserva confirmada" }),
   ).toBeVisible();
-  await page.screenshot({ path: "/tmp/i032-real-exito.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i032-real-exito.png", fullPage: true });
   await page.getByRole("button", { name: "Ver detalle", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/reservas/${booking.id}$`));
   await page.reload();
   await expect(
     page.getByRole("heading", { name: booking.subject, exact: true }),
   ).toBeVisible();
-  await page.screenshot({ path: "/tmp/i032-real-detalle.png", fullPage: true });
+  await page.screenshot({ path: "../artifacts/qa/screens/i032-real-detalle.png", fullPage: true });
   const second = await browser.newPage();
   try {
     await second.goto("/");
@@ -126,7 +126,7 @@ test("I-03.2 real: confirma, recarga y consulta desde otra sesión", async ({
       .first()
       .scrollIntoViewIfNeeded();
     await second.screenshot({
-      path: "/tmp/i032-real-agenda-docente.png",
+      path: "../artifacts/qa/screens/i032-real-agenda-docente.png",
       fullPage: true,
     });
   } finally {
@@ -158,7 +158,7 @@ test("Reservas real: agenda de una reserva existente", async ({ page }) => {
   await event.scrollIntoViewIfNeeded();
   await expect(event).toBeVisible();
   await page.screenshot({
-    path: "/tmp/i032-real-agenda-docente.png",
+    path: "../artifacts/qa/screens/i032-real-agenda-docente.png",
     fullPage: true,
   });
 });
@@ -213,7 +213,7 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
     .first()
     .scrollIntoViewIfNeeded();
   await page.screenshot({
-    path: "/tmp/i034-real-agenda-2026.png",
+    path: "../artifacts/qa/screens/i034-real-agenda-2026.png",
     fullPage: true,
   });
   const annual = bookings.find(
@@ -236,7 +236,7 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
     ),
   ).toBe(true);
   await page.screenshot({
-    path: "/tmp/i034-real-anual-390.png",
+    path: "../artifacts/qa/screens/i034-real-anual-390.png",
     fullPage: false,
   });
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -285,7 +285,7 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
     .getByText("Ver conflictos del aula Lab 2", { exact: true })
     .click();
   await page.screenshot({
-    path: "/tmp/i034-real-alternativas.png",
+    path: "../artifacts/qa/screens/i034-real-alternativas.png",
     fullPage: true,
   });
   const request = response.request().postDataJSON();

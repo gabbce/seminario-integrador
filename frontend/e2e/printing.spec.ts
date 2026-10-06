@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import { test, expect, firefox } from "@playwright/test";
 import { fakeAuth, login } from "./auth-fixture";
+const firefoxPdf = resolve("../artifacts/qa/screens/i052-firefox-complete.pdf");
 const rows = Array.from({ length: 121 }, (_, i) => ({
   id: String(i + 1),
   bookingId: "80",
@@ -30,7 +32,7 @@ for (const browserName of ["chromium", "firefox"])
               print_printer: "Mozilla Save to PDF",
               "print.printer_Mozilla_Save_to_PDF.print_to_file": true,
               "print.printer_Mozilla_Save_to_PDF.print_to_filename":
-                "/tmp/i052-firefox-complete.pdf",
+                firefoxPdf,
               "print.show_print_progress": false,
             },
           })
@@ -109,25 +111,25 @@ for (const browserName of ["chromium", "firefox"])
       await expect(page.locator(".print-list")).toBeVisible();
       await expect(page.locator(".print-list button")).toHaveCount(0);
       await page.screenshot({
-        path: `/tmp/i052-print-${browserName}.png`,
+        path: `../artifacts/qa/screens/i052-print-${browserName}.png`,
         fullPage: true,
       });
       if (browserName === "chromium")
         await page.pdf({
-          path: "/tmp/i052-complete.pdf",
+          path: "../artifacts/qa/screens/i052-complete.pdf",
           preferCSSPageSize: true,
           printBackground: true,
         });
       if (browserName === "firefox") {
-        rmSync("/tmp/i052-firefox-complete.pdf", { force: true });
+        rmSync(firefoxPdf, { force: true });
         await page.evaluate(() =>
           window.dispatchEvent(new Event("qa-native-print")),
         );
         await expect
           .poll(
             () =>
-              existsSync("/tmp/i052-firefox-complete.pdf") &&
-              readFileSync("/tmp/i052-firefox-complete.pdf")
+              existsSync(firefoxPdf) &&
+              readFileSync(firefoxPdf)
                 .subarray(-30)
                 .toString()
                 .includes("%%EOF"),

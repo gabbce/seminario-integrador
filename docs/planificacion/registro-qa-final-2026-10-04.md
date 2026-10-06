@@ -8,7 +8,9 @@ Copia de la [plantilla](registro-qa-final.md) para esta ejecución. Guía: [caso
 - un análisis estático completo de la especificación contra el código, por área;
 - sondeos de interfaz con la UI real y la API simulada.
 
-Resultado: **1 hallazgo de severidad Alta (seguridad), 14 de severidad Media y 21 de severidad Baja**. Ninguna entrega se acepta en esta ejecución.
+Resultado: **12 hallazgos de severidad Media y 19 de severidad Baja**, sin severidad Alta. Ninguna entrega se acepta en esta ejecución.
+
+> **Revisión de severidad (05/10/2026):** tras la revisión del PR se reclasificaron cinco hallazgos que no demostraban un defecto. QA-01 pasa a contradicción documental, con la rotación de contraseñas como recomendación. QA-10 pasa a pendiente de decisión. QA-13, QA-28 y QA-29 pasan a riesgos, mejoras y cobertura. El conteo original era 1 Alta, 14 Media y 21 Baja.
 
 Fecha/hora institucional: 04/10/2026 21:46–22:30 (Córdoba). Operador: equipo QA. Commit: `b242e11` (rama `main`). Imagen: no construida (Docker no disponible). Origen/destino: no disponible (ver bloqueos). Navegadores: Chromium (Playwright 1.63) y Firefox 155.0 (Playwright), solo en las pruebas con red simulada. Escritorio 1366×768, móvil 390×844 y zoom nativo 200 %: no ejecutados.
 
@@ -16,7 +18,7 @@ Fecha/hora institucional: 04/10/2026 21:46–22:30 (Córdoba). Operador: equipo 
 
 | ID | Bloqueo | Evidencia | Qué lo destraba |
 |---|---|---|---|
-|BLQ-1|El proyecto Supabase `nrjykdzvzrcixapkdfsp` no resuelve DNS (NXDOMAIN, también con 8.8.8.8). Lo más probable es que esté pausado por inactividad (plan free; último commit 28/09). Por eso la instancia `seminario-integrador-rqft.onrender.com` acepta la conexión TLS pero no responde: 20 intentos en 15 min, todos sin respuesta.|`nslookup nrjykdzvzrcixapkdfsp.supabase.co 8.8.8.8` → Non-existent domain|Gabi restaura el proyecto desde el dashboard de Supabase. **Antes, ver QA-01.**|
+|BLQ-1|El proyecto Supabase `nrjykdzvzrcixapkdfsp` no resuelve DNS (NXDOMAIN, también con 8.8.8.8). Lo más probable es que esté pausado por inactividad (plan free; último commit 28/09). Por eso la instancia `seminario-integrador-rqft.onrender.com` acepta la conexión TLS pero no responde: 20 intentos en 15 min, todos sin respuesta.|`nslookup nrjykdzvzrcixapkdfsp.supabase.co 8.8.8.8` → Non-existent domain|Gabi restaura el proyecto desde el dashboard de Supabase.|
 |BLQ-2|Virtualización (AMD SVM) desactivada en la BIOS de la PC de QA → WSL2/Docker Desktop no arrancan.|`VirtualizationFirmwareEnabled=False`|BIOS ASUS: Advanced → CPU Configuration → SVM Mode → Enabled.|
 |BLQ-3|No hay `backend/.env` ni `frontend/.env.local` en el checkout de QA.|`ls -a backend frontend`|Plan B sin credenciales: Supabase CLI local con los datasets I02–I05 cargados por los comandos explícitos (requiere BLQ-2).|
 
@@ -41,12 +43,6 @@ Fecha/hora institucional: 04/10/2026 21:46–22:30 (Córdoba). Operador: equipo 
 
 Verificación: **Dinámico** = reproducido en ejecución (UI real + API simulada). **Código** = verificado leyendo las líneas citadas. **Estático** = análisis spec-vs-código sin ejecutar; hay que confirmarlo en vivo.
 
-### Alta
-
-| ID | Hallazgo | Ubicación | Verificación |
-|---|---|---|---|
-|QA-01|El repo `gabbce/seminario-integrador` es **público** y publica la URL de Render y la contraseña común de las cuentas demo, incluida **Admin**. Contradice el manifiesto (l. 11 y 81), F01 («contraseñas por canal privado») y la spec 10:44. Un tercero puede crear otros Admin, cambiar contraseñas, modificar calendarios/aulas/reservas e invalidar los esperados del QA. Hay que **rotar las contraseñas en Supabase antes de restaurar el proyecto**: la contraseña queda en el historial de git (`b242e11`).|`docs/credenciales-demo.md`; `README.md:28`; `frontend/src/components/DemoControls.tsx:71` (no se usa)|Código + `gh repo view` (PUBLIC)|
-
 ### Media
 
 | ID | Hallazgo | Ubicación | Verificación |
@@ -59,10 +55,8 @@ Verificación: **Dinámico** = reproducido en ejecución (UI real + API simulada
 |QA-07|El detalle no muestra el cese de continuidad, el patrón semanal ni las fechas excluidas, aunque la API los devuelve. En la UI, un cese no se distingue de un fin natural, así que F07/F08 solo se pueden verificar por JSON.|`Detail.tsx:352-405`; `PersistedCancellation.tsx:156-165`|Estático|
 |QA-08|Calendario: tras un conflicto de versión (otra pestaña confirmó), «Recargar calendario» restaura la propuesta con la versión vieja y cada «Revisar impacto» da 409 otra vez. La única salida es descartar la propuesta.|`PersistedCalendar.tsx:97-113,137-141,214,238-242`; `CalendarEditor.tsx:38-40`|Estático|
 |QA-09|Dependencias de calendario (feriado o recorte): se informa solo la primera reserva afectada, sin orden y sin fecha. La spec 06:47 pide mostrar las reservas.|`ReservationGuards.java:34-37,46-51`|Estático|
-|QA-10|Indicadores: un aula sin historial en el rango (por ejemplo, creada después) marca cobertura desconocida para **todo** el conjunto, y el porcentaje de «Todas las aulas» (aun filtrando otro tipo) pasa a «—». Crear un aula hoy anula los porcentajes históricos. La spec 09 pide contar solo los módulos con cobertura conocida; hay que confirmar la intención con Gabi.|`IndicatorQueries.java:95-96,111`|Código|
 |QA-11|Se puede agregar como feriado la fecha de hoy aunque sus clases ya terminaron. La clase queda CONFIRMADA en un día no lectivo: el numerador la cuenta y el denominador la excluye (ejemplo: semana 56/1280 h = 4,4 % en vez de 3,5 %). Contradice DA-69.|`CalendarManagement.java:84-86`; `ReservationGuards.java:34-37`; `IndicatorQueries.java:145,153`|Código|
 |QA-12|Cuentas: una operación de identidad incierta y abandonada (descartar/recargar) deja la cuenta bloqueada. No se puede editar, deshabilitar ni cambiar correo o contraseña (409), y no hay forma de anularla desde la app.|`IdentityManagement.java:75,97-98,110-115`; `AccountManagement.java:53-54`; `Users.tsx:23,108,445-451`|Estático|
-|QA-13|`supabase/config.toml` habilita el registro público (`enable_signup = true`), contra CA-U01. Un `supabase config push` lo abriría en el proyecto remoto.|`supabase/config.toml:175,220`|Código|
 |QA-14|Los scripts de QA no corren en Windows: `reset-rehearsal.py` y `check-volume.py` abren archivos sin `encoding` (cp1252 → `UnicodeDecodeError`), y las guías usan `python3`, `export` y `./mvnw`. Alternativa: `PYTHONUTF8=1 python …`.|`tools/qa/reset-rehearsal.py:9,26`; `tools/qa/check-volume.py`|**Dinámico (check-volume)**|
 |QA-15|El wrapper de Maven descarga de `dlcdn.apache.org`, que solo aloja las versiones vigentes. Cuando salga otra 3.9.x, la build Docker y `./mvnw` van a fallar (404).|`backend/.mvn/wrapper/maven-wrapper.properties:3`; `Dockerfile:24-36`|Estático (depende del tiempo)|
 
@@ -82,8 +76,6 @@ Verificación: **Dinámico** = reproducido en ejecución (UI real + API simulada
 |QA-25|Desde el listado, el detalle no marca qué clase se consultó. El error del detalle no ofrece volver con los filtros.|`PersistedListing.tsx:203`; `PersistedDetail.tsx:62-75`|
 |QA-26|Se usa la zona `Buenos_Aires` en lugar de `Cordoba` (DA-70). Hoy no hay diferencia observable.|`ConsultationQueries.java:23-24`; `IndicatorQueries.java:13`|
 |QA-27|La impresión queda montada y Ctrl+P reimprime datos viejos sin indicar cuándo se obtuvieron (sospecha).|`PrintDaily.tsx:42,65,81-133`|
-|QA-28|El HEALTHCHECK fija el puerto 8080 aunque `PORT` es configurable. Las barreras del reset son débiles: `.env.example` ya trae `AULAS_ENVIRONMENT=demo` y la auditoría se atribuye al Admin de menor id.|`tools/docker/Healthcheck.java:8`; `DemoResetService.java:140,162`|
-|QA-29|La evidencia del ensayo de reset es débil: `previewReadOnly` solo compara la tabla `reserva`, con `assert`.|`tools/qa/reset-rehearsal.py:53,63`|
 |QA-30|`GET /api/reservas` sigue devolviendo todo el histórico a cualquier rol, contra el plan I-05.|`ReservationsController.java:15`|
 |QA-31|La semana típica no muestra qué fechas incluye (DA-43).|`MetricWeek.tsx`|
 |QA-32|En un día no elegible se mezclan «Sin datos aplicables», «Sin horas habilitadas», «1 fecha aportante» y «Pico 0».|`PersistedIndicators.tsx:182-279`|
@@ -92,15 +84,25 @@ Verificación: **Dinámico** = reproducido en ejecución (UI real + API simulada
 |QA-35|Las alternativas de impacto se calculan solo para esa fecha, no para todas las futuras del patrón. El resumen no identifica las series afectadas.|`CalendarImpactService.java:87-89`; `CalendarEditor.tsx:426-431`|
 |QA-36|El impacto de calendario escala con N+1 consultas, y el sello incluye la versión de todas las reservas del año: cualquier operación de un Bedel invalida la revisión.|`CalendarImpactService.java:58-119`|
 
+### Riesgos, mejoras y cobertura (no se cuentan como defecto)
+
+| ID | Tipo | Hallazgo | Ubicación |
+|---|---|---|---|
+|QA-13|Riesgo de configuración|`supabase/config.toml` habilita el registro público (`enable_signup = true`), contra CA-U01. Es la configuración local: no demuestra cómo está hoy el Auth remoto. Hay que verificarlo en el proyecto remoto y no hacer `supabase config push` con este valor.|`supabase/config.toml:175,220`|
+|QA-28|Endurecimiento|El HEALTHCHECK fija el puerto 8080 aunque `PORT` es configurable. Las barreras del reset podrían ser más fuertes: `.env.example` ya trae `AULAS_ENVIRONMENT=demo` y la auditoría se atribuye al Admin de menor id. No se comprobó un fallo funcional.|`tools/docker/Healthcheck.java:8`; `DemoResetService.java:140,162`|
+|QA-29|Cobertura de pruebas|La evidencia del ensayo de reset es incompleta: `previewReadOnly` solo compara la tabla `reserva`, con `assert`.|`tools/qa/reset-rehearsal.py:53,63`|
+
 Pendientes de decisión (no se cuentan como defecto):
 - Esporádicas fuera de ambos cuatrimestres (por ejemplo 04/01/2027): se aceptan.
 - Reprogramar sobre una fecha excluida: se permite.
-- Un patrón con todas sus futuras canceladas se regenera si otro patrón de la serie sigue vigente.
+- Un patrón con todas sus futuras canceladas se regenera si otro patrón de la serie sigue vigente. No es un defecto: la regla vigente registra el cese de continuidad para toda la serie (DA-59; `continuidadCanceladaEn` en ReservaPeriodica, `07-ciclo-de-reservas.md:194`). Cesar un patrón por separado sería un cambio de alcance y queda como propuesta.
+- **QA-10**, indicadores. Ocultar el porcentaje cuando la cobertura es desconocida es el comportamiento esperado: `qa-exacto-i-05.md:33` pide porcentaje ausente con aviso. Queda a confirmar con Gabi, por separado, si un aula excluida por el filtro de tipo, o creada después del rango, debe volver desconocida la cobertura del conjunto filtrado. Hoy el porcentaje de «Todas las aulas» pasa a «—» aun filtrando otro tipo. Ubicación: `IndicatorQueries.java:95-96,111`.
 
 ### Pruebas y documentación
 
 | ID | Hallazgo |
 |---|---|
+|QA-01|Contradicción documental. `docs/credenciales-demo.md` y `README.md:28` publican la contraseña común de las cuentas demo, incluida Admin, y la declaran pública para pruebas. El manifiesto (l. 11 y 81), F01 («contraseñas por canal privado») y la spec 10:44 piden preparación privada. Hay que alinear los documentos. Recomendación adicional, que no es un esperado del QA: rotar las contraseñas si la demo deja de ser solo de prueba.|
 |T-01|`printing.spec.ts` (Firefox) escribe el PDF en `/tmp/...`, una ruta Linux. En Windows falla siempre.|
 |T-02|`sporadic.spec.ts` «lost-before» es intermitente: la página queda en el login (fixture de Auth). Falló en 1440 y en 390 en corridas distintas.|
 |T-03|Las specs guardan capturas en `/tmp`; en Windows crean `D:\tmp` con 115 archivos fuera del repo.|
@@ -127,6 +129,6 @@ Restablecimiento remoto: no solicitado ni ejecutado. No se registran contraseña
 
 ## Próximos pasos
 
-1. Gabi rota las contraseñas demo (QA-01), restaura el proyecto Supabase y decide si retira `docs/credenciales-demo.md`.
+1. Gabi restaura el proyecto Supabase y resuelve la contradicción documental de QA-01. Rotar las contraseñas queda como recomendación.
 2. QA reactiva SVM. Después: `./mvnw test`, construir la imagen y ejecutar F01–F12 en vivo. Si Supabase sigue sin estar disponible, se usa la réplica local con Supabase CLI y los datasets I02–I05 cargados por los comandos explícitos, registrando que los IDs y las reservas QA ajenas (14–23, 2029) difieren del entorno compartido.
 3. Confirmar en vivo los hallazgos «Estático» y repetir los casos afectados después de cada corrección.

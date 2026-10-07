@@ -48,19 +48,39 @@ export function Wizard({
   initial,
   onPrepare,
   onConsume,
+  storageKey,
 }: {
   courses: Course[];
   addCourse: (course: Course) => void;
   role: "Administrador" | "Bedel" | "Docente";
   queryOnly?: boolean;
   onConsume?: () => void;
+  storageKey?: string;
   initial?: ReservationDraft;
   onPrepare?: (draft: ReservationDraft) => void;
   onConfirmed?: (booking: Booking) => void;
 }) {
   const teachers = useTeachers();
+  const [restored] = useState<{
+    mode: "periodic" | "sporadic";
+    request: ConfirmationRequest;
+  } | null>(() => {
+    if (!storageKey || queryOnly) return null;
+    try {
+      const value = JSON.parse(sessionStorage.getItem(storageKey) ?? "null");
+      return value &&
+        ["periodic", "sporadic"].includes(value.mode) &&
+        typeof value.request?.operationId === "string" &&
+        value.request.proposal &&
+        Array.isArray(value.request.selections)
+        ? value
+        : null;
+    } catch {
+      return null;
+    }
+  });
   const [saving, setSaving] = useState(false),
-    [uncertain, setUncertain] = useState(false);
+    [uncertain, setUncertain] = useState(!!restored);
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -87,13 +107,9 @@ export function Wizard({
     if (initial) onConsume?.();
   }, [initial, onConsume]);
   const [step, setStep] = useState(1);
-  const [subject, setSubject] = useState(
-    courses.find((c) => c.year === year)?.subject ?? "",
-  );
-  const [course, setCourse] = useState(
-    courses.find((c) => c.year === year)?.id ?? "",
-  );
-  const [teacher, setTeacher] = useState(teachers[0]?.name ?? "");
+  const [subject, setSubject] = useState("");
+  const [course, setCourse] = useState("");
+  const [teacher, setTeacher] = useState("");
   const [students, setStudents] = useState(initial?.students ?? 30);
   const [type, setType] = useState(initial?.type ?? "Multimedios");
   const [resources, setResources] = useState<Resource[]>(
@@ -107,7 +123,7 @@ export function Wizard({
     ],
   );
   const [mode, setMode] = useState<"periodic" | "sporadic">(
-    initial?.mode ?? "periodic",
+    restored?.mode ?? initial?.mode ?? "periodic",
   );
   const [dates, setDates] = useState<Occurrence[]>(
     initial?.dates.length
@@ -211,12 +227,16 @@ export function Wizard({
   const chosenCourse = courses.find((c) => c.id === course);
   const visibleCourse = chosenCourse ? courseLabel(chosenCourse) : "";
   const response = preparation;
-  const attempt = useRef<ConfirmationRequest | null>(null);
+  const attempt = useRef<ConfirmationRequest | null>(restored?.request ?? null);
   async function submitConfirmation(request: ConfirmationRequest) {
     setSaving(true);
     setError("");
     try {
+      // Persist the immutable request before sending so reload/session expiry keeps its UUID.
+      if (storageKey)
+        sessionStorage.setItem(storageKey, JSON.stringify({ mode, request }));
       const confirmed = await confirmReservation(request, mode);
+      if (storageKey) sessionStorage.removeItem(storageKey);
       if (!mounted.current) return;
       setUncertain(false);
       setSaved(confirmed);
@@ -227,11 +247,16 @@ export function Wizard({
         failure instanceof Error
           ? failure.message
           : "No pudimos confirmar la reserva.";
-      if (!(failure instanceof ApiError) || failure.status >= 500) {
+      if (
+        !(failure instanceof ApiError) ||
+        failure.status >= 500 ||
+        failure.status === 401
+      ) {
         setUncertain(true);
         setError(message);
       } else {
         attempt.current = null;
+        if (storageKey) sessionStorage.removeItem(storageKey);
         setUncertain(false);
         setError(message);
         setStep(2);
@@ -345,6 +370,7 @@ export function Wizard({
                 );
                 if (!mounted.current) return;
                 if (result.found && result.booking) {
+                  if (storageKey) sessionStorage.removeItem(storageKey);
                   setUncertain(false);
                   setSaved(result.booking);
                   onConfirmed?.(result.booking);
@@ -495,9 +521,8 @@ export function Wizard({
                         old.map((p) => ({ ...p, room: "" })),
                       );
 
-                      const c = courses.find((c) => c.year === next);
-                      setCourse(c?.id ?? "");
-                      setSubject(c?.subject ?? "");
+                      setCourse("");
+                      setSubject("");
                       setError("");
                     }}
                   >
@@ -525,9 +550,11 @@ export function Wizard({
                     <label>
                       Docente
                       <select
+                        aria-label="Docente"
                         value={teacher}
                         onChange={(e) => setTeacher(e.target.value)}
                       >
+                        <option value="">Seleccioná un docente</option>
                         {teachers.map((t) => (
                           <option key={t.id}>{t.name}</option>
                         ))}
@@ -754,11 +781,19 @@ export function Wizard({
               >
                 <h2>
                   {response.status === "error"
-                    ? "No pudimos consultar la disponibilidad"
+                    ? response.businessError
+                      ? "Revisá los criterios de la reserva"
+                      : "No pudimos consultar la disponibilidad"
                     : "Consultando disponibilidad…"}
                 </h2>
                 {response.status === "error" && response.error && (
                   <p>{response.error}</p>
+                )}
+                {response.businessError && (
+                  <p>
+                    Volvé a los datos y corregí las fechas o los criterios
+                    indicados.
+                  </p>
                 )}
                 <p>La preparación se conserva en esta pantalla.</p>
                 {response.status === "error" && (

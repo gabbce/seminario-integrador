@@ -58,6 +58,7 @@ test("I-04.1 real: esporádica en receso, recarga y segunda sesión", async ({
   await page
     .getByRole("combobox", { name: "Curso", exact: true })
     .selectOption(course.id);
+  await page.getByLabel("Docente", { exact: true }).selectOption({ index: 1 });
   await page.getByRole("button", { name: "Buscar aulas" }).click();
   await page.locator('input[name="room-1"]').first().check();
   await page.locator('input[name="room-2"]').nth(1).check();
@@ -87,7 +88,10 @@ test("I-04.1 real: esporádica en receso, recarga y segunda sesión", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await page.screenshot({ path: `../artifacts/qa/operations/${browser.browserType().name()}-i041-real-detalle.png`, fullPage: true });
+  await page.screenshot({
+    path: `../artifacts/qa/operations/${browser.browserType().name()}-i041-real-detalle.png`,
+    fullPage: true,
+  });
   const second = await browser.newPage({
     viewport: { width: 390, height: 900 },
   });

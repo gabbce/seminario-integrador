@@ -41,7 +41,7 @@ class IndicatorTests {
   history(b,"2027-03-01T09:00:00",null,"General","Inhabilitada",false);
  }
  long room(String name){return db.queryForObject("insert into aulas.aula(identificador,tipo,capacidad,estado,ubicacion,piso,pizarron,ventiladores,aire) values (?,'General',80,'Habilitada','QA',0,'Tiza',false,false) returning id_aula",Long.class,name);}
- void history(long room,String from,String to,String type,String state,boolean deleted){db.update("insert into aulas.historial_aula(id_aula,desde,hasta,tipo,estado,baja) values (?,?::timestamp at time zone 'America/Argentina/Buenos_Aires',?::timestamp at time zone 'America/Argentina/Buenos_Aires',?,?,?)",room,from,to,type,state,deleted);}
+ void history(long room,String from,String to,String type,String state,boolean deleted){db.update("insert into aulas.historial_aula(id_aula,desde,hasta,tipo,estado,baja) values (?,?::timestamp at time zone 'America/Argentina/Cordoba',?::timestamp at time zone 'America/Argentina/Cordoba',?,?,?)",room,from,to,type,state,deleted);}
  long occurrence(long room,String date,String start,int modules,int students){return new TransactionTemplate(manager).execute(tx->{
   long id=db.queryForObject("insert into aulas.reserva(registrado_por,id_curso,docente_externo_id,nombre_docente,apellido_docente,email_docente,cantidad_alumnos,tipo_aula) values (?,?,'D-01','Laura','Gómez','private@test.local',?,'General') returning id_reserva",Long.class,actor,course,students);
   db.update("insert into aulas.reserva_esporadica values (?)",id);
@@ -143,4 +143,15 @@ class IndicatorTests {
   mvc.perform(get("/api/indicadores/serie?from=2027-03-01&to=2027-03-01").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isForbidden());
   assertThatThrownBy(()->queries.summary(day,day.minusDays(1),"","")).hasMessageContaining("rango válido");
  }
+ @Test void unknownRoomIsInvalidButExistingRoomWithoutAttributeMatchesIsEmpty() throws Exception {
+  for(String endpoint:List.of("resumen","serie")) {
+   mvc.perform(get("/api/indicadores/"+endpoint).param("from",day.toString()).param("to",day.toString()).param("room","Inexistente").param("location","Sin coincidencias").with(jwt().jwt(j->j.subject(auth.toString()))))
+    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_FILTER")).andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("no existe")));
+  }
+  mvc.perform(get("/api/indicadores/resumen").param("from",day.toString()).param("to",day.toString()).param("room","A").param("location","Sin coincidencias").with(jwt().jwt(j->j.subject(auth.toString()))))
+   .andExpect(status().isOk()).andExpect(jsonPath("$.hours").value(0)).andExpect(jsonPath("$.availableHours").value(0));
+  mvc.perform(get("/api/indicadores/serie").param("from",day.toString()).param("to",day.toString()).param("room","A").param("location","Sin coincidencias").with(jwt().jwt(j->j.subject(auth.toString()))))
+   .andExpect(status().isOk()).andExpect(jsonPath("$.summary.availableHours").value(0));
+ }
+
 }

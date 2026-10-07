@@ -8,6 +8,8 @@ public class AccountsController {
     private final AccountManagement accounts;
     private final IdentityManagement identities;
     public AccountsController(AccountManagement accounts,IdentityManagement identities) { this.accounts=accounts;this.identities=identities; }
+    @GetMapping("/{id}/operaciones-identidad") public java.util.Map<String,Object> pending(@RequestAttribute("aulas.account") Account actor,@PathVariable long id) {return identities.pending(actor.id(),id);}
+    @PostMapping("/{id}/operaciones-identidad/{operationId}/recuperar") public AccountManagement.User recover(@RequestAttribute("aulas.account") Account actor,@PathVariable long id,@PathVariable java.util.UUID operationId) {return identities.recover(actor.id(),id,operationId);}
     @GetMapping public AccountManagement.Page list(@RequestParam(defaultValue="") String query,@RequestParam(defaultValue="") String role,@RequestParam(defaultValue="") String status,@RequestParam(defaultValue="name") String sort,@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="20") int size) { return accounts.list(query,role,status,sort,page,size); }
     @PutMapping("/{id}") public AccountManagement.User edit(@RequestAttribute("aulas.account") Account actor,@PathVariable long id,@RequestBody AccountManagement.Edit edit) { return accounts.edit(actor.id(),id,edit); }
     @PostMapping public AccountManagement.User create(@RequestAttribute("aulas.account") Account actor,@RequestBody IdentityManagement.Create request) {return identities.create(actor.id(),request);}

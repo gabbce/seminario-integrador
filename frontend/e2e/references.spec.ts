@@ -60,7 +60,8 @@ for (const width of [390, 1440])
       page.getByRole("option", { name: "Docente servido por Java" }),
     ).toHaveCount(1);
     await page.reload();
-    await expect(page.getByLabel("Curso", { exact: true })).toHaveValue("101");
+    await expect(page.getByLabel("Curso", { exact: true })).toHaveValue("");
+    await page.getByLabel("Curso", { exact: true }).selectOption("101");
     await page.screenshot({
       path: `evidence/i025-referencias-${width}.png`,
       fullPage: true,

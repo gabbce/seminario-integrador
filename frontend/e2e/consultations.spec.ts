@@ -110,7 +110,7 @@ test("consulta paginada, filtros, retorno y errores; sin descarga global", async
   });
   await page.goto("/reservas?date=2027-03-01");
   await login(page, "docente");
-  await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
+  await expect(page.getByLabel("Fecha del listado")).toBeVisible();
   await page.goto("/reservas?date=2027-03-01");
   await expect(page.getByText("120 resultados")).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(20);
@@ -160,7 +160,7 @@ test("respuestas tardías no reemplazan el filtro vigente", async ({ page }) => 
   });
   await page.goto("/reservas?date=2027-03-02");
   await login(page);
-  await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
+  await expect(page.getByLabel("Fecha del listado")).toBeVisible();
   await page.goto("/reservas?date=2027-03-02");
   await expect(
     page.getByText("No hay reservas para estos filtros."),

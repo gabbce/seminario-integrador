@@ -1,4 +1,5 @@
 import { institutionalNow } from "./institutional-time";
+import { isDate } from "./date-input";
 import type { CalendarConfig } from "./calendar";
 import { PersistedDetail } from "./pages/PersistedDetail";
 import { CalendarContext } from "./calendar-context";
@@ -85,8 +86,7 @@ export default function App({
   }, []);
   const location = useLocation();
   const queryDate = new URLSearchParams(location.search).get("fecha");
-  const requestedDate =
-    queryDate && /^\d{4}-\d{2}-\d{2}$/.test(queryDate) ? queryDate : null;
+  const requestedDate = queryDate && isDate(queryDate) ? queryDate : null;
   const [agendaSelection, setAgendaSelection] = useState({
     locationKey: location.key,
     date: requestedDate ?? institutionalNow().slice(0, 10),
@@ -233,6 +233,14 @@ export default function App({
               </div>
             </header>
             <main>
+              {location.pathname === "/agenda" &&
+                queryDate !== null &&
+                !isDate(queryDate) && (
+                  <p role="alert">
+                    La fecha de agenda no es válida. Seleccioná una fecha
+                    existente.
+                  </p>
+                )}
               {inventoryError && (
                 <div role="alert">
                   {inventoryError}
@@ -302,6 +310,7 @@ export default function App({
                         ) : (
                           <Wizard
                             key="register"
+                            storageKey={`aulas-confirmation:${currentUser.id}`}
                             initial={draft}
                             onConsume={() => setDraft(undefined)}
                             courses={courses}

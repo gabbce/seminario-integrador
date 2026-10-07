@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { rangeMetrics } from "../metrics";
-import { dayNames } from "../domain";
+import { dayNames, dateLabel } from "../domain";
 import { Button } from "./ui/button";
 const number = (n: number) =>
   new Intl.NumberFormat("es-AR", { maximumFractionDigits: 1 }).format(n);
@@ -53,6 +53,17 @@ export function MetricWeek({
           Media por franja de 30 minutos. Incluye fechas lectivas sin clases;
           excluye feriados. Desplazá el mapa para ver el día completo.
         </p>
+        <details>
+          <summary>Ver fechas aportantes</summary>
+          {data.week.map((day) => (
+            <p key={day.day}>
+              {dayNames[day.day]}:{" "}
+              {day.dates.length
+                ? day.dates.map(dateLabel).join(" · ")
+                : "Sin fechas aplicables"}
+            </p>
+          ))}
+        </details>
         <div
           className="heat-scroll"
           role="region"

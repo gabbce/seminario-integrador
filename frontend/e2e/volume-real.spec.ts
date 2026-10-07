@@ -15,7 +15,7 @@ const password =
     ?.slice("AULAS_DEMO_PASSWORD=".length)
     .replaceAll("\\\\", "\\");
 // Read only. Requires explicitly loaded I05; does not seed or reset.
-test("volumen real: PDF completo Firefox", async () => {
+test("volumen real: PDF completo Firefox", async ({ baseURL }) => {
   const output = resolve("../artifacts/qa/i05/volume-firefox.pdf");
   mkdirSync(resolve("../artifacts/qa/i05"), { recursive: true });
   rmSync(output, { force: true });
@@ -31,7 +31,7 @@ test("volumen real: PDF completo Firefox", async () => {
   });
   try {
     const page = await browser.newPage({
-      baseURL: "http://127.0.0.1:5175",
+      baseURL,
       locale: "es-AR",
       viewport: { width: 1366, height: 768 },
     });
@@ -124,8 +124,9 @@ test("volumen real, paginación, impresión completa e indicadores", async ({
   });
   await page.goto("/indicadores?date=2027-08-23");
   await expect(
-    page.getByText("52 / 320 h habilitadas", { exact: true }),
+    page.getByText("52 / 272 h habilitadas", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByText("19,1 %", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("img", { name: /Alumnos previstos. Pico 125/ }),
   ).toBeVisible();
@@ -140,8 +141,9 @@ test("volumen real, paginación, impresión completa e indicadores", async ({
   await page.goto("/indicadores?mode=week&from=2027-08-23&to=2027-08-27");
   await expect(page.getByText("855", { exact: true })).toBeVisible();
   await expect(
-    page.getByText("56 / 1.600 h habilitadas", { exact: true }),
+    page.getByText("56 / 1.360 h habilitadas", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByText("4,1 %", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: /Lunes 09:00–09:30: 120 alumnos previstos/,

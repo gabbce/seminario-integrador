@@ -53,12 +53,14 @@ public class SporadicConfirmation {
             if(db.queryForList("select id_aula from aulas.aula where id_aula=? for update",Long.class,room).isEmpty()) throw DomainError.conflict("Un aula seleccionada ya no existe.");
         var fresh=preparation.prepare(p,false);
         if(fresh.calendarVersion()!=r.calendarVersion()) throw DomainError.conflict("El calendario cambió desde la revisión. Volvé a consultar.");
+        var rejected=new ArrayList<String>();
         for(var date:fresh.dates()) {
             var selected=r.selections().stream().filter(s->s.date().equals(date.date())).findFirst().orElseThrow();
-            var room=date.availableRooms().stream().filter(a->a.internalId().equals(selected.roomId())).findFirst()
-                .orElseThrow(()->DomainError.conflict("El aula del "+date.date()+" ya no está disponible o no cumple los requisitos. Revisá la propuesta completa."));
-            if(room.version()!=selected.roomVersion()) throw DomainError.conflict("El aula cambió desde la revisión. Volvé a consultar.");
+            var room=date.availableRooms().stream().filter(a->a.internalId().equals(selected.roomId())).findFirst();
+            if(room.isEmpty())rejected.add("El aula del "+date.date()+" ya no está disponible o no cumple los requisitos.");
+            else if(room.get().version()!=selected.roomVersion())rejected.add("El aula cambió desde la revisión para el "+date.date()+".");
         }
+        if(!rejected.isEmpty())throw DomainError.conflict(String.join(" ",rejected)+" Revisá la propuesta completa; no se guardó ninguna reserva.");
         var teacher=references.teacher(r.teacherId());
         long id=db.queryForObject("insert into aulas.reserva(registrado_por,id_curso,docente_externo_id,nombre_docente,apellido_docente,email_docente,cantidad_alumnos,tipo_aula,pizarron,recursos) values (?,?,?,?,?,?,?,?,?,?::text[]) returning id_reserva",Long.class,actor,Long.parseLong(p.courseId()),teacher.id(),teacher.name(),teacher.surname(),teacher.email(),p.students(),p.type(),p.board()==null || p.board().isEmpty()?null:p.board(),"{"+String.join(",",p.resources())+"}");
         db.update("insert into aulas.reserva_esporadica(id_reserva) values (?)",id);
@@ -67,7 +69,7 @@ public class SporadicConfirmation {
             statement.setLong(1,id);statement.setLong(2,Long.parseLong(selected.roomId()));statement.setString(3,date.date());statement.setString(4,date.start());statement.setInt(5,date.modules());
         });
         db.update("insert into aulas.operacion_reserva(actor,clave,contenido,id_reserva) values (?,?,?,?)",actor,r.operationId(),content,id);
-        db.update("insert into aulas.evento_auditoria(actor,operacion,entidad,entidad_id,resultado,detalle) values (?,'CONFIRMAR_RESERVA','RESERVA',?,'CONFIRMADO',?)",actor,id,"Reserva esporádica confirmada; operación "+r.operationId());
+        db.update("insert into aulas.evento_auditoria(actor,instante,operacion,entidad,entidad_id,resultado,detalle) values (?,clock_timestamp(),'CONFIRMAR_RESERVA','RESERVA',?,'CONFIRMADO',?)",actor,id,"Reserva esporádica confirmada; operación "+r.operationId());
         return queries.get(id,true);
     }
 }

@@ -77,3 +77,7 @@ La comparación posterior confirma las306reservas/4613clases adicionales y la ig
 Repetición explícita remota26/09/2026:0reservas/0clases creadas,306conservadas, sin discrepancias. El comando de carga preserva cambios; no usarlo como restablecimiento.
 
 Listado por curso de referencia:Programación I,006-A-2027,curso30. Inventario posterior:664clases, todas vigentes. La reserva232 corresponde a clave `print-101-00`; resolver las otras identidades con el manifiesto. Nuevas altas manuales pueden cambiar el total.
+
+## Línea base de presentación — 07/10/2026
+
+Después de retirar ocho aulas QA sin reservas ni patrones, quedan20aulas institucionales,17habilitadas. Se preservan las reservas/clases del volumen y de I04. Lecturas reales:23/08/2027=104clases,52/272h habilitadas=19,1176% (19,1%visible),780alumnos-hora,picos125alumnos/8clases. Semana23–27/08=108clases,56/1360h=4,1176% (4,1%visible),855alumnos-hora. Los esperados de320/1600h del inventario original incluían tres aulas QA habilitadas; se conservan arriba como referencia histórica, no son los esperados actuales.

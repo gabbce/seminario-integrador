@@ -8,7 +8,7 @@ Preparado el26/09/2026. Implementación técnica I05/I06 verificada; **aceptaci�
 - Imagen verificada `sha256:7e6bd4c6374b2fdb5590a65f6e6dd5bf0596759ba2828c7f7f8119ceb5006092`. Al reconstruir, registrar el nuevo ID; no exigir igualdad de bytes si varían metadatos de construcción.
 - Demo compartida: [aplicación en8082](http://127.0.0.1:8082), Supabase PostgreSQL/Auth existente, región us-west-2. Compose solo inicia app, requiere internet. Fecha institucional Córdoba; referencias futuras2027/2029 válidas al preparar esta guía.
 - Chromium153.0.8010.12 y Firefox155.0; escritorio1366×768, Docente390×844, teclado. Reflow automatizado683×384; **zoom nativo200% pendiente del usuario**.
-- Roles: `admin@demo.local`, `bedel@demo.local`, `docente@demo.local`, `inhabilitado@demo.local`. Contraseñas en configuración privada; Admin usa la credencial de su preparación, sin asumir que siempre coincide con las demás. La última cuenta debe ser rechazada por perfil inactivo. No crear/reemplazar identidades para empezar QA.
+- Roles: `admin@demo.local`, `bedel@demo.local`, `docente@demo.local`, `inhabilitado@demo.local`. Las cuentas de la instancia compartida tienen credenciales ficticias públicas en [credenciales demo](../credenciales-demo.md); una réplica usa las de su preparación privada. Los secretos de servidor no se publican. La última cuenta debe ser rechazada por perfil inactivo. No crear/reemplazar identidades para empezar QA.
 
 Desde raíz, con configuración existente:
 
@@ -42,8 +42,8 @@ La definición versionada permite recalcular esa huella con `sha256sum backend/s
 |24/08/2027 |1vigente y1cancelada; todas2 |
 |25/08/2027 |0; clase de origen25/08 reprogramada al27/08 |
 |Curso30, Programación I,006-A-2027 |664clases vigentes; ejemplo de volumen reserva232,clave`print-101-00` |
-|Indicadores23/08 |52/320horas-aula=16,25%(16,3visible);780alumnos-hora; pico125alumnos y8clases |
-|Semana23–27/08 |108clases,56/1600horas=3,5%;855alumnos-hora |
+|Indicadores23/08 |52/272horas-aula=19,12%(19,1visible);780alumnos-hora; pico125alumnos y8clases |
+|Semana23–27/08 |108clases,56/1360horas=4,12%;855alumnos-hora |
 |Laboratorio martes2027,14–16 |Ranking Lab2(480min de conflicto),Lab1(1920min). Adyacente16–17: Lab1 libre, Lab2 ocupada por reserva14 |
 
 Para historia y cifras pequeñas usar [entorno exacto del paquete](qa-exacto-i-05.md): `node tools/qa/exact-package-env.mjs`, esperar listo, abrir5176. Año2021cerrado,7aulas,11reservas; su tabla especifica ponderación20/25%, franjas30/50/20, lunes15, feriado, cambio de tipo/estado, baja posterior y cobertura desconocida. Mantener la terminal; Ctrl+C elimina solo ese entorno. No alterar historia remota para reproducirlo.
@@ -52,10 +52,10 @@ Para historia y cifras pequeñas usar [entorno exacto del paquete](qa-exacto-i-0
 
 Crear materia «QA final» y comisión propia con fecha/operador para2027. Registrar el ID del curso y de cada nueva reserva en la plantilla; esos IDs son salidas del QA, no valores omitidos del manifiesto. No editar reservas24–31 ni volumen. Bedel opera; segunda sesión Bedel/Admin para concurrencia y Docente para privacidad.
 
-1. Esporádica:27y29/07/2027,08–09,20alumnos,General,Laura Gómez. En la preparación conservada hay diez aulas posibles, incluidas103y105. Elegir103 si sigue libre; registrar la elección. Confirmar ambas fechas:2clases,2horas-aula y40alumnos-hora añadidos. Edición20→25: mismos IDs/fechas/aulas,50alumnos-hora(+10).
+1. Esporádica:27y29/07/2027,08–09,20alumnos,General,Laura Gómez. En la preparación conservada hay diez aulas posibles, incluidas103y105. Elegir103 si sigue libre; registrar la elección. Confirmar ambas fechas:2clases,2horas-aula y40alumnos-hora añadidos. Edición20→24: mismos IDs/fechas/aulas,48alumnos-hora(+8); el aula103 admite24 personas.
 2. Dos sesiones revisan esa misma versión: guardar un cambio en una y luego en otra debe rechazar la versión antigua. Para conflicto de ocupación, preparar otra propuesta propia en ambas sesiones sobre una misma aula/franja libre; la segunda confirmación debe rechazar todo. Registrar esas reservas aparte de la muestra de métricas.
-3. Cambiar solo la clase27/07 al aula105 si la revisión la ofrece; totales generales iguales,1hora/25alumnos-hora trasladados entre aulas. Reprogramar27→28/07 a09:00–10:30 y luego30/07 al mismo horario: origen27inmutable; la reserva queda con2,5horas-aula y62,5alumnos-hora. Registrar cada traslado por fecha; el segundo movimiento no suma otra clase.
-4. Cancelar la clase movida con motivo «QA final: suspensión»: resta1,5horas y37,5alumnos-hora; queda29/07,1hora/25alumnos-hora. Comprobar liberación antes de volver a ocupar con otra reserva QA. Cancelar la restante deja0vigentes; historial/motivos conservados, sin reactivación.
+3. Cambiar solo la clase27/07 al aula105 si la revisión la ofrece; totales generales iguales,1hora/24alumnos-hora trasladados entre aulas. Reprogramar27→28/07 a09:00–10:30 y luego30/07 al mismo horario: origen27inmutable; la reserva queda con2,5horas-aula y60alumnos-hora. Registrar cada traslado por fecha; el segundo movimiento no suma otra clase.
+4. Cancelar la clase movida con motivo «QA final: suspensión»: resta1,5horas y36alumnos-hora; queda29/07,1hora/24alumnos-hora. Comprobar liberación antes de volver a ocupar con otra reserva QA. Cancelar la restante deja0vigentes; historial/motivos conservados, sin reactivación.
 5. Periódica propia: primer período2027,viernes21–22,20alumnos,General. Preparación de solo lectura verificada:103/105/204/107/108 ofrecidas para todo el patrón; elegir103 si sigue disponible; el calendario conservado produce17clases:12/19/26marzo,02/09/16/23/30abril,07/14/21/28mayo,04/11/18/25junio y02julio. Aporta17horas y340alumnos-hora. Anotar las fechas de revisión antes de confirmar. Mover la primera clase12/03 a15/03,21–22,si la revisión confirma disponibilidad; el patrón viernes y el origen12/03 se conservan, sin cambiar17horas/340alumnos-hora. Cambiar el aula del patrón debe incluir esa clase movida y todas las futuras vigentes. Cancelar continuidad futura deja cese explícito. Si el calendario cambió, cotejar cada viernes del período menos feriados/exclusiones y registrar la diferencia antes de guardar.
 
 Disponibilidad se revalida al confirmar; si otro QA ocupó un destino, usar una alternativa ofrecida y registrar el cambio antes de juzgar deltas. No borrar la interferencia. Pasado, reloj durante espera, IDs ajenos y fallos de persistencia se acreditan también con174pruebas backend; no modificar el reloj real.

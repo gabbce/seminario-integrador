@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import type { Room } from "./domain";
 
 export type PreparationConflict = {
@@ -62,6 +62,7 @@ export function useReservationPreparation(
     attempt: number;
     data?: PeriodicPreparation;
     error?: string;
+    businessError?: boolean;
   }>();
   useEffect(() => {
     if (!request) return;
@@ -109,6 +110,8 @@ export function useReservationPreparation(
             setResult({
               key: request,
               attempt,
+              businessError:
+                error instanceof ApiError && [400, 409].includes(error.status),
               error:
                 error instanceof Error
                   ? error.message
@@ -127,6 +130,7 @@ export function useReservationPreparation(
   return {
     data: current?.data,
     error: current?.error,
+    businessError: current?.businessError ?? false,
     status: current?.error ? "error" : current?.data ? "ready" : "loading",
     retry: () => setAttempt((value) => value + 1),
   };

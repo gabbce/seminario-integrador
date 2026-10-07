@@ -303,6 +303,12 @@ test("historial operativo muestra restablecimiento sin detalles técnicos", asyn
             description:
               "Restablecimiento demo: se restauró el escenario registrado. Consultá las clases actuales.",
           },
+          {
+            at: "2026-09-25T12:00:00Z",
+            actor: "Admin Demo",
+            description:
+              "Datos compartidos: tipo General → General; alumnos 20 → 24; recursos {fans} → [air, fans]",
+          },
         ],
       },
     });
@@ -314,6 +320,15 @@ test("historial operativo muestra restablecimiento sin detalles técnicos", asyn
   await expect(
     page.getByText("Restablecimiento demo:", { exact: false }),
   ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Datos compartidos: alumnos 20 → 24; recursos Ventiladores → Aire acondicionado, Ventiladores",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("tipo General → General", { exact: false }),
+  ).toHaveCount(0);
   mkdirSync("../artifacts/qa/reset", { recursive: true });
   await page.screenshot({
     path: "../artifacts/qa/reset/history-ui.png",

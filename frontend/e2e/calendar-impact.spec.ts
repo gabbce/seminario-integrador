@@ -32,6 +32,13 @@ async function setup(page: Page, role = "admin") {
     const body = r.request().postDataJSON();
     if (path.endsWith("/impacto")) {
       control.preparations++;
+      if (body.version !== calendar.version)
+        return r.fulfill({
+          status: 409,
+          json: {
+            message: "La versión del calendario cambió. Recargá el calendario.",
+          },
+        });
       return r.fulfill({
         json: {
           calendar: body,
@@ -77,7 +84,8 @@ async function setup(page: Page, role = "admin") {
     }
     if (path.endsWith("/confirmacion")) {
       control.requests.push(body);
-      if (control.mode === "stale")
+      if (control.mode === "stale") {
+        calendar = { ...calendar, version: calendar.version + 1 };
         return r.fulfill({
           status: 409,
           json: {
@@ -85,8 +93,9 @@ async function setup(page: Page, role = "admin") {
               "El impacto cambió. No se guardó ningún cambio; revisá nuevamente.",
           },
         });
+      }
       if (control.mode === "lost-before") return r.abort("failed");
-      calendar = { ...body.proposal, id: "7", version: 1 };
+      calendar = { ...body.proposal, id: "7", version: calendar.version + 1 };
       result = { operationId: body.operationId, calendar };
       if (control.mode === "lost-after") return r.abort("failed");
       return r.fulfill({ json: result });
@@ -202,6 +211,10 @@ for (const width of [390, 1440]) {
       fullPage: true,
     });
     c.mode = "normal";
+    await page.getByRole("button", { name: "Recargar calendario" }).click();
+    await expect(page.getByLabel("Fin 1", { exact: true })).toHaveValue(
+      "2027-07-09",
+    );
     await review(page);
     await page
       .getByRole("button", { name: "Confirmar cambio de calendario" })
@@ -210,6 +223,7 @@ for (const width of [390, 1440]) {
       page.getByText("Calendario y clases actualizados.", { exact: true }),
     ).toBeVisible();
     expect(c.requests[0].operationId).not.toBe(c.requests[1].operationId);
+    expect((c.requests[1].proposal as { version: number }).version).toBe(1);
   });
   for (const mode of ["lost-before", "lost-after"])
     test(`calendario ${mode} recuperación tras recarga ${width}`, async ({

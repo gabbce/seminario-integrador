@@ -6,6 +6,7 @@ import { useRooms } from "../room-context";
 import { useCalendars } from "../calendar-context";
 import { useApiQuery } from "../use-api-query";
 import { institutionalNow } from "../institutional-time";
+import { isDate } from "../date-input";
 import type { IndicatorSeries } from "../indicator-api";
 import { Button } from "../components/ui/button";
 import { MetricComparison } from "../components/MetricComparison";
@@ -27,7 +28,7 @@ export function PersistedIndicators() {
       : params.get("mode") === "compare"
         ? "compare"
         : "day";
-  const date = params.get("date") || today,
+  const date = params.get("date") ?? today,
     room = params.get("room") || "",
     type = params.get("type") || "";
   // A term uses its calendar bounds; a custom range uses its own dates.
@@ -45,8 +46,8 @@ export function PersistedIndicators() {
       ? {
           period,
           label,
-          from: params.get(fromKey) || today,
-          to: params.get(toKey) || today,
+          from: params.get(fromKey) ?? today,
+          to: params.get(toKey) ?? today,
         }
       : { period, label, from: bounds?.[0] || "", to: bounds?.[1] || "" };
   }
@@ -138,12 +139,13 @@ export function PersistedIndicators() {
   const capacityValid =
     !minCapacity || !maxCapacity || Number(maxCapacity) >= Number(minCapacity);
   const valid =
-    !!from &&
-    !!to &&
+    isDate(from) &&
+    isDate(to) &&
     from <= to &&
     (mode !== "compare" ||
-      (!!second.from && !!second.to && second.from <= second.to));
-  const ready = valid && capacityValid;
+      (isDate(second.from) && isDate(second.to) && second.from <= second.to));
+  const roomValid = !room || rooms.some((candidate) => candidate.id === room);
+  const ready = valid && capacityValid && roomValid;
   const query = useApiQuery<IndicatorSeries>(
     ready
       ? `/indicadores/serie?${new URLSearchParams({ from, to, ...roomFilters, view: mode === "day" ? "day" : "week" })}`
@@ -326,6 +328,8 @@ export function PersistedIndicators() {
         <p role="alert">
           La capacidad máxima no puede ser menor que la mínima.
         </p>
+      ) : !roomValid ? (
+        <p role="alert">Seleccioná un aula registrada.</p>
       ) : mode === "compare" ? (
         query.error || compared.error ? (
           <section className="panel" role="alert">
@@ -407,7 +411,12 @@ export function PersistedIndicators() {
                 <ChartPie />
                 <div>
                   <span>Ocupación</span>
-                  <strong>{number(m.occupancy)} %</strong>
+                  <strong>
+                    {m.occupancy > 0 && m.occupancy < 0.05
+                      ? "< 0,1"
+                      : number(m.occupancy)}{" "}
+                    %
+                  </strong>
                   <small>
                     {number(m.hours)} / {number(m.availableHours)} h habilitadas
                   </small>
@@ -429,7 +438,7 @@ export function PersistedIndicators() {
               data={weekly}
             />
           )}
-          {daily && (
+          {daily && m.eligible && (
             <>
               <Suspense fallback={<p role="status">Cargando gráficos…</p>}>
                 <MetricCurve

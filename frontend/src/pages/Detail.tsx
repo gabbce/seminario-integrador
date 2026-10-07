@@ -3,6 +3,7 @@ import {
   institutionalTimestamp,
 } from "../institutional-time";
 import { FormError } from "../components/FormError";
+import { headerHistoryLabel } from "../reservation-display";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { EditHeader } from "./EditHeader";
@@ -21,7 +22,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import { type Booking, type Role, dateLabel } from "../domain";
+import { type Booking, type Role, dateLabel, dayNames } from "../domain";
 import { bookingState, isFuture, type Cancellation } from "../cancellation";
 
 import { Button } from "../components/ui/button";
@@ -262,7 +263,11 @@ function BookingDetail({
           (!readOnly || changeRoomPersisted) &&
           operator &&
           calendar.state === "Habilitado" &&
-          future.length > 0 && (
+          (future.length > 0 ||
+            (changeRoomPersisted &&
+              b.patterns?.length &&
+              !b.continuityCancelledAt &&
+              b.occurrences.some((o) => !o.cancelled))) && (
             <Button
               variant="outline"
               onClick={() =>
@@ -331,7 +336,7 @@ function BookingDetail({
               <h2>Historial de cambios</h2>
               {b.changes.map((change, i) => (
                 <p key={i}>
-                  {change.description}
+                  {headerHistoryLabel(change.description)}
                   <br />
                   {change.actor} · {institutionalTimestamp(change.at)}
                 </p>
@@ -351,6 +356,38 @@ function BookingDetail({
           )}
           <section className="panel">
             <h2>{b.occurrences.length} clases registradas</h2>
+            {operator &&
+              future.length > 0 &&
+              !headerEditable(b, institutionalNow()) && (
+                <p>
+                  La reserva ya comenzó. Para cambiar los datos de las clases
+                  futuras, cancelá esas clases y creá una nueva reserva.
+                </p>
+              )}
+            {b.patterns && (
+              <div>
+                <h3>Patrón semanal</h3>
+                {b.patterns.map((pattern, index) => (
+                  <p key={index}>
+                    {dayNames[pattern.day]} · {pattern.start.slice(0, 5)}–
+                    {pattern.end.slice(0, 5)} · Aula {pattern.room}
+                  </p>
+                ))}
+                <p>
+                  Exclusiones manuales:{" "}
+                  {b.schedule?.excluded.length
+                    ? b.schedule.excluded.map(dateLabel).join(" · ")
+                    : "Sin exclusiones"}
+                </p>
+                {b.continuityCancelledAt && (
+                  <p>
+                    Cese de continuidad:{" "}
+                    {institutionalTimestamp(b.continuityCancelledAt)}. La serie
+                    no genera nuevas clases.
+                  </p>
+                )}
+              </div>
+            )}
             <p>
               {future.length} próximas clases vigentes ·{" "}
               {b.patterns ? "Periódica" : "Esporádica"}

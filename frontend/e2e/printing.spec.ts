@@ -21,6 +21,7 @@ const rows = Array.from({ length: 121 }, (_, i) => ({
 for (const browserName of ["chromium", "firefox"])
   test(`impresión completa, filtro, error y PDF ${browserName}`, async ({
     page: chromiumPage,
+    baseURL,
   }) => {
     test.setTimeout(60000);
     const browser =
@@ -31,15 +32,14 @@ for (const browserName of ["chromium", "firefox"])
               "print.print_to_file": true,
               print_printer: "Mozilla Save to PDF",
               "print.printer_Mozilla_Save_to_PDF.print_to_file": true,
-              "print.printer_Mozilla_Save_to_PDF.print_to_filename":
-                firefoxPdf,
+              "print.printer_Mozilla_Save_to_PDF.print_to_filename": firefoxPdf,
               "print.show_print_progress": false,
             },
           })
         : undefined;
     const page = browser
       ? await browser.newPage({
-          baseURL: "http://127.0.0.1:5174",
+          baseURL,
           viewport: { width: 1366, height: 768 },
         })
       : chromiumPage;

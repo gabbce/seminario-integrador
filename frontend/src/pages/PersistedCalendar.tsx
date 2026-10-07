@@ -96,6 +96,7 @@ export default function PersistedCalendar({
   }
   async function reload() {
     setLoading(true);
+    setReviewed(undefined);
     setMessage("");
     try {
       const items = await api<PersistedCalendarConfig[]>(
@@ -237,7 +238,7 @@ export default function PersistedCalendar({
           }}
           initial={
             restoredProposal?.year === selected.year
-              ? restoredProposal
+              ? { ...restoredProposal, version: selected.version }
               : undefined
           }
           preview={async (proposal) => {

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.*;
 
 @Service
 public class IndicatorQueries {
-    static final ZoneId ZONE=ZoneId.of("America/Argentina/Buenos_Aires");
+    static final ZoneId ZONE=ZoneId.of("America/Argentina/Cordoba");
     private final JdbcTemplate db;
     private final Clock clock;
     public IndicatorQueries(JdbcTemplate db,org.springframework.beans.factory.ObjectProvider<Clock> clocks) {this.db=db;this.clock=clocks.getIfAvailable(Clock::systemUTC);}
@@ -146,6 +146,8 @@ public class IndicatorQueries {
         if(from==null||to==null||from.isAfter(to)||from.getYear()<1||to.getYear()>9999||rooms==null||rooms.room()==null||rooms.location()==null||rooms.resources()==null||type==null||!Set.of("","General","Multimedios","Laboratorio","Sin historia").contains(type)
             ||rooms.minCapacity()<0||(rooms.maxCapacity()!=null&&rooms.maxCapacity()<rooms.minCapacity())||!RESOURCES.keySet().containsAll(rooms.resources()))
             throw new DomainError(400,"INVALID_RANGE","Elegí un rango válido y revisá los filtros.");
+        if(!rooms.room().isEmpty() && !Boolean.TRUE.equals(db.queryForObject("select exists(select 1 from aulas.aula where identificador=?)",Boolean.class,rooms.room())))
+            throw new DomainError(400,"INVALID_FILTER","El aula indicada no existe. Revisá el filtro de aula.");
     }
     /** SQL conditions on alias a for the selected set of rooms. */
     private static String roomWhere(RoomFilter f,List<Object> args) {

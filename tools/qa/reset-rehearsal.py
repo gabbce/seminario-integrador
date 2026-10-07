@@ -50,7 +50,10 @@ try:
     protected={t:rows(t) for t in ['usuario','administrador','aula','historial_aula','materia','curso','anio_lectivo','cuatrimestre','feriado']}
     foreign=aggregate('reservas-i03')
     sql(f'update aulas.reserva set cantidad_alumnos=19,version=version+1 where id_reserva={selected};')
-    before=rows('reserva');review=preview('05-preview');assert rows('reserva')==before
+    before=rows('reserva');
+    snapshot_tables=['usuario','administrador','bedel','docente','aula','aula_multimedios','aula_laboratorio','historial_aula','materia','curso','anio_lectivo','cuatrimestre','feriado','reserva','reserva_periodica','reserva_esporadica','periodo_asignado','patron_semanal','fecha_excluida','detalle_reserva','evento_auditoria','demo_reserva','preparacion_cuenta','operacion_identidad']
+    snapshot={t:rows(t) for t in snapshot_tables}
+    review=preview('05-preview');assert snapshot=={t:rows(t) for t in snapshot_tables},'Preview changed domain or audit tables'
     command('06-invalid-confirmation',['--aulas.command=reset-demo','--aulas.reset.datasets=operacion-i04','--aulas.reset.application-stopped=true','--aulas.reset.confirm='+'0'*64],False);assert rows('reserva')==before
     command('07-reset',['--aulas.command=reset-demo','--aulas.reset.datasets=operacion-i04','--aulas.reset.application-stopped=true','--aulas.reset.confirm='+review['stamp']])
     assert sql(f'select cantidad_alumnos from aulas.reserva where id_reserva={selected};')=='20'
@@ -61,7 +64,7 @@ try:
     assert foreign==aggregate('reservas-i03')
     assert functional==aggregate('operacion-i04',True)
     report={'image':image,'environment':'isolated Docker PostgreSQL 17.6; no remote Auth or database','selectedDatasets':['operacion-i04'],'selectedReservations':len(review['items']),'totalReservations':int(sql('select count(*) from aulas.reserva;')),'totalDetails':int(sql('select count(*) from aulas.detalle_reserva;')),'previewReadOnly':True,'wrongConfirmationRejected':True,'resetRestores':True,'repeatPreservesFunctionalState':True,'foreignI03AndProfilesCatalogs2029Preserved':True,'manualAcceptance':'pending'}
-    (output/'result.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
+    (output/'result.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8');print(json.dumps(report,indent=2))
 finally:
     for cidfile in commands:
         if cidfile.exists():

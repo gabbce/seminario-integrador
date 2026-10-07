@@ -20,8 +20,8 @@ public class ConsultationQueries {
         join aulas.aula a using(id_aula) join aulas.curso c on c.id_curso=r.id_curso
         join aulas.materia m using(id_materia) join aulas.anio_lectivo y using(id_anio_lectivo)
         left join lateral (select h.tipo from aulas.historial_aula h where h.id_aula=d.id_aula
-          and h.desde <= ((d.fecha+d.hora_inicio) at time zone 'America/Argentina/Buenos_Aires')
-          and (h.hasta is null or h.hasta > ((d.fecha+d.hora_inicio) at time zone 'America/Argentina/Buenos_Aires'))
+          and h.desde <= ((d.fecha+d.hora_inicio) at time zone 'America/Argentina/Cordoba')
+          and (h.hasta is null or h.hasta > ((d.fecha+d.hora_inicio) at time zone 'America/Argentina/Cordoba'))
           order by h.desde desc,h.id desc limit 1) h on true
         """;
     private static final String TYPE="coalesce(h.tipo,'Sin historia')";

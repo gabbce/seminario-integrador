@@ -117,4 +117,13 @@ class ConsultationTests {
   mvc.perform(get("/api/consultas/listado?date=2027-03-01&size=7").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isBadRequest());
   mvc.perform(get("/api/consultas/listado?date=bad").with(jwt().jwt(j->j.subject(auth.toString())))).andExpect(status().isBadRequest());
  }
+ @Test void historicalTypeSwitchUsesCordobaAtTheExactClassStart() {
+  long room=db.queryForObject("select id_aula from aulas.aula where identificador='R1'",Long.class);
+  db.update("update aulas.historial_aula set hasta=timestamp '2027-03-01 07:30' at time zone 'America/Argentina/Cordoba' where id_aula=?",room);
+  db.update("insert into aulas.historial_aula(id_aula,desde,tipo,estado,baja) values (?,timestamp '2027-03-01 07:30' at time zone 'America/Argentina/Cordoba','Laboratorio','Habilitada',false)",room);
+  var date=LocalDate.parse("2027-03-01");
+  assertThat(queries.agenda(date,"day","R1","General").total()).isEqualTo(1);
+  assertThat(queries.agenda(date,"day","R1","Laboratorio").total()).isEqualTo(19);
+  assertThat(queries.agenda(date,"day","R1","").total()).isEqualTo(20);
+ }
 }

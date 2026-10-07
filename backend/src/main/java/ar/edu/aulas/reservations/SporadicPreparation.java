@@ -33,25 +33,26 @@ public class SporadicPreparation {
         var allowed=r.type().equals("Multimedios")?List.of("fans","air","projector","television","computer"):List.of("fans","air");
         if(r.resources().stream().anyMatch(v->v==null || !allowed.contains(v)) || new HashSet<>(r.resources()).size()!=r.resources().size())
             throw DomainError.invalid("Los recursos deben corresponder al tipo solicitado, sin duplicados.");
-        Set<String> dates=new HashSet<>();
-        for(var slot:r.dates()) {
-            if(slot==null) throw DomainError.invalid("Fecha inválida.");
-            LocalDate date;
-            try {date=LocalDate.parse(slot.date());if(!date.toString().equals(slot.date())) throw new IllegalArgumentException();}
-            catch(RuntimeException e) {throw DomainError.invalid("Indicá fechas válidas.");}
-            // One specific reason per rule, naming the date, so the operator knows what to fix.
-            if(date.getYear()!=r.year())
-                throw DomainError.invalid("La fecha "+slot.date()+" no pertenece al año lectivo "+r.year()+".");
-            if(date.getDayOfWeek().getValue()>5)
-                throw DomainError.invalid("La fecha "+slot.date()+" es "+(date.getDayOfWeek()==java.time.DayOfWeek.SATURDAY?"sábado":"domingo")+": solo se reservan días de lunes a viernes.");
-            if(!dates.add(slot.date()))
-                throw DomainError.invalid("La fecha "+slot.date()+" está repetida.");
+        Set<String> dates=new HashSet<>();var rejected=new ArrayList<String>();
+        for(int index=0;index<r.dates().size();index++) {
+            var slot=r.dates().get(index);
+            if(slot==null){rejected.add("La fila "+(index+1)+" no contiene una fecha válida.");continue;}
+            String label=slot.date()==null?"(sin fecha)":slot.date();LocalDate date=null;
+            try {date=LocalDate.parse(slot.date());if(!date.toString().equals(slot.date()))throw new IllegalArgumentException();}
+            catch(RuntimeException e){rejected.add("La fecha "+label+" no es válida.");}
+            if(date!=null) {
+                if(date.getYear()!=r.year())rejected.add("La fecha "+label+" no pertenece al año lectivo "+r.year()+".");
+                if(date.getDayOfWeek().getValue()>5)rejected.add("La fecha "+label+" es "+(date.getDayOfWeek()==DayOfWeek.SATURDAY?"sábado":"domingo")+": solo se reservan días de lunes a viernes.");
+            }
+            if(!dates.add(slot.date()))rejected.add("La fecha "+label+" está repetida.");
             if(slot.modules()==null || slot.modules()<1 || slot.modules()>32 || slot.start()==null
                 || !slot.start().matches("(0[7-9]|1[0-9]|2[0-2]):(00|30)")
                 || LocalTime.parse(slot.start()).toSecondOfDay()+slot.modules()*1800>23*3600)
-                throw DomainError.invalid("El horario del "+slot.date()+" debe quedar entre 07 y 23, en módulos de 30 minutos.");
+                rejected.add("El horario del "+label+" debe quedar entre 07 y 23, en módulos de 30 minutos.");
         }
+        if(!rejected.isEmpty())throw DomainError.invalid(String.join(" ",rejected)+" Revisá todas las fechas y sus horarios.");
     }
+
     @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Preparation prepare(Request r,boolean operational) {
         validate(r);
@@ -62,11 +63,13 @@ public class SporadicPreparation {
         if(r.courseId()!=null && db.queryForObject("select count(*) from aulas.curso where id_curso=? and id_anio_lectivo=?",Long.class,Long.parseLong(r.courseId()),ids.getFirst())==0)
             throw DomainError.invalid("El curso debe pertenecer al año seleccionado.");
         var now=LocalDateTime.now(clock);
-        for(var slot:r.dates()) {
+        var rejected=new ArrayList<String>();
+        for(var slot:r.dates().stream().sorted(Comparator.comparing(DateSlot::date)).toList()) {
             if(!LocalDate.parse(slot.date()).atTime(LocalTime.parse(slot.start())).isAfter(now))
-                throw DomainError.conflict("La clase del "+slot.date()+" ya comenzó. Revisá todas las fechas.");
-            if(calendar.holidays().contains(slot.date())) throw DomainError.conflict("La fecha "+slot.date()+" es feriado.");
+                rejected.add("La clase del "+slot.date()+" ya comenzó.");
+            if(calendar.holidays().contains(slot.date()))rejected.add("La fecha "+slot.date()+" es feriado.");
         }
+        if(!rejected.isEmpty())throw DomainError.conflict(String.join(" ",rejected)+" Revisá todas las fechas.");
         var compatible=rooms.references().stream().filter(room->room.state().equals("Habilitada") && room.type().equals(r.type())
             && room.capacity()>=r.students() && (r.board()==null || r.board().isEmpty() || r.board().equals(room.board()))
             && room.resources().containsAll(r.resources()))

@@ -33,22 +33,27 @@ public class ReservationGuards {
         var now=LocalDateTime.now(clock);
         var active=db.queryForList("select d.id_reserva,d.fecha,d.hora_inicio,d.cantidad_modulos from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=? and d.estado='CONFIRMADA' and d.fecha+d.hora_inicio+d.cantidad_modulos*interval '30 minutes'>?",year,now);
         if(!edit.state().equals("Habilitado") && !active.isEmpty()) throw DomainError.conflict("El año tiene clases futuras o en curso; no se puede cerrar ni volver a preparación.");
-        for(var detail:active) if(edit.holidays().contains(detail.get("fecha").toString()) && !current.holidays().contains(detail.get("fecha").toString()))
-            throw DomainError.conflict("La fecha no lectiva afecta la reserva "+detail.get("id_reserva")+" del "+detail.get("fecha")+". Resolvé sus clases antes de cambiar el calendario.");
+        var registered=db.queryForList("select d.id_reserva,d.fecha from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=? and d.estado='CONFIRMADA' order by d.id_reserva,d.fecha",year);
+        var holidayDependencies=new TreeSet<String>();
+        for(var detail:registered) if(edit.holidays().contains(detail.get("fecha").toString()) && !current.holidays().contains(detail.get("fecha").toString()))
+            holidayDependencies.add("reserva "+detail.get("id_reserva")+" del "+detail.get("fecha"));
+        if(!holidayDependencies.isEmpty()) throw DomainError.conflict("La fecha no lectiva afecta "+String.join("; ",holidayDependencies)+". Resolvé sus clases antes de cambiar el calendario.");
         var assigned=db.queryForList("select p.id_reserva,c.numero from aulas.periodo_asignado p join aulas.cuatrimestre c using(id_cuatrimestre) where c.id_anio_lectivo=?",year);
-        Map<Long,List<List<String>>> ranges=new HashMap<>();
+        Map<Long,List<List<String>>> ranges=new TreeMap<>();
+        var shorteningDependencies=new TreeSet<String>();
         for(var period:assigned) {
             String key=((Number)period.get("numero")).intValue()==1?"first":"second";
             var range=edit.terms().get(key);
             if(range.getFirst().isEmpty() || range.getLast().isEmpty()) throw DomainError.conflict("No se puede eliminar ni vaciar un cuatrimestre con reservas asociadas, incluidas las históricas.");
             ranges.computeIfAbsent(((Number)period.get("id_reserva")).longValue(),ignored->new ArrayList<>()).add(range);
         }
+        var allRegistered=db.queryForList("select d.id_reserva,d.fecha,d.fecha_original from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=?",year);
         for(var entry:ranges.entrySet()) {
-            var details=db.queryForList("select fecha,fecha_original from aulas.detalle_reserva where id_reserva=?",entry.getKey());
+            var details=allRegistered.stream().filter(row->((Number)row.get("id_reserva")).longValue()==entry.getKey()).toList();
             for(var detail:details) for(String field:List.of("fecha","fecha_original")) {
                 String date=detail.get(field).toString();
                 if(entry.getValue().stream().noneMatch(range->date.compareTo(range.getFirst())>=0 && date.compareTo(range.getLast())<=0))
-                    throw DomainError.conflict("El recorte dejaría clases registradas de la reserva "+entry.getKey()+" fuera de sus períodos.");
+                    shorteningDependencies.add("reserva "+entry.getKey()+" del "+date);
             }
             if(impactHandled) continue;
             // Legacy direct PUT rule: never save a calendar that silently omits newly required classes.
@@ -64,5 +69,6 @@ public class ReservationGuards {
                     throw DomainError.conflict("El cambio requiere generar nuevas clases de la reserva "+entry.getKey()+". No se guardó el calendario; revisá los períodos y las fechas no lectivas.");
             }
         }
+        if(!shorteningDependencies.isEmpty()) throw DomainError.conflict("El recorte dejaría clases registradas fuera de sus períodos: "+String.join("; ",shorteningDependencies)+".");
     }
 }

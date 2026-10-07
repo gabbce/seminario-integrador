@@ -26,7 +26,7 @@ function readPending(key: string): Pending | undefined {
   return value ? (JSON.parse(value) as Pending) : undefined;
 }
 export function PersistedCancellation({
-  booking,
+  booking: originalBooking,
   storageKey,
   back,
 }: {
@@ -34,6 +34,7 @@ export function PersistedCancellation({
   storageKey: string;
   back: () => void;
 }) {
+  const [booking, setBooking] = useState(originalBooking);
   const [initial] = useState(() => readPending(storageKey));
   const [selected, setSelected] = useState<string[]>([]);
   const [reason, setReason] = useState("");
@@ -62,7 +63,7 @@ export function PersistedCancellation({
     try {
       const proposal = {
         version: booking.version!,
-        detailIds: selected,
+        detailIds: selected.filter((id) => future.some((o) => o.id === id)),
         reason,
       };
       const data = await api<Review>(`${path}/preparacion`, {
@@ -105,6 +106,24 @@ export function PersistedCancellation({
         setError(
           `${e.message} Volvé al detalle para consultar el estado actual; se conserva tu selección.`,
         );
+        if (e.status === 409) {
+          try {
+            const updated = await api<Booking>(`/reservas/${booking.id}`);
+            setBooking(updated);
+            setSelected((ids) =>
+              ids.filter((id) =>
+                updated.occurrences.some(
+                  (o) =>
+                    o.id === id &&
+                    !o.cancelled &&
+                    isFuture(o, institutionalNow()),
+                ),
+              ),
+            );
+          } catch {
+            // The detail action remains available if the refresh cannot be completed.
+          }
+        }
       } else {
         setError(
           "No se pudo comprobar el resultado. Conservamos la misma operación: consultá su estado o reintentá sin cambiar las clases ni el motivo.",

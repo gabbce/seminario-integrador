@@ -110,7 +110,7 @@ async function setup(
     ? [
         {
           groupId: "p:1",
-          label: "Lunes 14:00 · patrón completo",
+          label: "Lunes 14:00:00 · patrón completo",
           detailIds: ["11", "12"],
           classes: booking.occurrences,
           availableRooms: rooms,
@@ -118,7 +118,7 @@ async function setup(
       ]
     : booking.occurrences.map((c) => ({
         groupId: `d:${c.id}`,
-        label: `${c.date} ${c.start}`,
+        label: `${c.date} ${c.start}:00`,
         detailIds: [c.id!],
         classes: [c],
         availableRooms: rooms,
@@ -234,6 +234,9 @@ async function select(page: Page) {
   await page.getByRole("button", { name: "Cambiar aula", exact: true }).click();
   const boxes = page.getByRole("checkbox");
   await expect(boxes.first()).toBeVisible();
+  await expect(boxes.first()).toHaveAccessibleName(
+    /^(Lunes 14:00 · patrón completo|15 de marzo de 2027 14:00)$/,
+  );
   for (let i = 0; i < (await boxes.count()); i++) {
     await boxes.nth(i).check();
     await page.getByRole("combobox").nth(i).selectOption("5");

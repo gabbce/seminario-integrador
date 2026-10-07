@@ -52,8 +52,10 @@ async function login(page: Page, role: string) {
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   expect((await profile).status()).toBe(role === "inhabilitado" ? 403 : 200);
   if (role !== "inhabilitado") {
-    await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
-    await page.goto("/reservas/24");
+    await expect(page).toHaveURL(/\/reservas\/24$/);
+    await expect(
+      page.getByRole("heading", { name: "Historia", exact: true }),
+    ).toBeVisible();
   }
 }
 test("paquete sirve rutas profundas y assets; API mantiene errores JSON", async ({
@@ -167,8 +169,9 @@ test("paquete: indicadores, impresión completa, teclado y reflow", async ({
   }
   await page.goto("/indicadores?date=2027-08-23");
   await expect(
-    page.getByText("52 / 320 h habilitadas", { exact: true }),
+    page.getByText("52 / 272 h habilitadas", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByText("19,1 %", { exact: true })).toBeVisible();
   await expect(page.getByText("780", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("img", { name: /Alumnos previstos. Pico 125/ }),
@@ -182,8 +185,9 @@ test("paquete: indicadores, impresión completa, teclado y reflow", async ({
   });
   await page.goto("/indicadores?mode=week&from=2027-08-23&to=2027-08-27");
   await expect(
-    page.getByText("56 / 1.600 h habilitadas", { exact: true }),
+    page.getByText("56 / 1.360 h habilitadas", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByText("4,1 %", { exact: true })).toBeVisible();
   await expect(page.getByText("855", { exact: true })).toBeVisible();
   // Half-size CSS viewport verifies the reflow equivalent of 200% desktop zoom; manual browser zoom remains in QA.
   await page.setViewportSize({ width: 683, height: 384 });

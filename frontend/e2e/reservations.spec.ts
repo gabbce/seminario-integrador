@@ -154,10 +154,25 @@ async function setup(page: Page, role = "bedel") {
     );
     return r.fulfill({ json: { year: 2027, calendarVersion: 4, patterns } });
   });
-  await page.route("**/api/consultas/agenda?*", r => {
+  await page.route("**/api/consultas/agenda?*", (r) => {
     const p = new URL(r.request().url()).searchParams;
-    const rows = control.bookings.flatMap(b => b.occurrences.filter(o => !o.cancelled && o.date === p.get("date")).map(o => ({...o, bookingId:b.id, courseId:b.courseId, course:b.course, subject:b.subject, teacher:b.teacher, students:b.students, type:b.type})));
-    return r.fulfill({json:{rows,total:rows.length,page:0,size:0,filters:{}}});
+    const rows = control.bookings.flatMap((b) =>
+      b.occurrences
+        .filter((o) => !o.cancelled && o.date === p.get("date"))
+        .map((o) => ({
+          ...o,
+          bookingId: b.id,
+          courseId: b.courseId,
+          course: b.course,
+          subject: b.subject,
+          teacher: b.teacher,
+          students: b.students,
+          type: b.type,
+        })),
+    );
+    return r.fulfill({
+      json: { rows, total: rows.length, page: 0, size: 0, filters: {} },
+    });
   });
   await page.route("**/api/reservas", (r) =>
     r.fulfill({ json: control.bookings }),
@@ -274,6 +289,10 @@ for (const width of [390, 1440])
     page.on("pageerror", (error) => errors.push(error.message));
     const control = await setup(page);
     await page.goto("/reservas/nueva");
+    await page.getByLabel("Curso", { exact: true }).selectOption("80");
+    await page
+      .getByLabel("Docente", { exact: true })
+      .selectOption("Docente QA");
     await expect(
       page.getByRole("heading", { name: "Nueva reserva periódica" }),
     ).toBeVisible();
@@ -321,11 +340,70 @@ for (const width of [390, 1440])
     expect(errors).toEqual([]);
   });
 
+test("curso y docente requieren selección explícita incluso al cambiar año", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/reservas/nueva");
+  await expect(page.getByLabel("Curso", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Docente", { exact: true })).toHaveValue("");
+  await page.getByRole("button", { name: "Buscar aulas" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Seleccioná curso y docente",
+  );
+  await page.getByLabel("Curso", { exact: true }).selectOption("80");
+  await page.getByLabel("Docente", { exact: true }).selectOption("Docente QA");
+  await page.getByLabel("Año de la reserva").selectOption("2027");
+  await expect(page.getByLabel("Curso", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Docente", { exact: true })).toHaveValue(
+    "Docente QA",
+  );
+});
+
+test("rechazo de negocio en aulas conserva motivo y permite volver a los datos", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/reservas/nueva");
+  await page.getByLabel("Curso", { exact: true }).selectOption("80");
+  await page.getByLabel("Docente", { exact: true }).selectOption("Docente QA");
+  await page.getByRole("button", { name: "Buscar aulas" }).click();
+  await expect(page.getByRole("radio").first()).toBeVisible();
+  await page.route("**/api/reservas/periodicas/preparacion", (route) =>
+    route.fulfill({
+      status: 409,
+      json: {
+        message: "La clase del 2027-03-15 ya comenzó. Revisá todas las fechas.",
+      },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Volver a consultar", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Revisá los criterios de la reserva" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "La clase del 2027-03-15 ya comenzó. Revisá todas las fechas.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "No pudimos consultar la disponibilidad",
+    }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Volver", exact: true }).click();
+  await expect(page.getByLabel("Curso", { exact: true })).toHaveValue("80");
+});
+
 test("fallo de disponibilidad conserva criterios y permite reintentar", async ({
   page,
 }) => {
   const control = await setup(page);
   await page.goto("/reservas/nueva");
+  await page.getByLabel("Curso", { exact: true }).selectOption("80");
+  await page.getByLabel("Docente", { exact: true }).selectOption("Docente QA");
   control.fail = true;
   await page.getByLabel("Cantidad de alumnos prevista").fill("31");
   await expect(
@@ -364,6 +442,8 @@ test("exclusión total exige corregir y cambiar criterios invalida aulas elegida
 }) => {
   await setup(page);
   await page.goto("/reservas/nueva");
+  await page.getByLabel("Curso", { exact: true }).selectOption("80");
+  await page.getByLabel("Docente", { exact: true }).selectOption("Docente QA");
   await page.getByLabel("Período", { exact: true }).selectOption("first");
   await page.getByText("Revisar fechas y exclusiones", { exact: true }).click();
   const firstDate = page.locator(".date-check input").first();
@@ -398,6 +478,8 @@ test("exclusión total exige corregir y cambiar criterios invalida aulas elegida
 
 async function prepareFirst(page: Page) {
   await page.goto("/reservas/nueva");
+  await page.getByLabel("Curso", { exact: true }).selectOption("80");
+  await page.getByLabel("Docente", { exact: true }).selectOption("Docente QA");
   await page.getByLabel("Período", { exact: true }).selectOption("first");
   await page.getByRole("button", { name: "Buscar aulas" }).click();
   await page
@@ -410,6 +492,44 @@ async function prepareFirst(page: Page) {
     .check();
   await page.getByRole("button", { name: "Revisar reserva" }).click();
 }
+test("401 y recarga conservan el UUID de confirmación", async ({ page }) => {
+  const control = await setup(page);
+  await prepareFirst(page);
+  let unauthorized = true;
+  const ids: string[] = [];
+  await page.route("**/api/reservas/periodicas/confirmacion", async (route) => {
+    ids.push(route.request().postDataJSON().operationId);
+    if (unauthorized)
+      await route.fulfill({ status: 401, json: { message: "Sesión vencida" } });
+    else await route.fallback();
+  });
+  await page
+    .getByRole("button", { name: "Confirmar reserva", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
+  ).toBeVisible();
+  unauthorized = false;
+  await page
+    .getByRole("button", { name: "Reintentar la misma operación" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Reserva confirmada" }),
+  ).toBeVisible();
+  expect(new Set(ids).size).toBe(1);
+  expect(control.confirmations).toBe(1);
+  expect(
+    await page.evaluate(() =>
+      Object.keys(sessionStorage).filter((key) =>
+        key.startsWith("aulas-confirmation:"),
+      ),
+    ),
+  ).toEqual([]);
+});
 for (const width of [390, 1440])
   test(`confirmación y detalle persistido a ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
@@ -477,7 +597,10 @@ test("conflicto al confirmar conserva la propuesta", async ({ page }) => {
     page.getByRole("heading", { name: "Reserva confirmada" }),
   ).toHaveCount(0);
   await expect(page.locator('input[name="room-1"]').first()).toBeVisible();
-  await page.screenshot({ path: "../artifacts/qa/screens/i032-conflicto.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i032-conflicto.png",
+    fullPage: true,
+  });
 });
 
 test("respuesta perdida recupera la operación sin otro alta", async ({
@@ -489,6 +612,10 @@ test("respuesta perdida recupera la operación sin otro alta", async ({
   await page
     .getByRole("button", { name: "Confirmar reserva", exact: true })
     .click();
+  await expect(
+    page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
+  ).toBeVisible();
+  await page.reload();
   await expect(
     page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
   ).toBeVisible();
@@ -509,6 +636,10 @@ test("resultado aún no encontrado reintenta con la misma identidad", async ({
   await page
     .getByRole("button", { name: "Confirmar reserva", exact: true })
     .click();
+  await expect(
+    page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
+  ).toBeVisible();
+  await page.reload();
   await expect(
     page.getByRole("heading", { name: "No pudimos confirmar el resultado" }),
   ).toBeVisible();
@@ -563,6 +694,10 @@ for (const width of [390, 1440])
     const control = await setup(page);
     control.availability = "occupied";
     await page.goto("/reservas/nueva");
+    await page.getByLabel("Curso", { exact: true }).selectOption("80");
+    await page
+      .getByLabel("Docente", { exact: true })
+      .selectOption("Docente QA");
     await page.getByLabel("Período", { exact: true }).selectOption("first");
     await page.getByRole("button", { name: "Buscar aulas" }).click();
     await expect(
@@ -595,9 +730,9 @@ for (const width of [390, 1440])
       path: `../artifacts/qa/screens/i033-alternativas-${width}.png`,
       fullPage: true,
     });
-    await page
-      .locator(".form-actions")
-      .screenshot({ path: `../artifacts/qa/screens/i033-acciones-${width}.png` });
+    await page.locator(".form-actions").screenshot({
+      path: `../artifacts/qa/screens/i033-acciones-${width}.png`,
+    });
     expect(
       (
         await new AxeBuilder({ page })
@@ -660,7 +795,10 @@ test("alternativas Docente no muestran contactos ni acciones de selección", asy
   await expect(
     page.getByRole("button", { name: "Confirmar reserva" }),
   ).toHaveCount(0);
-  await page.screenshot({ path: "../artifacts/qa/screens/i033-docente.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i033-docente.png",
+    fullPage: true,
+  });
 });
 
 test("sin aulas compatibles no ofrece alternativas insuficientes", async ({
@@ -669,6 +807,8 @@ test("sin aulas compatibles no ofrece alternativas insuficientes", async ({
   const control = await setup(page);
   control.availability = "incompatible";
   await page.goto("/reservas/nueva");
+  await page.getByLabel("Curso", { exact: true }).selectOption("80");
+  await page.getByLabel("Docente", { exact: true }).selectOption("Docente QA");
   await page.getByRole("button", { name: "Buscar aulas" }).click();
   await expect(
     page.getByText(

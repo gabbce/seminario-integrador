@@ -85,7 +85,7 @@ public class PeriodicConfirmation {
             });
         }
         db.update("insert into aulas.operacion_reserva(actor,clave,contenido,id_reserva) values (?,?,?,?)",actor,r.operationId(),content,id);
-        db.update("insert into aulas.evento_auditoria(actor,operacion,entidad,entidad_id,resultado,detalle) values (?,'CONFIRMAR_RESERVA','RESERVA',?,'CONFIRMADO',?)",actor,id,"Reserva periódica confirmada; operación "+r.operationId());
+        db.update("insert into aulas.evento_auditoria(actor,instante,operacion,entidad,entidad_id,resultado,detalle) values (?,clock_timestamp(),'CONFIRMAR_RESERVA','RESERVA',?,'CONFIRMADO',?)",actor,id,"Reserva periódica confirmada; operación "+r.operationId());
         return queries.get(id,true);
     }
 }

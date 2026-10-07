@@ -47,23 +47,31 @@ public class CalendarImpactService {
         return room.state().equals("Habilitada") && room.type().equals(r.get("tipo_aula")) && room.capacity()>=((Number)r.get("cantidad_alumnos")).intValue() && (r.get("pizarron")==null || room.board().equals(r.get("pizarron"))) && room.resources().containsAll(resources);
     }
     private boolean overlaps(Added a,Added b){return a.roomId().equals(b.roomId()) && a.date().equals(b.date()) && a.start().compareTo(b.end())<0 && b.start().compareTo(a.end())<0;}
-    private List<Map<String,Object>> occupants(String room,Added a){
-        return db.queryForList("select d.id_reserva::text as reservation, m.nombre as subject, r.nombre_docente || ' ' || r.apellido_docente as teacher, r.email_docente as \"teacherEmail\", u.email as \"registrantEmail\", d.hora_inicio::text as start, (d.hora_inicio+d.cantidad_modulos*interval '30 minutes')::time::text as end from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.usuario u on u.id_usuario=r.registrado_por where d.estado='CONFIRMADA' and d.id_aula=? and d.fecha=? and d.hora_inicio<? and d.hora_inicio+d.cantidad_modulos*interval '30 minutes'>? order by d.id_detalle",Long.parseLong(room),LocalDate.parse(a.date()),LocalTime.parse(a.end()),LocalTime.parse(a.start()));
+    private List<Map<String,Object>> occupants(List<Map<String,Object>> occupancy,String room,Added a,boolean excludePattern){
+        return occupancy.stream().filter(o->o.get("roomId").toString().equals(room) && o.get("date").toString().equals(a.date()) && LocalTime.parse(o.get("start").toString()).isBefore(LocalTime.parse(a.end())) && LocalTime.parse(o.get("end").toString()).isAfter(LocalTime.parse(a.start())))
+            .filter(o->!excludePattern || !o.get("reservation").toString().equals(a.booking()) || !Objects.toString(o.get("pattern"),"").equals(a.pattern()))
+            .map(o->{var publicRow=new LinkedHashMap<String,Object>(o);for(String key:List.of("roomId","date","pattern","modules"))publicRow.remove(key);return (Map<String,Object>)publicRow;}).toList();
+    }
+    private Map<String,List<Map<String,Object>>> grouped(List<Map<String,Object>> rows){
+        var result=new HashMap<String,List<Map<String,Object>>>();for(var row:rows)result.computeIfAbsent(row.get("id_reserva").toString(),ignored->new ArrayList<>()).add(row);return result;
     }
     private Review review(long id,CalendarManagement.Edit edit){
         validate(id,edit);
         var now=LocalDateTime.now(clock);var added=new ArrayList<Added>();var conflicts=new ArrayList<Conflict>();
         var bookingVersions=new TreeMap<String,Long>();var roomVersions=new TreeMap<String,Long>();var sources=new HashMap<String,Map<String,Object>>();
         var inventory=rooms.references();var byRoom=new HashMap<String,RoomsService.Room>();inventory.forEach(room->byRoom.put(room.internalId(),room));
+        var allPatterns=grouped(db.queryForList("select p.* from aulas.patron_semanal p join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=? order by id_patron",id));
+        var allPeriods=grouped(db.queryForList("select p.id_reserva,c.numero from aulas.periodo_asignado p join aulas.cuatrimestre c using(id_cuatrimestre) where c.id_anio_lectivo=?",id));
+        var allDetails=grouped(db.queryForList("select d.id_reserva,d.fecha_original::text from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=?",id));
+        var allExcluded=grouped(db.queryForList("select f.id_reserva,f.fecha::text from aulas.fecha_excluida f join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) where c.id_anio_lectivo=?",id));
         for(var r:reservations(id)){
-            String booking=r.get("id_reserva").toString();bookingVersions.put(booking,((Number)r.get("version")).longValue());sources.put(booking,r);
+            String booking=r.get("id_reserva").toString();sources.put(booking,r);
             if(r.get("periodic")==null || !r.get("estado").equals("CONFIRMADA") || r.get("continuidad_cancelada_en")!=null)continue;
-            var patterns=db.queryForList("select * from aulas.patron_semanal where id_reserva=? order by id_patron",Long.parseLong(booking));
-            for(var p:patterns){var room=byRoom.get(p.get("id_aula").toString());roomVersions.put(room.internalId(),room.version());}
+            var patterns=allPatterns.getOrDefault(booking,List.of());
             if(!edit.state().equals("Habilitado"))continue;
-            var periods=db.queryForList("select c.numero from aulas.periodo_asignado p join aulas.cuatrimestre c using(id_cuatrimestre) where p.id_reserva=? order by c.numero",Integer.class,Long.parseLong(booking));
-            var represented=new HashSet<>(db.queryForList("select fecha_original::text from aulas.detalle_reserva where id_reserva=?",String.class,Long.parseLong(booking)));
-            var excluded=new HashSet<>(db.queryForList("select fecha::text from aulas.fecha_excluida where id_reserva=?",String.class,Long.parseLong(booking)));
+            var periods=allPeriods.getOrDefault(booking,List.of()).stream().map(row->((Number)row.get("numero")).intValue()).toList();
+            var represented=new HashSet<>(allDetails.getOrDefault(booking,List.of()).stream().map(row->row.get("fecha_original").toString()).toList());
+            var excluded=new HashSet<>(allExcluded.getOrDefault(booking,List.of()).stream().map(row->row.get("fecha").toString()).toList());
             for(int period:periods){
                 var range=edit.terms().get(period==1?"first":"second");
                 for(var day=LocalDate.parse(range.getFirst());!day.isAfter(LocalDate.parse(range.getLast()));day=day.plusDays(1)){
@@ -78,14 +86,18 @@ public class CalendarImpactService {
             }
         }
         added.sort(Comparator.comparing(Added::booking).thenComparing(Added::date).thenComparing(Added::pattern));
+        var occupancy=added.isEmpty()?List.<Map<String,Object>>of():db.queryForList("select d.id_reserva::text as reservation,d.id_patron::text as pattern,d.id_aula::text as \"roomId\",d.fecha::text as date,d.cantidad_modulos as modules,m.nombre as subject,r.nombre_docente || ' ' || r.apellido_docente as teacher,r.email_docente as \"teacherEmail\",u.email as \"registrantEmail\",d.hora_inicio::text as start,(d.hora_inicio+d.cantidad_modulos*interval '30 minutes')::time::text as end from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.usuario u on u.id_usuario=r.registrado_por where d.estado='CONFIRMADA' and d.fecha+d.hora_inicio+d.cantidad_modulos*interval '30 minutes'>? order by d.id_detalle",now);
         for(var a:added){
-            var source=sources.get(a.booking());var room=byRoom.get(a.roomId());var occupied=occupants(a.roomId(),a);
-            boolean duplicate=db.queryForObject("select count(*) from aulas.detalle_reserva where id_reserva=? and fecha=? and estado='CONFIRMADA'",Long.class,Long.parseLong(a.booking()),LocalDate.parse(a.date()))>0;
+            bookingVersions.put(a.booking(),((Number)sources.get(a.booking()).get("version")).longValue());roomVersions.put(a.roomId(),byRoom.get(a.roomId()).version());
+            var source=sources.get(a.booking());var room=byRoom.get(a.roomId());var occupied=occupants(occupancy,a.roomId(),a,false);
+            boolean duplicate=occupancy.stream().anyMatch(o->o.get("reservation").equals(a.booking()) && o.get("date").equals(a.date()));
             boolean internal=added.stream().anyMatch(b->b!=a && (overlaps(a,b) || (a.booking().equals(b.booking()) && a.date().equals(b.date()))));
             if(!compatible(room,source) || !occupied.isEmpty() || duplicate || internal){
                 String reason=!compatible(room,source)?"El aula del patrón ya no cumple los requisitos.":duplicate?"La reserva ya tiene una clase reprogramada en esa fecha.":internal?"Las clases nuevas interfieren entre sí.":"El aula del patrón está ocupada.";
-                var alternatives=inventory.stream().filter(candidate->!candidate.internalId().equals(a.roomId()) && compatible(candidate,source) && occupants(candidate.internalId(),a).isEmpty())
-                    .filter(candidate->added.stream().noneMatch(b->b!=a && overlaps(new Added(a.booking(),a.pattern(),a.date(),a.start(),a.end(),candidate.internalId(),candidate.id(),a.modules()),b)))
+                var patternDates=new ArrayList<>(added.stream().filter(b->b.booking().equals(a.booking()) && b.pattern().equals(a.pattern())).toList());
+                for(var o:occupancy)if(o.get("reservation").equals(a.booking()) && Objects.equals(o.get("pattern"),a.pattern()) && LocalDateTime.parse(o.get("date")+"T"+o.get("start")).isAfter(now))patternDates.add(new Added(a.booking(),a.pattern(),o.get("date").toString(),o.get("start").toString(),o.get("end").toString(),o.get("roomId").toString(),"",((Number)o.get("modules")).intValue()));
+                var alternatives=inventory.stream().filter(candidate->!candidate.internalId().equals(a.roomId()) && compatible(candidate,source) && patternDates.stream().allMatch(slot->occupants(occupancy,candidate.internalId(),slot,true).isEmpty()))
+                    .filter(candidate->patternDates.stream().noneMatch(slot->added.stream().anyMatch(b->!(b.booking().equals(a.booking()) && b.pattern().equals(a.pattern())) && overlaps(new Added(slot.booking(),slot.pattern(),slot.date(),slot.start(),slot.end(),candidate.internalId(),candidate.id(),slot.modules()),b))))
                     .sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id)).map(RoomsService.Room::id).toList();
                 conflicts.add(new Conflict(a.booking(),a.date(),a.room(),reason,occupied,alternatives));
             }

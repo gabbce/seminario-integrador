@@ -22,6 +22,29 @@ public class IdentityManagement {
     public IdentityManagement(JdbcTemplate db,org.springframework.transaction.PlatformTransactionManager manager,AccountManagement accounts,AccountProvisioner provisioner,AuthAdmin auth,ObjectMapper json) {
         this.db=db;this.tx=new TransactionTemplate(manager);this.accounts=accounts;this.provisioner=provisioner;this.auth=auth;this.json=json;
     }
+    public Map<String,Object> pending(long actor,long target) {
+        return tx.execute(status->{accounts.lockAndAuthorize(actor);accounts.get(target);
+            var rows=db.queryForList("select id::text as \"operationId\",tipo as type,estado as state from aulas.operacion_identidad where usuario_id=? and estado not in ('COMPLETA','RECHAZADA') order by id",target);
+            rows.forEach(row->row.put("recoverable",row.get("type").equals("EMAIL") || row.get("type").equals("PASSWORD") && row.get("state").equals("CONFIRMADA")));
+            var warnings=db.queryForList("select detalle as \"operationId\",instante::text as at from aulas.evento_auditoria where entidad='USUARIO' and entidad_id=? and operacion='ESTABLECER_PASSWORD' and resultado='INCIERTO' and id>coalesce((select max(id) from aulas.evento_auditoria where entidad='USUARIO' and entidad_id=? and operacion='ESTABLECER_PASSWORD' and resultado='CONFIRMADO'),0) order by id",target,target);
+            warnings.forEach(row->{row.put("type","PASSWORD");row.put("state","INCIERTA");row.put("recoverable",false);row.put("message","No se confirmó la respuesta de Auth; la contraseña puede haber cambiado. Podés establecer otra mediante un nuevo intento explícito.");});
+            return Map.of("operations",rows,"warnings",warnings);
+        });
+    }
+    @SuppressWarnings("unchecked")
+    public AccountManagement.User recover(long actor,long target,UUID operationId) {
+        var row=tx.execute(status->{accounts.lockAndAuthorize(actor);accounts.get(target);
+            var rows=db.queryForList("select tipo,estado,solicitud::text from aulas.operacion_identidad where id=? and usuario_id=?",operationId,target);
+            if(rows.isEmpty())throw new DomainError(404,"NOT_FOUND","La operación de identidad no existe para esta cuenta.");return rows.getFirst();
+        });
+        if(row.get("estado").equals("COMPLETA"))return accounts.get(target);
+        if(row.get("tipo").equals("EMAIL")){
+            Map<String,Object> request=json.readValue(row.get("solicitud").toString(),Map.class);
+            return completeEmail(actor,target,request.get("email").toString(),new Operation(operationId,"EMAIL",target,row.get("estado").toString()));
+        }
+        if(row.get("tipo").equals("PASSWORD") && row.get("estado").equals("CONFIRMADA")){completePassword(actor,target,operationId);return accounts.get(target);}
+        throw DomainError.conflict("La operación tiene un resultado incierto. Conservá su identificador y verificá el estado del proveedor antes de iniciar otro cambio.");
+    }
     private void password(String value,String confirmation) {if(value==null || value.isBlank() || !value.equals(confirmation)) throw DomainError.invalid("Completá la contraseña y su confirmación; las contraseñas no coinciden.");}
     private Operation get(UUID id) {return db.queryForObject("select * from aulas.operacion_identidad where id=?",(r,n)->new Operation(id,r.getString("tipo"),(Long)r.getObject("usuario_id"),r.getString("estado")),id);}
     private Operation prepare(long actor,UUID id,String type,Long target,Long version,Map<String,Object> request) {
@@ -78,6 +101,9 @@ public class IdentityManagement {
         String email=request.email()==null?"":request.email().strip().toLowerCase(Locale.ROOT);
         if(!email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) throw DomainError.invalid("Ingresá un correo válido.");
         var operation=prepare(actor,request.operationId(),"EMAIL",target,request.version(),Map.of("user",target,"version",request.version()==null?-1:request.version(),"email",email));
+        return completeEmail(actor,target,email,operation);
+    }
+    private AccountManagement.User completeEmail(long actor,long target,String email,Operation operation) {
         if(operation.state().equals("COMPLETA")) return accounts.get(target);
         if(operation.state().equals("RECHAZADA")) throw DomainError.invalid("El cambio fue rechazado; iniciá un nuevo intento.");
         try {
@@ -114,9 +140,16 @@ public class IdentityManagement {
         if(!claim(operation.id())) throw new DomainError(503,"IDENTITY_INCOMPLETE","El resultado de la contraseña es incierto. No se repetirá automáticamente.");
         try {auth.changePassword(authId(target),request.password());}
         catch(DomainError e){state(operation.id(),"RECHAZADA");throw e;}
-        catch(RuntimeException e){state(operation.id(),"RECHAZADA");throw new DomainError(503,"PASSWORD_UNCERTAIN","No se confirmó la respuesta de Auth; la contraseña puede haber cambiado. Podés establecerla nuevamente mediante otro intento explícito.");}
+        catch(RuntimeException e){recordUncertainPassword(actor,target,operation.id());throw new DomainError(503,"PASSWORD_UNCERTAIN","No se confirmó la respuesta de Auth; la contraseña puede haber cambiado. Podés establecerla nuevamente mediante otro intento explícito.");}
         state(operation.id(),"CONFIRMADA");
         completePassword(actor,target,operation.id());
+    }
+    private void recordUncertainPassword(long actor,long target,UUID operation) {
+        tx.executeWithoutResult(status->{
+            accounts.lockAndAuthorize(actor);
+            state(operation,"RECHAZADA");
+            db.update("insert into aulas.evento_auditoria(actor,instante,operacion,entidad,entidad_id,resultado,detalle) values (?,clock_timestamp(),'ESTABLECER_PASSWORD','USUARIO',?,'INCIERTO',?)",actor,target,operation.toString());
+        });
     }
     private void completePassword(long actor,long target,UUID operation) {
         try {tx.executeWithoutResult(status->{accounts.lockAndAuthorize(actor);if(get(operation).state().equals("COMPLETA"))return;accounts.audit(actor,target,"ESTABLECER_PASSWORD","Auth confirmó el cambio; sin registrar contraseña.");state(operation,"COMPLETA");});}

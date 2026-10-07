@@ -25,7 +25,7 @@ Abrir [demo](http://127.0.0.1:8080). Si8080 ya está usado, elegir otro puerto s
 ```sh
 DEMO_PORT=8082 docker compose --env-file frontend/.env.local up -d
 ```
-Abrir entonces [demo8082](http://127.0.0.1:8082). Usar el mismo `DEMO_PORT` en los comandos siguientes para evitar recrear el servicio con otro puerto. El origen sirve HTML/assets y `/api`; una ruta directa como `/reservas/24` funciona también al recargar. Login con cuentas demo existentes y contraseña por canal privado. Ningún arranque carga ni restablece reservas.
+Abrir entonces [demo8082](http://127.0.0.1:8082). Usar el mismo `DEMO_PORT` en los comandos siguientes para evitar recrear el servicio con otro puerto. El origen sirve HTML/assets y `/api`; una ruta directa como `/reservas/24` funciona también al recargar. Login con cuentas demo existentes; la instancia compartida usa las credenciales ficticias públicas de `docs/credenciales-demo.md`. Para una réplica, usar las credenciales de su preparación privada. Ningún arranque carga ni restablece reservas.
 
 Salud (adaptar puerto):
 ```sh

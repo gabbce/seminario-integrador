@@ -299,7 +299,10 @@ test("cancelación individual mantiene otras futuras y permite corregir revisió
   await page
     .getByRole("button", { name: "Revisar cancelación", exact: true })
     .click();
-  await page.screenshot({ path: "../artifacts/qa/screens/i042-single-390.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i042-single-390.png",
+    fullPage: true,
+  });
   await page
     .getByRole("button", { name: "Confirmar cancelación", exact: true })
     .click();
@@ -310,5 +313,74 @@ test("cancelación individual mantiene otras futuras y permite corregir revisió
   await page.getByRole("button", { name: "Ver detalle actualizado" }).click();
   await expect(
     page.getByText("1 próximas clases vigentes", { exact: false }),
+  ).toBeVisible();
+});
+
+test("409 refresca versión y retira selección cancelada por otra sesión", async ({
+  page,
+}) => {
+  await setup(page, "conflict");
+  await review(page);
+  const occurrences = [
+    {
+      id: "11",
+      date: "2027-03-15",
+      start: "14:00",
+      end: "16:00",
+      room: "103",
+      cancelled: true,
+    },
+    {
+      id: "12",
+      date: "2027-03-22",
+      start: "14:00",
+      end: "16:00",
+      room: "105",
+      cancelled: false,
+    },
+  ];
+  await page.route("**/api/reservas/42", (route) =>
+    route.fulfill({
+      json: {
+        id: "42",
+        version: 1,
+        subject: "Actividad QA",
+        course: "001-A-2027",
+        teacher: "QA",
+        students: 20,
+        occurrences,
+      },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Confirmar cancelación", exact: true })
+    .click();
+  await expect(page.getByRole("checkbox").first()).toBeDisabled();
+  await expect(page.getByRole("checkbox").first()).not.toBeChecked();
+  await expect(page.getByRole("checkbox").nth(1)).toBeChecked();
+  await page.route(
+    "**/api/reservas/42/cancelaciones/preparacion",
+    async (route) => {
+      const body = route.request().postDataJSON();
+      expect(body.version).toBe(1);
+      expect(body.detailIds).toEqual(["12"]);
+      await route.fulfill({
+        json: {
+          ...body,
+          count: 1,
+          classes: [occurrences[1]],
+          continuityCancelled: false,
+        },
+      });
+    },
+  );
+  await page
+    .getByRole("button", { name: "Revisar cancelación", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Revisar cancelación", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Se cancelará 1 clase", { exact: true }),
   ).toBeVisible();
 });

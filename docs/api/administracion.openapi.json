@@ -558,6 +558,170 @@
           }
         }
       }
+    },
+    "/api/administracion/cuentas/{id}/operaciones-identidad": {
+      "get": {
+        "summary": "Admin consulta operaciones pendientes sin solicitud ni secretos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operaciones pendientes; EMAIL recuperable, PASSWORD solo CONFIRMADA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "operations"
+                  ],
+                  "properties": {
+                    "operations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "operationId",
+                          "type",
+                          "state",
+                          "recoverable"
+                        ],
+                        "properties": {
+                          "operationId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "EMAIL",
+                              "PASSWORD"
+                            ]
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "PREPARADA",
+                              "ENVIADA",
+                              "CONFIRMADA"
+                            ]
+                          },
+                          "recoverable": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "description": "Avisos no bloqueantes de PASSWORD_UNCERTAIN posteriores al último cambio confirmado; histórico permanece auditado",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "operationId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "PASSWORD"
+                            ]
+                          },
+                          "state": {
+                            "type": "string",
+                            "enum": [
+                              "INCIERTA"
+                            ]
+                          },
+                          "recoverable": {
+                            "type": "boolean",
+                            "enum": [
+                              false
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "at": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Solo Administrador"
+          },
+          "404": {
+            "description": "Cuenta inexistente"
+          }
+        }
+      }
+    },
+    "/api/administracion/cuentas/{id}/operaciones-identidad/{operationId}/recuperar": {
+      "post": {
+        "summary": "Admin reconcilia EMAIL con Auth o completa auditoría PASSWORD confirmada; nunca repite contraseña incierta",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "in": "path",
+            "name": "operationId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil reconciliado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Intento rechazado"
+          },
+          "403": {
+            "description": "Solo Administrador"
+          },
+          "404": {
+            "description": "Cuenta u operación ajena/inexistente"
+          },
+          "409": {
+            "description": "Resultado no recuperable automáticamente; requiere conciliación técnica"
+          },
+          "503": {
+            "description": "Auth o auditoría inaccesible; conservar operación"
+          }
+        }
+      }
     }
   },
   "components": {

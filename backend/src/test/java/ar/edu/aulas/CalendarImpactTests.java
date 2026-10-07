@@ -130,11 +130,11 @@ class CalendarImpactTests {
   var e=edit(Map.of("first",List.of("2027-03-01","2027-03-21"),"second",c.terms().get("second")),List.of("2027-03-16","2027-04-12"),"Habilitado");
   assertThat(impact.prepare(admin,year,e).added()).isEmpty();impact.confirm(admin,year,impactRequest(e));assertThat(calendars.get(year).holidays()).contains("2027-03-16");
  }
- @Test void staleCalendarReservationRoomAndNewReservationInvalidateReview() {
+ @Test void staleCalendarReservationRoomInvalidateButUnrelatedNewReservationDoesNot() {
   var b=confirmation.confirm(admin,request());var e=extension();var req=impactRequest(e);
   db.update("update aulas.reserva set version=version+1 where id_reserva=?",key(b));assertThatThrownBy(()->impact.confirm(admin,year,req)).hasMessageContaining("impacto cambió");
   var old=impactRequest(e);rooms.save(admin,Long.parseLong(classroom.internalId()),changedRoom("Habilitada",35,List.of("fans","air")));assertThatThrownBy(()->impact.confirm(admin,year,old)).hasMessageContaining("impacto cambió");
-  classroom=rooms.get(Long.parseLong(classroom.internalId()));var beforeNew=impactRequest(e);sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-30")));assertThatThrownBy(()->impact.confirm(admin,year,beforeNew)).hasMessageContaining("impacto cambió");
+  classroom=rooms.get(Long.parseLong(classroom.internalId()));var beforeNew=impactRequest(e);sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-30")));assertThat(impact.prepare(admin,year,e).stamp()).isEqualTo(beforeNew.stamp());
   var beforeCalendar=impactRequest(e);db.update("update aulas.anio_lectivo set version=version+1 where id_anio_lectivo=?",year);assertThatThrownBy(()->impact.confirm(admin,year,beforeCalendar)).hasMessageContaining("calendario cambió");
  }
  @Test void auditFailureRollsBackCalendarDetailsVersionsAndLedger() {
@@ -212,6 +212,46 @@ class CalendarImpactTests {
   assertThat(count("detalle_reserva")).isEqualTo(before+(calendarWon?3:0));
   assertThat(db.queryForObject("select count(*) from aulas.detalle_reserva d join aulas.patron_semanal p using(id_patron) where d.id_reserva=? and d.estado='CONFIRMADA' and d.id_aula<>p.id_aula",Long.class,id)).isZero();
   assertThat(db.queryForObject("select version from aulas.reserva where id_reserva=?",Long.class,id)).isOne();
+ }
+
+ @Test void holidayReportsAllReservationsIncludingTodaysFinishedClass() {
+  var b=confirmation.confirm(admin,request());var second=reviewedSporadic(sporadic("2027-03-08"));
+  var target=rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
+  var other=sporadicConfirmation.confirm(admin,new SporadicConfirmation.Request(second.operationId(),second.proposal(),second.teacherId(),second.calendarVersion(),second.selections().stream().map(slot->new SporadicConfirmation.Selection(slot.date(),target.internalId(),target.version())).toList()));
+  clock.now.set(Instant.parse("2027-03-08T20:00:00Z"));var current=calendars.get(year);
+  assertThatThrownBy(()->impact.prepare(admin,year,edit(current.terms(),List.of("2027-03-08","2027-04-12"),"Habilitado"))).hasMessageContaining("reserva "+key(b)).hasMessageContaining("reserva "+key(other)).hasMessageContaining("2027-03-08");
+  assertThatThrownBy(()->calendars.edit(admin,year,edit(current.terms(),List.of("2027-03-08","2027-04-12"),"Habilitado"))).hasMessageContaining("reserva "+key(b)).hasMessageContaining("reserva "+key(other));
+  assertThat(calendars.get(year).holidays()).doesNotContain("2027-03-08");
+ }
+ @Test void endedPatternCanChangeRoomBeforeExtensionAndAlternativesCoverAllFutureDates() {
+  var booking=confirmation.confirm(admin,reviewed(proposal("first","09:30",List.of()),UUID.randomUUID()));
+  clock.now.set(Instant.parse("2027-03-23T12:00:00Z"));rooms.save(admin,Long.parseLong(classroom.internalId()),changedRoom("Baja",30,List.of("fans","air")));
+  var target=rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
+  @SuppressWarnings("unchecked") var groups=(List<Map<String,Object>>)roomChanges.options(bedel,key(booking),new RoomMutationService.Version(0L)).get("groups");
+  assertThat(groups).hasSize(1);assertThat((List<?>)groups.getFirst().get("detailIds")).isEmpty();
+  roomChanges.confirm(bedel,key(booking),new RoomMutationService.Request(UUID.randomUUID(),0L,List.of(new RoomMutationService.Selection(groups.getFirst().get("groupId").toString(),List.of(),target.internalId(),target.version()))));
+  assertThat(impact.prepare(admin,year,extension()).added()).allMatch(a->a.room().equals("202"));
+ }
+ @Test void alternativesRejectRoomOccupiedOnAnotherFuturePatternDate() {
+  confirmation.confirm(admin,request());sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-29")));
+  var target=rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
+  var blocker=reviewedSporadic(sporadic("2027-04-19"));
+  sporadicConfirmation.confirm(admin,new SporadicConfirmation.Request(blocker.operationId(),blocker.proposal(),blocker.teacherId(),blocker.calendarVersion(),blocker.selections().stream().map(slot->new SporadicConfirmation.Selection(slot.date(),target.internalId(),target.version())).toList()));
+  assertThat(impact.prepare(admin,year,extension()).conflicts()).allMatch(conflict->!conflict.alternatives().contains("202"));
+ }
+ @Test void unrelatedBookingVersionDoesNotInvalidateImpactStamp() {
+  confirmation.confirm(admin,request());var other=sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-16")));var e=extension();var stamp=impact.prepare(admin,year,e).stamp();
+  db.update("update aulas.reserva set version=version+1 where id_reserva=?",key(other));
+  assertThat(impact.prepare(admin,year,e).stamp()).isEqualTo(stamp);
+ }
+
+ @Test void confirmationAuditUsesStatementTimeInsteadOfTransactionStart() {
+  var request=request();new TransactionTemplate(manager).executeWithoutResult(status->{
+   var started=db.queryForObject("select transaction_timestamp()",java.time.OffsetDateTime.class);
+   db.execute("select pg_sleep(0.05)");var booking=confirmation.confirm(admin,request);
+   var audited=db.queryForObject("select instante from aulas.evento_auditoria where operacion='CONFIRMAR_RESERVA' and entidad_id=?",java.time.OffsetDateTime.class,key(booking));
+   assertThat(audited).isAfter(started.plusNanos(30_000_000));
+  });
  }
 
 }

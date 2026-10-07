@@ -5,7 +5,7 @@
 ## Preparación y datos
 
 1. Registrar commit del paquete, entorno/destino, fecha institucional y versiones de Chromium/Firefox. Escritorio 1366×768 y consultas Docente 390×844; navegación por teclado y ampliación de zoom sin perder controles esenciales.
-2. Preparar Admin, Bedel y Docente y cuenta inhabilitada existentes; contraseñas por canal privado, nunca en resultados. Dos perfiles de navegador independientes. Mantener sesiones y roles existentes.
+2. Preparar Admin, Bedel y Docente y cuenta inhabilitada existentes; para la instancia compartida usar las credenciales ficticias públicas documentadas; para réplicas usar el canal privado de su preparación. No copiar contraseñas a resultados. Dos perfiles de navegador independientes. Mantener sesiones y roles existentes.
 3. Registrar manifiesto de datasets I-03/I-04/I-05 y reservas QA ajenas. Preservar datos y condiciones de los escenarios, incluido año QA 2029. Los IDs actuales son referencias, resolver por claves del dataset cuando corresponda. No restablecer para iniciar la lectura.
 4. Consultar las referencias completas del [manifiesto final](manifiesto-qa-final.md): IDs/fechas/filtros, cifras independientes, historia exacta aislada, comandos Compose/reset y evidencias. El entorno compartido ya está preparado; no cargar ni restablecer para empezar.
 5. Usar datos pequeños aislados para cifras exactas que la base compartida no puede garantizar. Documentar cómo acceder a ese entorno desde la misma interfaz; no añadir selectores de simulación al producto. No extrapolar mediciones aisladas a Supabase remoto.
@@ -47,7 +47,7 @@ Seleccionar página intermedia de20 filas; imprimir el filtro completo y guardar
 
 ### F05 · Indicadores exactos e históricos — I-05
 
-**Roles:** Admin/Bedel; rechazo para Docente. **Datos:** iniciar [entorno exacto aislado](qa-exacto-i-05.md): misma interfaz en5176, año2021 cerrado, fechas/aulas/esperados concretos en su tabla. Compartido:23/08/2027=52/320h,780alumnos-hora,picos125alumnos/8clases; semana23–27/08=56/1600h y855alumnos-hora, según [manifiesto](datos-demo-i-05.md).
+**Roles:** Admin/Bedel; rechazo para Docente. **Datos:** iniciar [entorno exacto aislado](qa-exacto-i-05.md): misma interfaz en5176, año2021 cerrado, fechas/aulas/esperados concretos en su tabla. Compartido:23/08/2027=52/272h,780alumnos-hora,picos125alumnos/8clases; semana23–27/08=56/1360h y855alumnos-hora, según [manifiesto](datos-demo-i-05.md).
 
 Comparar resumen, curvas y semana típica con tablas esperadas: 2/8h=25%; combinación2/8 y0/2=20%; alumnos30/50/20 por franja y50alumnos-hora; cuatro lunes40/0/20/0 dan15. Revisar feriado, receso, año cerrado, cobertura parcial, cambio histórico de estado/tipo y baja posterior. Consultar cero denominador y ausencia de fechas elegibles; cambiar filtros/rango.
 

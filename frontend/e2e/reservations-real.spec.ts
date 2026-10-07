@@ -24,6 +24,8 @@ test("I-03.1 real: preparación sin guardar y resumen servido por Java", async (
   ).toBeVisible();
   await page.goto("/reservas/nueva");
   await page.getByLabel("Año de la reserva").selectOption("2027");
+  await page.getByLabel("Curso", { exact: true }).selectOption({ index: 1 });
+  await page.getByLabel("Docente", { exact: true }).selectOption({ index: 1 });
   const response = page.waitForResponse(
     (r) =>
       r.url().endsWith("/api/reservas/periodicas/preparacion") &&
@@ -68,6 +70,8 @@ test("I-03.2 real: confirma, recarga y consulta desde otra sesión", async ({
   ).toBeVisible();
   await page.goto("/reservas/nueva");
   await page.getByLabel("Año de la reserva").selectOption("2027");
+  await page.getByLabel("Curso", { exact: true }).selectOption({ index: 1 });
+  await page.getByLabel("Docente", { exact: true }).selectOption({ index: 1 });
   await page.getByLabel("Período", { exact: true }).selectOption("first");
   for (const input of await page.locator('.pattern input[type="time"]').all())
     await input.fill("07:00");
@@ -87,14 +91,20 @@ test("I-03.2 real: confirma, recarga y consulta desde otra sesión", async ({
   await expect(
     page.getByRole("heading", { name: "Reserva confirmada" }),
   ).toBeVisible();
-  await page.screenshot({ path: "../artifacts/qa/screens/i032-real-exito.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i032-real-exito.png",
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Ver detalle", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/reservas/${booking.id}$`));
   await page.reload();
   await expect(
     page.getByRole("heading", { name: booking.subject, exact: true }),
   ).toBeVisible();
-  await page.screenshot({ path: "../artifacts/qa/screens/i032-real-detalle.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i032-real-detalle.png",
+    fullPage: true,
+  });
   const second = await browser.newPage();
   try {
     await second.goto("/");
@@ -143,7 +153,9 @@ test("Reservas real: agenda de una reserva existente", async ({ page }) => {
   // Read-only inventory for legacy dataset assertions; the application no longer downloads this collection.
   const bookings = await page.evaluate(async () => {
     const session = JSON.parse(localStorage.getItem("aulas-auth")!);
-    const response = await fetch("/api/reservas", {headers:{Authorization:`Bearer ${session.access_token}`}});
+    const response = await fetch("/api/reservas", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
     if (!response.ok) throw Error(`QA inventory ${response.status}`);
     return response.json();
   });
@@ -177,7 +189,9 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
   // Read-only inventory for legacy dataset assertions; the application no longer downloads this collection.
   const bookings = await page.evaluate(async () => {
     const session = JSON.parse(localStorage.getItem("aulas-auth")!);
-    const response = await fetch("/api/reservas", {headers:{Authorization:`Bearer ${session.access_token}`}});
+    const response = await fetch("/api/reservas", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
     if (!response.ok) throw Error(`QA inventory ${response.status}`);
     return response.json();
   });
@@ -242,6 +256,8 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/disponibilidad");
   await page.getByLabel("Año de la reserva").selectOption("2027");
+  await page.getByLabel("Curso", { exact: true }).selectOption({ index: 1 });
+  await page.getByLabel("Docente", { exact: true }).selectOption({ index: 1 });
   await page.getByLabel("Período", { exact: true }).selectOption("first");
   await page.getByLabel("Cantidad de alumnos prevista").fill("24");
   await page

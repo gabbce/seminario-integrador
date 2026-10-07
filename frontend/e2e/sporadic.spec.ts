@@ -179,6 +179,12 @@ async function setup(page: Page, role = "bedel") {
 }
 async function prepare(page: Page, queryOnly = false) {
   await page.goto(queryOnly ? "/disponibilidad" : "/reservas/nueva");
+  if (!queryOnly) {
+    await page.getByLabel("Curso", { exact: true }).selectOption("8");
+    await page
+      .getByLabel("Docente", { exact: true })
+      .selectOption("Docente QA");
+  }
   await page.getByLabel("Modalidad", { exact: true }).selectOption("sporadic");
   await page.getByLabel("Fecha", { exact: true }).fill("2027-07-12");
   await page
@@ -323,7 +329,10 @@ test("esporádica Docente solo consulta alternativas informativas", async ({
   await expect(
     page.getByRole("button", { name: "Preparar reserva" }),
   ).toHaveCount(0);
-  await page.screenshot({ path: "../artifacts/qa/screens/i041-docente.png", fullPage: true });
+  await page.screenshot({
+    path: "../artifacts/qa/screens/i041-docente.png",
+    fullPage: true,
+  });
 });
 
 test("esporádica exclusión explícita y validación de conjunto vacío", async ({

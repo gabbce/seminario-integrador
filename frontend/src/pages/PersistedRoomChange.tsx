@@ -3,6 +3,7 @@ import { api, ApiError } from "../api";
 import { type Booking, dateLabel } from "../domain";
 import { Button } from "../components/ui/button";
 import { FormError } from "../components/FormError";
+import { roomGroupLabel } from "../reservation-display";
 
 type Class = {
   id: string;
@@ -45,6 +46,7 @@ type Review = {
   reservationId: string;
   version: number;
   changes: (Class & { groupId: string; newRoom: string })[];
+  patterns?: { groupId: string; newRoom: string; label?: string }[];
 };
 type Pending = { request: Request; review: Review };
 export function PersistedRoomChange({
@@ -130,7 +132,18 @@ export function PersistedRoomChange({
         `/reservas/${booking.id}/aulas/preparacion`,
         { method: "POST", body: JSON.stringify(request) },
       );
-      setReview({ request, review: value });
+      setReview({
+        request,
+        review: {
+          ...value,
+          patterns: value.patterns?.map((pattern) => ({
+            ...pattern,
+            label: options.groups.find(
+              (group) => group.groupId === pattern.groupId,
+            )?.label,
+          })),
+        },
+      });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -205,7 +218,8 @@ export function PersistedRoomChange({
       <section className="panel" role="status">
         <h1>Cambio de aulas confirmado</h1>
         <p>
-          Se actualizaron todas las clases revisadas y se conservó el historial.
+          Se actualizaron las clases y los patrones revisados y se conservó el
+          historial.
         </p>
         <Button onClick={back}>Ver detalle actualizado</Button>
       </section>
@@ -243,6 +257,21 @@ export function PersistedRoomChange({
             Se conservan fechas y horarios. Las clases iniciadas y canceladas
             mantienen su aula.
           </p>
+          {!!displayed.review.patterns?.length && (
+            <div>
+              <h3>Patrones semanales a actualizar</h3>
+              {displayed.review.patterns.map((pattern) => (
+                <p key={pattern.groupId}>
+                  {roomGroupLabel(pattern.label ?? pattern.groupId)} → Aula{" "}
+                  {pattern.newRoom}
+                </p>
+              ))}
+              <p>
+                Las futuras clases que genere una ampliación del calendario
+                usarán el aula del patrón actualizado.
+              </p>
+            </div>
+          )}
           {pending && (
             <p>
               El conjunto enviado permanece fijo hasta comprobar el resultado.
@@ -325,7 +354,7 @@ export function PersistedRoomChange({
                         setError("");
                       }}
                     />{" "}
-                    {g.label}
+                    {roomGroupLabel(g.label)}
                   </label>
                   <p>
                     {g.classes.length}{" "}
@@ -336,7 +365,7 @@ export function PersistedRoomChange({
                       .join(", ")}
                   </p>
                   <label htmlFor={`room-choice-${index}`}>
-                    Nueva aula · {g.label}
+                    Nueva aula · {roomGroupLabel(g.label)}
                   </label>
                   <select
                     id={`room-choice-${index}`}

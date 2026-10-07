@@ -157,4 +157,26 @@ class SporadicReservationTests {
   mvc.perform(post("/api/reservas/esporadicas/confirmacion").with(session(bedel)).contentType("application/json").content(json)).andExpect(status().isOk());assertThat(count("reserva")).isEqualTo(1);
  }
 
+ @Test void confirmationReportsEveryOccupiedDateWithoutSavingAnyPart() {
+  var dates=sporadic("2027-03-15","2027-03-29");var stale=reviewedSporadic(dates);
+  sporadicConfirmation.confirm(admin,reviewedSporadic(dates));long reservations=count("reserva"),details=count("detalle_reserva"),operations=count("operacion_reserva");
+  assertThatThrownBy(()->sporadicConfirmation.confirm(bedel,stale)).isInstanceOf(DomainError.class).hasMessageContaining("2027-03-15").hasMessageContaining("2027-03-29");
+  assertThat(count("reserva")).isEqualTo(reservations);assertThat(count("detalle_reserva")).isEqualTo(details);assertThat(count("operacion_reserva")).isEqualTo(operations);
+ }
+ @Test void preparationReportsAllStartedOrHolidayDatesWithTheirReasons() {
+  assertThatThrownBy(()->sporadicPreparation.prepare(sporadic("2027-03-01","2027-04-12"),true)).hasMessageContaining("2027-03-01 ya comenzó").hasMessageContaining("2027-04-12 es feriado");
+  assertThat(count("reserva")).isZero();
+ }
+
+ @Test void preparationReportsAllInvalidDatesAndSpecificSyntaxReasons() {
+  var base=sporadic("2027-03-15");var mixed=new SporadicPreparation.Request(base.year(),base.courseId(),base.students(),base.type(),base.board(),base.resources(),List.of(
+   new SporadicPreparation.DateSlot("2028-03-15","10:00",2),new SporadicPreparation.DateSlot("2027-03-13","10:00",2),
+   new SporadicPreparation.DateSlot("2027-03-15","10:00",2),new SporadicPreparation.DateSlot("2027-03-15","06:30",2),new SporadicPreparation.DateSlot("no-fecha","10:00",2)));
+  assertThatThrownBy(()->sporadicPreparation.prepare(mixed,true)).isInstanceOfSatisfying(DomainError.class,error->{
+   assertThat(error.status).isEqualTo(400);assertThat(error.code).isEqualTo("INVALID_DATA");
+   assertThat(error).hasMessageContaining("2028-03-15 no pertenece").hasMessageContaining("2027-03-13 es sábado").hasMessageContaining("2027-03-15 está repetida").hasMessageContaining("horario del 2027-03-15").hasMessageContaining("no-fecha no es válida");
+  });
+  assertThat(count("reserva")).isZero();assertThat(count("detalle_reserva")).isZero();
+ }
+
 }

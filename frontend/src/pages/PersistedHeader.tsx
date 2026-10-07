@@ -74,7 +74,7 @@ export function PersistedHeader({
         throw new Error("Respuesta no reconocida");
       success();
     } catch (e) {
-      if (e instanceof ApiError && [400, 404, 409].includes(e.status)) {
+      if (e instanceof ApiError && [400, 403, 404, 409].includes(e.status)) {
         sessionStorage.removeItem(storageKey);
         setPending(undefined);
         setFormError(e.message);

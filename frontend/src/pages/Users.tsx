@@ -14,6 +14,13 @@ type AccountPage = {
   size: number;
   activeAdmins: number;
 };
+type IdentityOperation = {
+  operationId: string;
+  type: string;
+  state: string;
+  recoverable: boolean;
+};
+type IdentityWarning = IdentityOperation & { at: string; message: string };
 export function Users() {
   const [data, setData] = useState<AccountPage>();
   const [loading, setLoading] = useState(true);
@@ -26,6 +33,15 @@ export function Users() {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [recovering, setRecovering] = useState(false);
+  const [identityOperations, setIdentityOperations] = useState<
+    IdentityOperation[]
+  >([]);
+  const [identityWarnings, setIdentityWarnings] = useState<IdentityWarning[]>(
+    [],
+  );
+  const [identityError, setIdentityError] = useState("");
+  const [identityLoading, setIdentityLoading] = useState(false);
+  const [identityRevision, setIdentityRevision] = useState(0);
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<User>();
   const [error, setError] = useState("");
@@ -36,6 +52,54 @@ export function Users() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [sort, setSort] = useState("name");
+  useEffect(() => {
+    if (!selected?.id) return;
+    let active = true;
+    api<{ operations: IdentityOperation[]; warnings?: IdentityWarning[] }>(
+      `/administracion/cuentas/${selected.id}/operaciones-identidad`,
+    )
+      .then((result) => {
+        if (active) {
+          setIdentityOperations(result.operations ?? []);
+          setIdentityWarnings(result.warnings ?? []);
+          setIdentityError("");
+        }
+      })
+      .catch((e) => {
+        if (active) setIdentityError(e.message);
+      })
+      .finally(() => {
+        if (active) setIdentityLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [selected?.id, identityRevision]);
+  async function recoverIdentity(operation: IdentityOperation) {
+    if (!selected || busy) return;
+    setBusy(true);
+    setIdentityError("");
+    try {
+      const user = await api<User>(
+        `/administracion/cuentas/${selected.id}/operaciones-identidad/${operation.operationId}/recuperar`,
+        { method: "POST" },
+      );
+      setSelected(user);
+      setRecovering(false);
+      setPassword("");
+      setConfirmation("");
+      setMode("edit");
+      setError("");
+      setRevision((value) => value + 1);
+      setIdentityRevision((value) => value + 1);
+      setMessage("Operación de identidad recuperada.");
+      window.dispatchEvent(new Event("aulas-profile-refresh"));
+    } catch (e) {
+      setIdentityError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
@@ -95,10 +159,16 @@ export function Users() {
       window.dispatchEvent(new Event("aulas-profile-refresh"));
     } catch (e) {
       if (
-        e instanceof ApiError &&
-        ["IDENTITY_INCOMPLETE", "AUDIT_INCOMPLETE"].includes(e.code ?? "")
-      )
+        (mode === "email" || mode === "password") &&
+        (!(e instanceof ApiError) || e.code !== "PASSWORD_UNCERTAIN") &&
+        (!(e instanceof ApiError) ||
+          e.status >= 500 ||
+          e.status === 401 ||
+          ["IDENTITY_INCOMPLETE", "AUDIT_INCOMPLETE"].includes(e.code ?? ""))
+      ) {
         setRecovering(true);
+        setIdentityRevision((value) => value + 1);
+      }
       // A rejected operation is closed (a taken e-mail answers 409): the next attempt needs a new UUID.
       if (
         e instanceof ApiError &&
@@ -107,11 +177,23 @@ export function Users() {
           e.code === "PASSWORD_UNCERTAIN")
       )
         setOperationId(crypto.randomUUID());
+      if (e instanceof ApiError && e.code === "PASSWORD_UNCERTAIN") {
+        // The provider result is unknown but the backend closed this UUID as rejected.
+        // A subsequent explicit submission is a new password change, never a replay.
+        setRecovering(false);
+        setPassword("");
+        setConfirmation("");
+      }
       return e instanceof Error ? e.message : "No se pudo guardar.";
     }
   }
   function edit(user?: User) {
+    setIdentityLoading(!!user?.id);
+    setIdentityRevision((value) => value + 1);
     setRecovering(false);
+    setIdentityOperations([]);
+    setIdentityWarnings([]);
+    setIdentityError("");
     setMode(user ? "edit" : "create");
     setOperationId(crypto.randomUUID());
     setPassword("");
@@ -166,47 +248,47 @@ export function Users() {
           </Button>
         </div>
         <div className="form-grid filter-grid">
-            <label>
-              Buscar nombre o correo
-              <input
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPage(1);
-                }}
-              />
-            </label>
-            <label>
-              Rol
-              <select
-                aria-label="Filtrar rol"
-                value={role}
-                onChange={(e) => {
-                  setRole(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="">Todos</option>
-                {["Administrador", "Bedel", "Docente"].map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Estado
-              <select
-                aria-label="Filtrar estado de cuenta"
-                value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="">Todos</option>
-                <option value="active">Activas</option>
-                <option value="inactive">Deshabilitadas</option>
-              </select>
-            </label>
+          <label>
+            Buscar nombre o correo
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
+          <label>
+            Rol
+            <select
+              aria-label="Filtrar rol"
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Todos</option>
+              {["Administrador", "Bedel", "Docente"].map((r) => (
+                <option key={r}>{r}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Estado
+            <select
+              aria-label="Filtrar estado de cuenta"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Todos</option>
+              <option value="active">Activas</option>
+              <option value="inactive">Deshabilitadas</option>
+            </select>
+          </label>
         </div>
       </section>
       <div className={selected ? "cancellation-layout inventory-layout" : ""}>
@@ -337,8 +419,89 @@ export function Users() {
                     ? "Cambiar correo"
                     : "Editar cuenta"}
             </h2>
+            {selected.id && (
+              <section aria-label="Recuperación de identidad">
+                {identityWarnings.map((warning) => (
+                  <p role="status" key={warning.operationId}>
+                    {warning.message} · Operación {warning.operationId} ·{" "}
+                    {warning.at}
+                  </p>
+                ))}
+                {identityLoading && (
+                  <p role="status">Consultando operaciones de identidad…</p>
+                )}
+                {identityError && <p role="alert">{identityError}</p>}
+                {(identityError || recovering) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => {
+                      setIdentityLoading(true);
+                      setIdentityRevision((value) => value + 1);
+                    }}
+                  >
+                    Consultar operaciones pendientes
+                  </Button>
+                )}
+                {recovering &&
+                  !identityLoading &&
+                  !identityError &&
+                  !identityOperations.length && (
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={async () => {
+                        setBusy(true);
+                        const failure = await save(selected);
+                        setBusy(false);
+                        if (failure) setError(failure);
+                        else {
+                          setSelected(undefined);
+                          setPassword("");
+                          setConfirmation("");
+                          setMessage("Operación de identidad recuperada.");
+                        }
+                      }}
+                    >
+                      Reintentar misma operación
+                    </Button>
+                  )}
+                {identityOperations.map((operation) => (
+                  <div key={operation.operationId}>
+                    <p>
+                      {operation.type === "EMAIL"
+                        ? "Cambio de correo"
+                        : "Cambio de contraseña"}{" "}
+                      pendiente · {operation.state} · {operation.operationId}
+                    </p>
+                    {operation.recoverable ? (
+                      <Button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void recoverIdentity(operation)}
+                      >
+                        Recuperar operación pendiente
+                      </Button>
+                    ) : (
+                      <p>
+                        El resultado del proveedor requiere comprobación manual
+                        antes de realizar otro cambio. Conservá esta identidad
+                        de operación.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </section>
+            )}
             <fieldset
-              disabled={busy || recovering}
+              disabled={
+                busy ||
+                recovering ||
+                identityLoading ||
+                !!identityError ||
+                identityOperations.length > 0
+              }
               style={{ border: 0, padding: 0, margin: 0 }}
             >
               {mode !== "password" && (
@@ -492,39 +655,52 @@ export function Users() {
               >
                 Descartar
               </Button>
-              <Button type="submit" disabled={busy}>
+              <Button
+                type="submit"
+                disabled={
+                  busy ||
+                  recovering ||
+                  identityLoading ||
+                  !!identityError ||
+                  identityOperations.length > 0
+                }
+              >
                 {mode === "password"
                   ? "Guardar contraseña"
                   : mode === "email"
                     ? "Guardar correo"
                     : "Guardar cuenta"}
               </Button>{" "}
-              {mode === "edit" && !recovering && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setMode("email");
-                      setOperationId(crypto.randomUUID());
-                      setError("");
-                    }}
-                  >
-                    Cambiar correo
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setMode("password");
-                      setOperationId(crypto.randomUUID());
-                      setError("");
-                    }}
-                  >
-                    Establecer contraseña
-                  </Button>
-                </>
-              )}
+              {mode === "edit" &&
+                !recovering &&
+                !identityLoading &&
+                !identityError &&
+                !identityOperations.length && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setMode("email");
+                        setOperationId(crypto.randomUUID());
+                        setError("");
+                      }}
+                    >
+                      Cambiar correo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setMode("password");
+                        setOperationId(crypto.randomUUID());
+                        setError("");
+                      }}
+                    >
+                      Establecer contraseña
+                    </Button>
+                  </>
+                )}
             </div>
           </form>
         )}

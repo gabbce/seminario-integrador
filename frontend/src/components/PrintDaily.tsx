@@ -2,6 +2,10 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { Printer } from "lucide-react";
 import { api } from "../api";
+import {
+  institutionalNow,
+  institutionalTimestamp,
+} from "../institutional-time";
 import type { ConsultationResult } from "../consultations";
 import { dateLabel } from "../domain";
 import { Button } from "./ui/button";
@@ -26,6 +30,7 @@ export function PrintDaily({
   const [snapshot, setSnapshot] = useState<{
     key: string;
     data: ConsultationResult;
+    obtainedAt: string;
   }>();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +56,9 @@ export function PrintDaily({
         new Set(data.rows.map((r) => r.id)).size !== data.total
       )
         throw Error("El listado está incompleto. Reintentá la impresión.");
-      flushSync(() => setSnapshot({ key, data }));
+      flushSync(() =>
+        setSnapshot({ key, data, obtainedAt: institutionalNow() }),
+      );
       window.print();
     } catch (e) {
       if (active.current && criteria.current === key)
@@ -83,6 +90,11 @@ export function PrintDaily({
           {ready ? (
             <>
               <h1>Reservas · {dateLabel(date)}</h1>
+              <p>
+                Consultado: {institutionalTimestamp(snapshot!.obtainedAt)}.
+                Volvé a usar «Imprimir listado diario» para actualizar los
+                datos.
+              </p>
               <p>
                 Tipo: {type || "Todos"} · Aula: {room || "Todas"} · Estado:{" "}
                 {status === "all"

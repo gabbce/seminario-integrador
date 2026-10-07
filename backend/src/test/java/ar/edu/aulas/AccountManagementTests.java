@@ -125,4 +125,40 @@ class AccountManagementTests {
   var corrected=new ar.edu.aulas.accounts.IdentityManagement.Email(UUID.randomUUID(),1L,"libre@test.local");
   assertThat(identities.email(admin,target,corrected).email()).isEqualTo("libre@test.local");
  }
+ @Test void abandonedEmailCanBeRecoveredByAnotherAdminWithoutExposingRequest() {
+  long admin=account("ADMINISTRADOR"),other=account("ADMINISTRADOR"),target=account("BEDEL");UUID identity=db.queryForObject("select supabase_auth_id from aulas.usuario where id_usuario=?",UUID.class,target);
+  org.mockito.Mockito.when(auth.findById(identity)).thenReturn(java.util.Optional.of(new ar.edu.aulas.accounts.AuthAdmin.Identity(identity,"anterior@test.local",null))).thenReturn(java.util.Optional.of(new ar.edu.aulas.accounts.AuthAdmin.Identity(identity,"nuevo@test.local",null)));
+  org.mockito.Mockito.when(auth.changeEmail(identity,"nuevo@test.local")).thenThrow(new IllegalStateException("Respuesta perdida"));
+  var request=new ar.edu.aulas.accounts.IdentityManagement.Email(UUID.randomUUID(),0L,"nuevo@test.local");
+  assertThatThrownBy(()->identities.email(admin,target,request)).isInstanceOf(DomainError.class);
+  assertThat(identities.pending(other,target).toString()).contains(request.operationId().toString(),"EMAIL","ENVIADA").doesNotContain("nuevo@test.local","solicitud");
+  assertThat(identities.recover(other,target,request.operationId()).email()).isEqualTo("nuevo@test.local");
+  assertThat(identities.pending(other,target).get("operations")).asList().isEmpty();
+  assertThatThrownBy(()->identities.pending(target,target)).isInstanceOf(DomainError.class);
+  assertThatThrownBy(()->identities.recover(other,admin,request.operationId())).isInstanceOf(DomainError.class);
+  org.mockito.Mockito.verify(auth,org.mockito.Mockito.times(1)).changeEmail(identity,"nuevo@test.local");
+ }
+ @Test void abandonedSentPasswordCannotBeAutomaticallyRecovered() {
+  long admin=account("ADMINISTRADOR"),target=account("BEDEL");var operation=UUID.randomUUID();
+  db.update("insert into aulas.operacion_identidad(id,actor,tipo,usuario_id,solicitud,estado) values (?,?,'PASSWORD',?,'{}','ENVIADA')",operation,admin,target);
+  assertThat(identities.pending(admin,target).toString()).contains(operation.toString(),"ENVIADA","recoverable=false");
+  assertThatThrownBy(()->identities.recover(admin,target,operation)).isInstanceOf(DomainError.class).hasMessageContaining("incierto");
+  assertThat(db.queryForObject("select estado from aulas.operacion_identidad where id=?",String.class,operation)).isEqualTo("ENVIADA");
+  org.mockito.Mockito.verify(auth,org.mockito.Mockito.never()).changePassword(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.anyString());
+ }
+
+
+ @Test void uncertainPasswordWarningSurvivesReloadUntilExplicitSuccessfulChange() {
+  long admin=account("ADMINISTRADOR"),target=account("BEDEL");org.mockito.Mockito.doThrow(new IllegalStateException()).doNothing().when(auth).changePassword(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.anyString());
+  var failed=new ar.edu.aulas.accounts.IdentityManagement.Password(UUID.randomUUID(),0L,"Anterior!","Anterior!");
+  assertThatThrownBy(()->identities.password(admin,target,failed)).isInstanceOf(DomainError.class);
+  assertThat(identities.pending(admin,target).get("operations")).asList().isEmpty();
+  assertThat(identities.pending(admin,target).get("warnings").toString()).contains(failed.operationId().toString(),"INCIERTA").doesNotContain("Anterior!");
+  assertThatThrownBy(()->identities.password(admin,target,failed)).isInstanceOf(DomainError.class);
+  var explicit=new ar.edu.aulas.accounts.IdentityManagement.Password(UUID.randomUUID(),0L,"Nueva!","Nueva!");identities.password(admin,target,explicit);
+  assertThat(identities.pending(admin,target).get("warnings")).asList().isEmpty();
+  assertThat(db.queryForObject("select count(*) from aulas.evento_auditoria where operacion='ESTABLECER_PASSWORD' and resultado='INCIERTO'",Long.class)).isOne();
+  org.mockito.Mockito.verify(auth,org.mockito.Mockito.times(2)).changePassword(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.anyString());
+ }
+
 }

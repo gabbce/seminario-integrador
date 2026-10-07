@@ -4,7 +4,7 @@ import { PersistedHeader } from "./PersistedHeader";
 import type { Course } from "../catalog";
 import { PersistedCancellation } from "./PersistedCancellation";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import type { Booking, Role } from "../domain";
 import { Detail } from "./Detail";
@@ -21,6 +21,14 @@ export function PersistedDetail({
   addCourse: (c: Course) => void;
 }) {
   const { id } = useParams();
+  const location = useLocation();
+  const go = useNavigate();
+  const returnTo =
+    typeof location.state?.returnTo === "string" &&
+    location.state.returnTo.startsWith("/") &&
+    !location.state.returnTo.startsWith("//")
+      ? location.state.returnTo
+      : "/reservas";
   const storageKey = `aulas-cancellation:${actorId}:${id}`;
   const rescheduleKey = `aulas-reschedule:${actorId}:${id}`;
   const [rescheduling, setRescheduling] = useState(
@@ -63,6 +71,9 @@ export function PersistedDetail({
     return (
       <section className="panel" role="alert">
         <p>{result.error}</p>
+        <Button variant="outline" onClick={() => go(returnTo)}>
+          Volver al listado o agenda
+        </Button>
         <Button
           onClick={() => {
             setResult(undefined);

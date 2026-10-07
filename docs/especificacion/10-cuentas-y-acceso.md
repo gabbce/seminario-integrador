@@ -64,3 +64,9 @@ No hay asistente especial, secreto universal ni dependencia de correo. Las crede
 ## Referencias técnicas
 
 [Alta administrativa](https://supabase.com/docs/reference/javascript/auth-admin-createuser), [actualización administrativa](https://supabase.com/docs/reference/javascript/auth-admin-updateuserbyid) y [cierre de sesión y vigencia de tokens](https://supabase.com/docs/guides/auth/signout). Las llamadas administrativas pueden realizarse desde Java por HTTP; no exigen un backend Node adicional.
+
+## Recuperación de operaciones administrativas
+
+El Administrador puede consultar las operaciones de identidad pendientes al reabrir una cuenta, sin recibir solicitudes, contraseñas ni tokens. Puede reconciliar un cambio de correo usando su operación original y el estado vigente de Auth; una contraseña ya confirmada solo completa la auditoría. Una contraseña enviada cuyo resultado se desconoce tras la caída del proceso no se repite ni se cancela automáticamente: se conserva el identificador para conciliación técnica. Cuando la llamada devuelve explícitamente PASSWORD_UNCERTAIN, se registra un evento INCIERTO sin contraseña, se conserva un aviso consultable tras recargar y se permite establecer otra mediante un intento nuevo explícito. El aviso deja de ser vigente después de un cambio confirmado, conservando el histórico.
+
+Contrato: `docs/api/administracion.openapi.json`, operaciones `operaciones-identidad` y `recuperar`.

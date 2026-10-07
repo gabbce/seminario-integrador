@@ -1,6 +1,7 @@
 import { rowBooking, useConsultation } from "../consultations";
 import { useSearchParams, useLocation } from "react-router-dom";
 import { institutionalNow } from "../institutional-time";
+import { isDate } from "../date-input";
 import { useCalendar } from "../calendar-context";
 import { useRooms } from "../room-context";
 import { WeekAgenda } from "../components/WeekAgenda";
@@ -51,8 +52,11 @@ export function Agenda({
     if (!("aulas" in patch)) next.delete("aulas");
     setParams(next, { replace: true });
   };
-  const changeDate = (value: string) =>
-    persisted ? update({ fecha: value }) : setDate(value);
+  const changeDate = (value: string) => {
+    if (!isDate(value)) return;
+    if (persisted) update({ fecha: value });
+    else setDate(value);
+  };
   const setView = (value: "day" | "week") =>
     persisted ? update({ view: value }) : setLocalView(value);
   const calendar = useCalendar(Number(date.slice(0, 4)));
@@ -98,6 +102,22 @@ export function Agenda({
           (!course || b.courseId === course) &&
           (!teacher || b.teacherId === teacher),
       );
+  const unknownRooms = [
+    ...new Set(
+      query.data?.rows
+        .filter((row) => !rooms.some((room) => room.id === row.room))
+        .map((row) => row.room) ?? [],
+    ),
+  ]
+    .sort()
+    .join(", ");
+  const refreshedRooms = useRef("");
+  useEffect(() => {
+    if (unknownRooms && refreshedRooms.current !== unknownRooms) {
+      refreshedRooms.current = unknownRooms;
+      window.dispatchEvent(new Event("aulas-inventory-refresh"));
+    }
+  }, [unknownRooms]);
   const detailState = persisted
     ? { state: { returnTo: location.pathname + location.search } }
     : undefined;
@@ -176,6 +196,19 @@ export function Agenda({
   }
   return (
     <>
+      {unknownRooms && (
+        <p role="alert">
+          Hay clases en aulas pendientes de actualizar: {unknownRooms}.{" "}
+          <Button
+            onClick={() => {
+              window.dispatchEvent(new Event("aulas-inventory-refresh"));
+              query.retry();
+            }}
+          >
+            Actualizar aulas y agenda
+          </Button>
+        </p>
+      )}
       <div className="page-heading">
         <div>
           <p className="eyebrow">

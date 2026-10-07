@@ -80,7 +80,7 @@ export function Reschedule({
             <p>
               Se conserva el aula de cada clase.
               {snapshot.patterns
-                ? " Las fechas deben quedar dentro de los períodos asignados; el patrón semanal no cambia."
+                ? " Las fechas deben quedar dentro de los períodos asignados; el patrón semanal no cambia. Para mover una clase fuera del período, cancelá la clase original y creá una reserva esporádica."
                 : ""}
             </p>
             {!review &&

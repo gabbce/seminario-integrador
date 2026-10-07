@@ -1,4 +1,6 @@
 import { PrintDaily } from "../components/PrintDaily";
+import { useEffect } from "react";
+import { isDate, listingPage } from "../date-input";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useRooms } from "../room-context";
 import { useConsultation } from "../consultations";
@@ -13,13 +15,14 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
   const location = useLocation();
   const [params, setParams] = useSearchParams();
   const mode = params.get("mode") === "course" ? "course" : "day";
-  const date = params.get("date") || institutionalNow().slice(0, 10);
+  const date = params.get("date") ?? institutionalNow().slice(0, 10);
+  const invalidDate = mode === "day" && !isDate(date);
   const courseId = params.get("courseId") || courses[0]?.id || "";
   const course = courses.find((c) => c.id === courseId);
   const room = params.get("room") ?? "",
     type = params.get("type") ?? "";
   const status = params.get("status") || "active";
-  const page = Math.max(0, Number(params.get("page")) || 0);
+  const page = listingPage(params.get("page"));
   const size = [20, 50, 100].includes(Number(params.get("size")))
     ? Number(params.get("size"))
     : 20;
@@ -41,9 +44,18 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
     size: String(size),
   });
   const query = useConsultation(
-    mode === "course" && !course ? null : `/consultas/listado?${filters}`,
+    invalidDate || (mode === "course" && !course)
+      ? null
+      : `/consultas/listado?${filters}`,
   );
   const pages = Math.max(1, Math.ceil((query.data?.total ?? 0) / size));
+  useEffect(() => {
+    if (query.data && page >= pages) {
+      const next = new URLSearchParams(params);
+      next.set("page", String(pages - 1));
+      setParams(next, { replace: true });
+    }
+  }, [query.data, page, pages, params, setParams]);
   return (
     <div className="screen-list">
       <div className="page-heading">
@@ -51,7 +63,7 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
           <p className="eyebrow">CONSULTAS</p>
           <h1>Reservas</h1>
         </div>
-        {mode === "day" && (
+        {mode === "day" && !invalidDate && (
           <PrintDaily
             key={`${date}:${room}:${type}:${status}`}
             date={date}
@@ -148,7 +160,11 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
           </select>
         </label>
       </section>
-      {mode === "course" && !course ? (
+      {invalidDate ? (
+        <section className="panel" role="alert">
+          La fecha del listado no es válida. Seleccioná una fecha existente.
+        </section>
+      ) : mode === "course" && !course ? (
         <section className="panel">Seleccioná un curso registrado.</section>
       ) : query.error ? (
         <section className="panel" role="alert">
@@ -200,11 +216,14 @@ export function PersistedListing({ courses }: { courses: Course[] }) {
                         <button
                           className="table-link"
                           onClick={() =>
-                            go(`/reservas/${r.bookingId}`, {
-                              state: {
-                                returnTo: location.pathname + location.search,
+                            go(
+                              `/reservas/${r.bookingId}?fecha=${r.date}&hora=${r.start}`,
+                              {
+                                state: {
+                                  returnTo: location.pathname + location.search,
+                                },
                               },
-                            })
+                            )
                           }
                         >
                           {r.subject}

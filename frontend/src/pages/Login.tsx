@@ -1,5 +1,5 @@
 import { FormError } from "../components/FormError";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 
@@ -14,6 +14,7 @@ export function Login({
   onLogin: (email: string, password: string) => Promise<string | undefined>;
 }) {
   const go = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState("");
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -28,7 +29,13 @@ export function Login({
     );
     setBusy(false);
     if (failure) setError(failure);
-    else go("/agenda", { replace: true });
+    else
+      go(
+        location.pathname === "/"
+          ? "/agenda"
+          : location.pathname + location.search + location.hash,
+        { replace: true },
+      );
   }
   return (
     <div className="login-page">

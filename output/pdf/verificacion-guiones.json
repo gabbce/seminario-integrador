@@ -1,0 +1,16 @@
+[
+  {
+    "file": "\\\\wsl.localhost\\Ubuntu\\home\\gabbce\\proyectos\\seminario-integrador\\output\\pdf\\CHAD-guion-coloquio-core.pdf",
+    "pages": 5,
+    "bytes": 86671,
+    "words": 1638,
+    "text_check": "ok"
+  },
+  {
+    "file": "\\\\wsl.localhost\\Ubuntu\\home\\gabbce\\proyectos\\seminario-integrador\\output\\pdf\\CHAD-guion-coloquio-extendido.pdf",
+    "pages": 11,
+    "bytes": 105039,
+    "words": 4316,
+    "text_check": "ok"
+  }
+]

@@ -1,0 +1,333 @@
+{
+  "runId": "b4ea4b5c-76c0-4d16-8c7f-45aa32aee26b",
+  "at": "2026-10-20T02:45:58.948Z",
+  "origin": "http://127.0.0.1:8083",
+  "commit": "8ebdb24057f68e8cdedea3ffad17d1d66a8c1765",
+  "image": "sha256:4d0457024c75dbe135407770b77f8e4190e7e800331dd8bd80178a678dde3d89",
+  "sourceSha256": "92302d0049db79784c8496f34d658ecf3e8966d2c43c11d50029ea911e9cf5f1",
+  "protocol": {
+    "logicalClients": 50,
+    "distinctAccounts": 3,
+    "roles": {
+      "Admin": 2,
+      "Bedel": 3,
+      "Docente": 45
+    },
+    "warmupMs": 30000,
+    "measurementMs": 180000,
+    "pauseAfterResponseMs": 5000,
+    "rampMs": 4900,
+    "burstSize": 3,
+    "limitation": "Extra remote concurrency check; shared demo dataset, 3 existing Auth sessions. Not the nominal 50-distinct-identity mixed-write RNF protocol."
+  },
+  "records": [
+    {
+      "name": "identity",
+      "phase": "setup",
+      "role": "admin",
+      "startMs": 507.258593,
+      "durationMs": 459.69665699999996,
+      "status": 200
+    },
+    {
+      "name": "identity",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 1312.556548,
+      "durationMs": 232.13425099999995,
+      "status": 200
+    },
+    {
+      "name": "identity",
+      "phase": "setup",
+      "role": "docente",
+      "startMs": 2109.994855,
+      "durationMs": 459.10264499999994,
+      "status": 200
+    },
+    {
+      "name": "inventory-before",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 2569.110171,
+      "durationMs": 3206.854352,
+      "status": 200
+    },
+    {
+      "name": "courses",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 5775.984438,
+      "durationMs": 689.0881549999995,
+      "status": 200
+    },
+    {
+      "name": "teachers",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 6465.083419,
+      "durationMs": 232.26657700000032,
+      "status": 200
+    },
+    {
+      "name": "find-free-slot",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 6697.389673,
+      "durationMs": 467.28724000000057,
+      "status": 200
+    },
+    {
+      "name": "create-idempotent",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 7165.336836,
+      "durationMs": 4815.322419,
+      "status": 200
+    },
+    {
+      "name": "create-idempotent",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 7165.951567,
+      "durationMs": 7107.184169,
+      "status": 200
+    },
+    {
+      "name": "create-idempotent",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 7165.705218,
+      "durationMs": 9389.118512000001,
+      "status": 200
+    },
+    {
+      "name": "public-projection",
+      "phase": "setup",
+      "role": "docente",
+      "startMs": 16555.175625,
+      "durationMs": 2727.2137440000006,
+      "status": 200
+    },
+    {
+      "name": "forbidden-create",
+      "phase": "functional",
+      "role": "docente",
+      "startMs": 19282.42186,
+      "durationMs": 235.3310780000029,
+      "status": 403,
+      "error": "FORBIDDEN"
+    },
+    {
+      "name": "optimistic-edit",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 19518.296209,
+      "durationMs": 5048.816383000001,
+      "status": 200
+    },
+    {
+      "name": "optimistic-edit",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 19518.563384,
+      "durationMs": 6886.459739999998,
+      "status": 409,
+      "error": "CONFLICT"
+    },
+    {
+      "name": "optimistic-edit",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 19517.871298,
+      "durationMs": 8718.555326000002,
+      "status": 409,
+      "error": "CONFLICT"
+    },
+    {
+      "name": "edited-version",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 28236.500911,
+      "durationMs": 2967.389733,
+      "status": 200
+    },
+    {
+      "name": "cleanup-get",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 31204.138753,
+      "durationMs": 2736.5320439999996,
+      "status": 200
+    },
+    {
+      "name": "cleanup-cancel",
+      "phase": "cleanup",
+      "role": "bedel",
+      "startMs": 33940.746532,
+      "durationMs": 4623.230189000002,
+      "status": 200
+    },
+    {
+      "name": "cleanup-verify",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 38563.984039,
+      "durationMs": 2979.514288999999,
+      "status": 200
+    },
+    {
+      "name": "create-overlap",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 41544.395855,
+      "durationMs": 4840.842864999999,
+      "status": 200
+    },
+    {
+      "name": "create-overlap",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 41544.662253,
+      "durationMs": 6209.752535,
+      "status": 409,
+      "error": "CONFLICT"
+    },
+    {
+      "name": "create-overlap",
+      "phase": "functional",
+      "role": "bedel",
+      "startMs": 41544.818621,
+      "durationMs": 7581.514975999999,
+      "status": 409,
+      "error": "CONFLICT"
+    },
+    {
+      "name": "cleanup-get",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 49126.738658,
+      "durationMs": 2747.3867239999963,
+      "status": 200
+    },
+    {
+      "name": "cleanup-cancel",
+      "phase": "cleanup",
+      "role": "bedel",
+      "startMs": 51874.15547,
+      "durationMs": 4591.443047000001,
+      "status": 200
+    },
+    {
+      "name": "cleanup-verify",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 56465.607229,
+      "durationMs": 2968.239773000001,
+      "status": 200
+    },
+    {
+      "name": "recover-owned-create",
+      "phase": "cleanup",
+      "role": "bedel",
+      "startMs": 59434.913638,
+      "durationMs": 2967.2671029999983,
+      "status": 200
+    },
+    {
+      "name": "recover-owned-create",
+      "phase": "cleanup",
+      "role": "bedel",
+      "startMs": 62402.191674,
+      "durationMs": 3202.6825589999935,
+      "status": 200
+    },
+    {
+      "name": "recover-owned-create",
+      "phase": "cleanup",
+      "role": "bedel",
+      "startMs": 65604.88433,
+      "durationMs": 1601.5980799999961,
+      "status": 200
+    },
+    {
+      "name": "recover-owned-create",
+      "phase": "cleanup",
+      "role": "bedel",
+      "startMs": 67206.535689,
+      "durationMs": 1599.804679000008,
+      "status": 200
+    },
+    {
+      "name": "cleanup-get",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 68806.351211,
+      "durationMs": 2957.568956999996,
+      "status": 200
+    },
+    {
+      "name": "cleanup-get",
+      "phase": "setup",
+      "role": "bedel",
+      "startMs": 71763.933733,
+      "durationMs": 2970.179996000006,
+      "status": 200
+    }
+  ],
+  "checks": [
+    {
+      "name": "3 simultaneous identical creates",
+      "passed": true,
+      "persistedReservations": 1,
+      "reservationId": "360"
+    },
+    {
+      "name": "Docente privacy and mutation authorization",
+      "passed": true
+    },
+    {
+      "name": "3 edits with the same version",
+      "passed": true,
+      "successful": 1,
+      "expectedConflicts": 2
+    },
+    {
+      "name": "3 competing creates for one slot",
+      "passed": true,
+      "successful": 1,
+      "expectedConflicts": 2
+    }
+  ],
+  "operationKeys": [
+    "8df7eda6-b028-4061-97f7-2adf4099f309",
+    "8df7eda6-b028-4061-97f7-2adf4099f309",
+    "8df7eda6-b028-4061-97f7-2adf4099f309",
+    "8df7eda6-b028-4061-97f7-2adf4099f309",
+    "793a460d-6f01-43e0-ab67-112006c1f8d7",
+    "a023b95a-3da6-44cf-9a96-002c59e3f5f5",
+    "b43400c5-0e39-4321-a4f4-f7cc65853cac"
+  ],
+  "cleanup": [
+    {
+      "reservationId": "360",
+      "state": "CANCELADA",
+      "activeDetails": 0
+    },
+    {
+      "reservationId": "361",
+      "state": "CANCELADA",
+      "activeDetails": 0
+    }
+  ],
+  "reservationsBefore": 359,
+  "slot": {
+    "date": "2027-07-13",
+    "start": "22:30",
+    "end": "23:00",
+    "roomId": "14"
+  },
+  "functionalPassed": true,
+  "mode": "functional-only; no read load in this execution",
+  "completedAt": "2026-10-20T02:47:15.011Z"
+}

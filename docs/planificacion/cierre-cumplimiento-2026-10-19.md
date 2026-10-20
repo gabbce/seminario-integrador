@@ -1,5 +1,7 @@
 # Correcciones y nueva verificación de cumplimiento · 19/10/2026
 
+**Ampliación posterior solicitada por el usuario:** se hizo commit/push y un [extra de concurrencia contra Supabase remoto](concurrencia-remota-extra-2026-10-19.md). Pasaron 1.546 lecturas con 50 clientes, pero una ráfaga de diez confirmaciones produjo tres HTTP 500 por espera de conexión. Ese hallazgo queda abierto y no se presenta este cierre anterior como prueba de que toda la concurrencia remota está resuelta.
+
 **Dictamen:** las tres brechas funcionales detectadas quedaron corregidas y el fallo intermitente del calendario se reprodujo y corrigió. La verificación técnica aprobó. Las lecturas remotas medidas mejoraron y quedaron por debajo de 1.500 ms de p95; la carga íntegra de 50 sesiones aprobó en PostgreSQL aislado. **No se acredita todavía RNF-03/05 bajo el protocolo completo con Supabase remoto**, ni se sustituye la aceptación manual del usuario.
 
 Se ejecuta el [plan de correcciones](correcciones-cumplimiento-2026-10-19.md) sobre la [auditoría inicial](revision-cumplimiento-2026-10-19.md). Rama local `feat/cumplimiento-requisitos`. La base inicial fue `2c7dc7b`; durante el trabajo se incorporaron commits concurrentes de marca CHAD (`d8f74c9`, `71e4c66`). Se conservaron esos cambios, el guion y los artefactos ajenos a esta tarea. Las imágenes y los hashes de los guiones fijan las revisiones efectivamente medidas; HEAD por sí solo no representa el árbol con correcciones aún sin commit.

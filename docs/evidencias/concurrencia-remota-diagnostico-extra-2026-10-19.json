@@ -1,0 +1,26 @@
+{
+  "project": "nrjykdzvzrcixapkdfsp",
+  "region": "us-west-2",
+  "baseline": { "reservations": 358, "details": 5328, "activeOverlaps": 0 },
+  "writeBurst": {
+    "requests": 10,
+    "sharedOperationId": true,
+    "http200": 7,
+    "http500": 3,
+    "distinctPersistedReservationIds": ["359"],
+    "rootException": "SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 10000ms (total=4, active=4, idle=0)",
+    "diagnosis": "Pool acquisition timed out. Sporadic confirmation serializes writers with control_cuentas FOR UPDATE while holding a connection; remote round trips and replay detail queries extend that hold. A larger pool or longer timeout alone would not remove write serialization or demonstrate the latency target.",
+    "productConfigurationChanged": false
+  },
+  "finalInventoryVerifiedBySql": {
+    "reservations": 361, "details": 5331, "activeOverlaps": 0,
+    "qaReservations": [
+      { "id": "359", "state": "CANCELADA", "version": 1, "activeDetails": 0 },
+      { "id": "360", "state": "CANCELADA", "version": 2, "activeDetails": 0 },
+      { "id": "361", "state": "CANCELADA", "version": 1, "activeDetails": 0 }
+    ]
+  },
+  "cleanupVerifiedBySql": {
+    "reservationId": "359", "state": "CANCELADA", "version": 1, "details": 1, "activeDetails": 0
+  }
+}

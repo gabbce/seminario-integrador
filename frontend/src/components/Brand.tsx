@@ -1,8 +1,13 @@
 export function Brand() {
   return (
     <div className="brand">
-      <strong>Aulas</strong>
-      <span>Gestión de espacios</span>
+      <img
+        className="brand-logo"
+        src="/brand/chad-logo.png?v=philosopher"
+        alt="C.H.A.D. — Control de Horarios y Aulas Disponibles"
+        width={2172}
+        height={724}
+      />
     </div>
   );
 }

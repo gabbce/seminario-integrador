@@ -9,3 +9,6 @@ supabase/.temp/
 
 # Regenerable QA artifacts (screenshots, PDFs and private inventories).
 /artifacts/qa/
+
+# Private presentation build files
+/artifacts/coloquio/.build/

@@ -3,9 +3,9 @@ export function Brand() {
     <div className="brand">
       <img
         className="brand-logo"
-        src="/brand/chad-logo.png?v=philosopher"
+        src="/brand/chad-logo.png?v=minimal"
         alt="C.H.A.D. — Control de Horarios y Aulas Disponibles"
-        width={2172}
+        width={2171}
         height={724}
       />
     </div>

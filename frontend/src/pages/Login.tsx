@@ -39,12 +39,10 @@ export function Login({
   }
   return (
     <div className="login-page">
-      <Brand />
       <form className="login-panel" onSubmit={submit}>
-        <p className="eyebrow">GESTIÓN ACADÉMICA</p>
+        <Brand />
         <h1>Ingresar</h1>
         {notice && <p role="alert">{notice}</p>}
-        <p className="muted">Tu espacio para organizar los espacios.</p>
         <label>
           Correo electrónico
           <input name="email" type="email" autoComplete="username" required />
@@ -71,9 +69,6 @@ export function Login({
         <Button type="submit" disabled={busy}>
           {busy ? "Ingresando…" : "Ingresar"} <ArrowRight />
         </Button>
-        <p className="help">
-          Si necesitás ayuda para ingresar, contactá al administrador.
-        </p>
       </form>
     </div>
   );

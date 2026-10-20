@@ -552,19 +552,20 @@ summary {
   max-width: 420px;
   margin: 80px auto 36px;
 }
+.login-panel > .brand {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 24px;
+}
 .login-panel h1 {
   font-size: 40px;
+  text-align: center;
 }
 .login-panel label {
   margin: 24px 0;
 }
 .login-panel > button {
   width: 100%;
-}
-.login-panel .help {
-  text-align: center;
-  font-size: 14px;
-  margin: 24px 12px;
 }
 .password {
   position: relative;
@@ -812,7 +813,7 @@ summary {
     padding: 24px;
   }
   .login-panel {
-    margin: 60px auto 24px;
+    margin: 24px auto;
   }
   .demo-note {
     margin-top: 20px;

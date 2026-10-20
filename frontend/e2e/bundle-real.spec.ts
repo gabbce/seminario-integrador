@@ -72,6 +72,13 @@ test("paquete sirve rutas profundas y assets; API mantiene errores JSON", async 
   const favicon = await request.get("/favicon.png");
   expect(favicon.status()).toBe(200);
   expect(favicon.headers()["content-type"]).toContain("image/png");
+  for (const method of ["GET", "HEAD"]) {
+    for (const path of ["/brand/chad-logo.png", "/favicon.png"]) {
+      const asset = await request.fetch(path, { method });
+      expect(asset.status(), `${method} ${path}`).toBe(200);
+      expect(asset.headers()["content-type"]).toContain("image/png");
+    }
+  }
   expect((await request.get("/assets/no-existe.js")).status()).toBe(404);
   const api = await request.get("/api/consultas/listado?date=2027-08-23");
   expect(api.status()).toBe(401);

@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.*;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -23,7 +24,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 class ConsultationTests {
  @Container static final PostgreSQLContainer postgres=new PostgreSQLContainer("postgres:17.6-alpine");
  @DynamicPropertySource static void props(DynamicPropertyRegistry p) {p.add("spring.datasource.url",postgres::getJdbcUrl);p.add("spring.datasource.username",postgres::getUsername);p.add("spring.datasource.password",postgres::getPassword);}
- @Autowired JdbcTemplate db; @Autowired PlatformTransactionManager manager; @Autowired ConsultationQueries queries; @Autowired MockMvc mvc;
+ @MockitoSpyBean JdbcTemplate db; @Autowired PlatformTransactionManager manager; @Autowired ConsultationQueries queries; @Autowired MockMvc mvc;
  long actor,course,reservation; UUID auth;
  @BeforeEach void fixture() {
   db.execute("truncate aulas.usuario,aulas.aula,aulas.anio_lectivo,aulas.materia cascade");
@@ -43,6 +44,28 @@ class ConsultationTests {
    }
    db.update("update aulas.detalle_reserva set estado='CANCELADA',motivo_cancelacion='Ensayo',cancelado_por=?,cancelado_en=now() where id_detalle=(select min(id_detalle) from aulas.detalle_reserva)",actor);
   });
+ }
+ private long statementReads() {
+  return org.mockito.Mockito.mockingDetails(db).getInvocations().stream().filter(i->{
+   var name=i.getMethod().getName();var args=i.getArguments();
+   return name.equals("queryForList") || name.equals("queryForObject") || (name.equals("query") && args.length>1 &&
+     (args[1] instanceof org.springframework.jdbc.core.RowMapper<?> || args[1] instanceof org.springframework.jdbc.core.ResultSetExtractor<?>));
+  }).count();
+ }
+ @Test void listingCountsAndReadsThePageInOneStatementIncludingEmptyPages() {
+  for(String mode:List.of("day","course")) for(int page:List.of(0,100)) {
+   org.mockito.Mockito.clearInvocations(db);
+   var result=queries.listing(mode,LocalDate.parse("2027-03-01"),course,2027,"","","active",page,20);
+   assertThat(result.total()).isEqualTo(119);
+   assertThat(result.rows()).hasSize(page==0?20:0);
+   assertThat(statementReads()).as("page and total must share a single SQL snapshot without a second network round trip").isLessThanOrEqualTo(1);
+  }
+ }
+ @Test void printingReadsTheCompleteFilteredSetAndCountTogether() {
+  org.mockito.Mockito.clearInvocations(db);
+  var result=queries.printDay(LocalDate.parse("2027-03-01"),"","","all");
+  assertThat(result.total()).isEqualTo(120);assertThat(result.rows()).hasSize(120);
+  assertThat(statementReads()).as("printing uses one coherent statement, not separate count and data queries").isLessThanOrEqualTo(1);
  }
  @Test void pagesFilterBeforeCountingAndKeepStableIdentity() {
   var date=LocalDate.parse("2027-03-01");

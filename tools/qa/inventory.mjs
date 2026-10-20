@@ -13,7 +13,12 @@ const manual=()=>post('/reservas/esporadicas/preparacion',{year:2027,courseId:nu
 try {
 const calendars=await get('/referencias/calendarios');
 const courses={};for(const c of calendars)courses[c.year]=await get('/referencias/cursos?year='+c.year);
-const data={calendars,courses,reservations:await get('/reservas'),rooms:await get('/referencias/aulas'),protected:{ranking:await lab('14:00',4),adjacent:await lab('16:00',2),manual:await manual()}};
+const reservations=[];
+for(let page=0;;page++) {
+ const batch=await get('/reservas?page='+page+'&size=100');reservations.push(...batch.items);
+ if(!batch.items.length||reservations.length>=batch.total)break;
+}
+const data={calendars,courses,reservations,rooms:await get('/referencias/aulas'),protected:{ranking:await lab('14:00',4),adjacent:await lab('16:00',2),manual:await manual()}};
 writeFileSync(process.argv[2]||'/tmp/i05-inventory.json',JSON.stringify(data,null,2),{mode:0o600});
 console.log('Read-only inventory:',data.reservations.length,'reservations,',data.rooms.length,'rooms');
 

@@ -39,6 +39,34 @@ paths:
         '200': {$ref: '#/components/responses/Calendar'}
         '404': {$ref: '#/components/responses/Error'}
   /api/administracion/calendarios:
+    get:
+      summary: Buscar años lectivos por año exacto y estado, solo Administrador
+      description: |
+        Orden ascendente por año. Página de base cero; una página fuera de rango
+        o sin coincidencias devuelve items vacío con total y filtros sin cambios.
+        No reemplaza la colección completa de /api/referencias/calendarios.
+      parameters:
+        - {name: year, in: query, schema: {type: integer, minimum: 1, maximum: 9999}}
+        - {name: state, in: query, schema: {type: string, enum: ['', 'En preparación', Habilitado, Cerrado], default: ''}}
+        - {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+        - {name: size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        '200':
+          description: Página de años lectivos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total, page, size]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/CalendarConfig'}}
+                  total: {type: integer, minimum: 0}
+                  page: {type: integer, minimum: 0}
+                  size: {type: integer, minimum: 1, maximum: 100}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
     post:
       summary: Crear año en preparación sin períodos ni fechas
       requestBody:
@@ -57,6 +85,46 @@ paths:
         '400': {$ref: '#/components/responses/Error'}
         '403': {$ref: '#/components/responses/Error'}
         '409': {$ref: '#/components/responses/Error'}
+  /api/administracion/calendarios/{id}/cuatrimestres:
+    parameters:
+      - {$ref: '#/components/parameters/Id'}
+    get:
+      summary: Buscar cuatrimestres de un año por rango de fechas, solo Administrador
+      description: |
+        Devuelve períodos en orden de número cuyo intervalo se solapa con el rango,
+        con extremos inclusivos. Sin fechas devuelve todos, incluidos incompletos;
+        con from excluye períodos sin fin y con to excluye períodos sin inicio.
+        Fechas ISO imposibles o no canónicas y rango invertido son inválidos (400).
+        Lista vacía es válida. No hay estado independiente del cuatrimestre:
+        year y state describen el año seleccionado, incluidos años cerrados.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date}}
+        - {name: to, in: query, schema: {type: string, format: date}}
+      responses:
+        '200':
+          description: Cuatrimestres y contexto del año
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [year, state, items]
+                properties:
+                  year: {type: integer}
+                  state: {type: string, enum: ['En preparación', Habilitado, Cerrado]}
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [number, start, end]
+                      properties:
+                        number: {type: integer, enum: [1, 2]}
+                        start: {type: string, description: 'Fecha ISO o cadena vacía si pendiente'}
+                        end: {type: string, description: 'Fecha ISO o cadena vacía si pendiente'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
   /api/administracion/calendarios/{id}:
     parameters:
       - {$ref: '#/components/parameters/Id'}

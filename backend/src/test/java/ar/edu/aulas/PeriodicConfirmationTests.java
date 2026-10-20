@@ -189,7 +189,7 @@ class PeriodicConfirmationTests {
   var saved=confirmation.confirm(admin,request());String id=saved.get("id").toString();
   for(long actor:List.of(admin,bedel)) mvc.perform(get("/api/reservas/"+id).with(session(actor))).andExpect(status().isOk()).andExpect(jsonPath("$.teacherEmail").value("laura.gomez@example.test")).andExpect(jsonPath("$.registrant.userId").value(Long.toString(admin)));
   mvc.perform(get("/api/reservas/"+id).with(session(teacher))).andExpect(status().isOk()).andExpect(jsonPath("$.teacherEmail").doesNotExist()).andExpect(jsonPath("$.registrant").doesNotExist());
-  mvc.perform(get("/api/reservas").with(session(teacher))).andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(id)).andExpect(jsonPath("$[0].teacherEmail").doesNotExist());
+  mvc.perform(get("/api/reservas").with(session(teacher))).andExpect(status().isOk()).andExpect(jsonPath("$.items[0].id").value(id)).andExpect(jsonPath("$.items[0].teacherEmail").doesNotExist());
   mvc.perform(post("/api/reservas/periodicas/confirmacion").with(session(teacher)).contentType("application/json").content("{}")).andExpect(status().isForbidden());
   mvc.perform(get("/api/reservas/"+id)).andExpect(status().isUnauthorized());
  }

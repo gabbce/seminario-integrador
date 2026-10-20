@@ -73,4 +73,4 @@ El documento 11 define el escenario sintético y guion: 30 aulas, hasta 25.600 o
 - Pruebas de integridad, concurrencia y rendimiento del dominio.
 - Recorrido de presentación con agenda, reservas, calendario y métricas.
 
-Estas evidencias corresponden a implementación; todavía no se han producido.
+Estas evidencias corresponden a implementación. Consultar el [índice del proyecto](../../README.md), los registros de QA y la [revisión de cumplimiento](../planificacion/revision-cumplimiento-2026-10-19.md) para conocer resultados, entorno, limitaciones y aceptación pendiente.

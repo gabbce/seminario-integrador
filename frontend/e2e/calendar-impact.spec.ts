@@ -22,11 +22,18 @@ async function setup(page: Page, role = "admin") {
     preparations: 0,
   };
   let result: unknown;
+  await page.route("**/api/administracion/calendarios?*", (r) =>
+    r.fulfill({ json: { items: [calendar], total: 1, page: 0, size: 20 } }),
+  );
   await page.route("**/api/referencias/calendarios", (r) =>
     r.fulfill({ json: [calendar] }),
   );
   await page.route("**/api/administracion/calendarios/**", async (r) => {
     const path = new URL(r.request().url()).pathname;
+    if (r.request().method() === "GET" && path.endsWith("/cuatrimestres"))
+      return r.fulfill({
+        json: { year: calendar.year, state: calendar.state, items: [] },
+      });
     if (path.includes("/operaciones/"))
       return r.fulfill({ json: { found: !!result, result } });
     const body = r.request().postDataJSON();
@@ -64,7 +71,42 @@ async function setup(page: Page, role = "admin") {
                     date: "2027-07-05",
                     room: "103",
                     reason: "El aula del patrón está ocupada.",
-                    alternatives: ["105"],
+                    available: ["105"],
+                    alternatives: [201, 202, 203, 204].map((id) => ({
+                      room: {
+                        internalId: String(id),
+                        id: String(id),
+                        capacity: 40,
+                        type: "General",
+                        version: 0,
+                      },
+                      group: "SPORADIC_ONLY",
+                      sporadicDates: 1,
+                      sporadicMinutes: 30,
+                      periodicMinutes: 0,
+                      conflicts: [
+                        {
+                          reservationId: String(id + 100),
+                          subject: "Historia ocupada",
+                          course: "001-A-2027",
+                          modality: "sporadic",
+                          date: "2027-07-05",
+                          start: "14:00",
+                          end: "15:00",
+                          overlapStart: "14:00",
+                          overlapEnd: "14:30",
+                          overlapMinutes: 30,
+                          teacher: "Ana Pérez",
+                          teacherEmail: "ana@example.test",
+                          registrant: {
+                            userId: "9",
+                            name: "Bedel inactivo",
+                            email: "bedel-inactivo@example.test",
+                            inactive: true,
+                          },
+                        },
+                      ],
+                    })),
                     occupants: [
                       {
                         reservation: "43",
@@ -172,8 +214,22 @@ for (const width of [390, 1440]) {
       page.getByRole("button", { name: "Confirmar cambio de calendario" }),
     ).toBeDisabled();
     await expect(
-      page.getByText(/Aulas compatibles libres en ese horario: 105/),
+      page.getByText(/Aulas compatibles libres en todo el patrón: 105/),
     ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Requieren resolver conflictos" }),
+    ).toBeVisible();
+    await expect(page.getByText("Aula 204", { exact: true })).not.toBeVisible();
+    await page
+      .getByText("Ver restantes alternativas (1)", { exact: true })
+      .click();
+    await expect(page.getByText("Aula 204", { exact: true })).toBeVisible();
+    await page.getByText("Ver conflictos de Aula 201", { exact: true }).click();
+    await expect(
+      page.getByText(/bedel-inactivo@example.test/).first(),
+    ).toBeVisible();
+    await expect(page.getByText(/001-A-2027/).first()).toBeVisible();
+    await expect(page.getByText(/30 minutos afectados/).first()).toBeVisible();
     await expect(page.getByText(/laura@example.test/)).toBeVisible();
     await page.screenshot({
       path: `../artifacts/qa/screens/i045-conflict-${width}.png`,

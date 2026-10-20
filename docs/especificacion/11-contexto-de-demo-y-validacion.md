@@ -2,7 +2,7 @@
 
 **Versión:** 1.0 final, aprobada. Alcance vigente definido en la [especificación general](00-especificacion.md).
 
-Estado: contexto acordado DA-70 a DA-73. El escenario de carga siguiente es una referencia de ingeniería ante falta de estimaciones reales; no es una medición ni un límite del producto. No se ha ejecutado ninguna prueba de aplicación.
+Estado: contexto acordado DA-70 a DA-73. El escenario de carga siguiente es una referencia de ingeniería ante falta de estimaciones reales; no es una medición ni un límite del producto. Las ejecuciones reales y sus límites se registran en [carga final](../planificacion/carga-final-i-06.md) y en la [revisión de cumplimiento](../planificacion/revision-cumplimiento-2026-10-19.md); no se infieren de este protocolo.
 
 ## Uso previsto
 
@@ -45,7 +45,7 @@ La carga es de circuito cerrado: con respuesta instantánea el máximo teórico 
 
 El guion consume casos en orden fijo de un conjunto de prueba versionado, con semilla, fechas de referencia, filtros, IDs y asignaciones conocidos. Las consultas de listados solicitan la primera página de 20 resultados; alternar altas/modificaciones cuatrimestrales y anuales en partes iguales. Cada sesión operativa tiene series y franjas reservadas para la prueba, suficientes para completar el escenario sin colisiones artificiales. Preparación de propuestas y lectura de versiones preceden a la medición sostenida; si se requieren llamadas auxiliares durante ella, se registran separadas y se conserva su guion entre ejecuciones.
 
-Preparar el mismo conjunto inicial mediante la carga reproducible antes de cada ejecución. Las modificaciones alternan entre dos asignaciones válidas predefinidas y actualizan la versión devuelta por la operación anterior. Las pruebas de conflictos deliberados se ejecutan aparte de este escenario nominal. Conservar el guion y el conjunto definitivo como artefactos de la futura implementación; no se han creado ni ejecutado en esta etapa.
+Preparar el mismo conjunto inicial mediante la carga reproducible antes de cada ejecución. Las modificaciones alternan entre dos asignaciones válidas predefinidas y actualizan la versión devuelta por la operación anterior. Las pruebas de conflictos deliberados se ejecutan aparte de este escenario nominal. Conservar el guion y el conjunto definitivo como artefactos de implementación; sus ejecuciones y resultados se documentan por separado.
 
 Incluir reservas cuatrimestrales de hasta 32 ocurrencias y anuales de hasta 64 como casos de referencia, antes de exclusiones. Registrar ambiente, equipo, recursos asignados, región de Supabase, latencia de red, ubicación de cliente/servidor y tamaño de datos junto con los resultados. No declarar cumplimiento a partir de una sola respuesta rápida.
 

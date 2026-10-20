@@ -7,6 +7,7 @@ import { AdminNav } from "../components/AdminNav";
 import { FormError } from "../components/FormError";
 import { Button } from "../components/ui/button";
 import { CalendarEditor } from "./CalendarEditor";
+import { CalendarSearch } from "./CalendarSearch";
 
 export type PersistedCalendarConfig = CalendarConfig & { id: string };
 const failureMessage = (error: unknown) =>
@@ -54,6 +55,9 @@ export default function PersistedCalendar({
   const [message, setMessage] = useState("");
   const [newYear, setNewYear] = useState(new Date().getFullYear());
   const [busy, setBusy] = useState(false);
+  const [editorBusy, setEditorBusy] = useState(false);
+  const [searchRevision, setSearchRevision] = useState(0);
+  const [reloading, setReloading] = useState(false);
   useEffect(() => {
     let active = true;
     api<PersistedCalendarConfig[]>("/referencias/calendarios")
@@ -76,6 +80,7 @@ export default function PersistedCalendar({
   const selected =
     calendars.find((calendar) => calendar.id === selectedId) ?? calendars[0];
   function changed(items: PersistedCalendarConfig[], id?: string) {
+    setSearchRevision((value) => value + 1);
     setCalendars(items.toSorted((a, b) => a.year - b.year));
     setSelectedId(id ?? items.at(-1)?.id);
     setError("");
@@ -95,7 +100,8 @@ export default function PersistedCalendar({
     }
   }
   async function reload() {
-    setLoading(true);
+    if (reloading) return;
+    setReloading(true);
     setReviewed(undefined);
     setMessage("");
     try {
@@ -103,13 +109,14 @@ export default function PersistedCalendar({
         "/referencias/calendarios",
       );
       setCalendars(items);
+      setSearchRevision((value) => value + 1);
       setError("");
       window.dispatchEvent(new Event("aulas-calendar-refresh"));
       onChanged?.();
     } catch (error) {
       setError(failureMessage(error));
     } finally {
-      setLoading(false);
+      setReloading(false);
     }
   }
   function completed(result: Result) {
@@ -210,122 +217,155 @@ export default function PersistedCalendar({
     );
   return (
     <>
-      {selected ? (
-        <CalendarEditor
-          key={`${selected.id}-${selected.version}`}
-          calendar={selected}
-          calendars={calendars}
-          selectYear={(year) => {
-            setSelectedId(
-              calendars.find((calendar) => calendar.year === year)?.id,
-            );
-            setMessage("");
-          }}
-          addYear={create}
-          deleteYear={async () => {
-            try {
-              await api<void>(
-                `/administracion/calendarios/${selected.id}?version=${selected.version}`,
-                { method: "DELETE" },
-              );
-              changed(
-                calendars.filter((calendar) => calendar.id !== selected.id),
-              );
-              setMessage("Año eliminado.");
-            } catch (error) {
-              return failureMessage(error);
-            }
-          }}
-          initial={
-            restoredProposal?.year === selected.year
-              ? { ...restoredProposal, version: selected.version }
-              : undefined
-          }
-          preview={async (proposal) => {
-            try {
-              const result = await api<Review>(
-                `/administracion/calendarios/${selected.id}/impacto`,
-                { method: "POST", body: JSON.stringify(proposal) },
-              );
-              setReviewed(result);
-              return {
-                impact: { ...result, bookings: [] },
-                stamp: result.stamp,
-              };
-            } catch (error) {
-              return { error: failureMessage(error), stamp: "" };
-            }
-          }}
-          save={async (proposal, stamp) => {
-            if (!reviewed || reviewed.stamp !== stamp)
-              return "Revisá el impacto antes de confirmar.";
-            const operation: Pending = {
-              id: selected.id,
-              request: { operationId: crypto.randomUUID(), proposal, stamp },
-              review: reviewed,
-            };
-            try {
-              sessionStorage.setItem(storageKey, JSON.stringify(operation));
-            } catch {
-              return "No se pudo conservar la operación. Habilitá el almacenamiento de sesión antes de confirmar.";
-            }
-            setPending(operation);
-            return await confirm(operation);
-          }}
-          reload={() => void reload()}
-          persisted
-        />
-      ) : (
-        <>
-          <AdminNav />
-          <div className="page-heading">
-            <div>
-              <p className="eyebrow">Administración</p>
-              <h1>Calendario académico</h1>
-              <p>Cuatrimestres y fechas no lectivas</p>
-            </div>
-          </div>
-          {!error && <p>No hay años lectivos registrados.</p>}
-          <form
-            className="panel year-selection"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              setBusy(true);
-              setError("");
-              const failure = await create(newYear);
-              if (failure) setError(failure);
-              setBusy(false);
-            }}
-          >
-            <label>
-              Nuevo año
-              <input
-                type="number"
-                min="1"
-                max="9999"
-                required
-                disabled={busy}
-                value={newYear}
-                onChange={(event) => setNewYear(Number(event.target.value))}
-              />
-            </label>
-            <Button type="submit" disabled={busy}>
-              {busy ? "Creando…" : "Crear año"}
-            </Button>
-          </form>
-        </>
-      )}
-      {error && <FormError message={error} />}
-      {message && (
-        <p role="status" className="notice">
-          {message}
+      {reloading && (
+        <p role="status">
+          Recargando calendario. Esperá para editar o crear años.
         </p>
       )}
-      {!selected && (
-        <Button variant="outline" onClick={() => void reload()}>
-          Recargar calendario
-        </Button>
+      {(editorBusy || busy) && (
+        <p role="status">
+          Esperá a que termine la operación para editar o cambiar de año.
+        </p>
       )}
+      <fieldset
+        disabled={reloading || editorBusy || busy}
+        aria-label="Gestión del calendario"
+        aria-busy={reloading || editorBusy || busy}
+        style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+      >
+        <CalendarSearch
+          selected={selected}
+          revision={searchRevision}
+          open={(calendar) => {
+            if (reloading || editorBusy || busy) return;
+            setCalendars((items) =>
+              [
+                ...items.filter((item) => item.id !== calendar.id),
+                calendar,
+              ].toSorted((a, b) => a.year - b.year),
+            );
+            setSelectedId(calendar.id);
+            setMessage("");
+          }}
+        />
+        {selected ? (
+          <CalendarEditor
+            key={`${selected.id}-${selected.version}-${searchRevision}`}
+            calendar={selected}
+            calendars={calendars}
+            onBusyChange={setEditorBusy}
+            selectYear={(year) => {
+              setSelectedId(
+                calendars.find((calendar) => calendar.year === year)?.id,
+              );
+              setMessage("");
+            }}
+            addYear={create}
+            deleteYear={async () => {
+              try {
+                await api<void>(
+                  `/administracion/calendarios/${selected.id}?version=${selected.version}`,
+                  { method: "DELETE" },
+                );
+                changed(
+                  calendars.filter((calendar) => calendar.id !== selected.id),
+                );
+                setMessage("Año eliminado.");
+              } catch (error) {
+                return failureMessage(error);
+              }
+            }}
+            initial={
+              restoredProposal?.year === selected.year
+                ? { ...restoredProposal, version: selected.version }
+                : undefined
+            }
+            preview={async (proposal) => {
+              try {
+                const result = await api<Review>(
+                  `/administracion/calendarios/${selected.id}/impacto`,
+                  { method: "POST", body: JSON.stringify(proposal) },
+                );
+                setReviewed(result);
+                return {
+                  impact: { ...result, bookings: [] },
+                  stamp: result.stamp,
+                };
+              } catch (error) {
+                return { error: failureMessage(error), stamp: "" };
+              }
+            }}
+            save={async (proposal, stamp) => {
+              if (!reviewed || reviewed.stamp !== stamp)
+                return "Revisá el impacto antes de confirmar.";
+              const operation: Pending = {
+                id: selected.id,
+                request: { operationId: crypto.randomUUID(), proposal, stamp },
+                review: reviewed,
+              };
+              try {
+                sessionStorage.setItem(storageKey, JSON.stringify(operation));
+              } catch {
+                return "No se pudo conservar la operación. Habilitá el almacenamiento de sesión antes de confirmar.";
+              }
+              setPending(operation);
+              return await confirm(operation);
+            }}
+            reload={() => void reload()}
+            persisted
+          />
+        ) : (
+          <>
+            <AdminNav />
+            <div className="page-heading">
+              <div>
+                <p className="eyebrow">Administración</p>
+                <h1>Calendario académico</h1>
+                <p>Cuatrimestres y fechas no lectivas</p>
+              </div>
+            </div>
+            {!error && <p>No hay años lectivos registrados.</p>}
+            <form
+              className="panel year-selection"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setBusy(true);
+                setError("");
+                const failure = await create(newYear);
+                if (failure) setError(failure);
+                setBusy(false);
+              }}
+            >
+              <label>
+                Nuevo año
+                <input
+                  type="number"
+                  min="1"
+                  max="9999"
+                  required
+                  disabled={busy}
+                  value={newYear}
+                  onChange={(event) => setNewYear(Number(event.target.value))}
+                />
+              </label>
+              <Button type="submit" disabled={busy}>
+                {busy ? "Creando…" : "Crear año"}
+              </Button>
+            </form>
+          </>
+        )}
+        {error && <FormError message={error} />}
+        {message && (
+          <p role="status" className="notice">
+            {message}
+          </p>
+        )}
+        {!selected && (
+          <Button variant="outline" onClick={() => void reload()}>
+            Recargar calendario
+          </Button>
+        )}
+      </fieldset>
     </>
   );
 }

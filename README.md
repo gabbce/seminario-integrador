@@ -17,7 +17,7 @@ El repositorio contiene la **especificación funcional y técnica v1.0**, final 
 
 - [Checklist de QA manual: pantallas, roles y estados](docs/diseno/qa-manual-prototipo.md).
 - [Plan de entregas del prototipo navegable](docs/diseno/prototipo-navegable.md).
-- [85 decisiones acordadas](docs/especificacion/04-decisiones-acordadas.md).
+- [Decisiones acordadas](docs/especificacion/04-decisiones-acordadas.md).
 - [Índice completo y fuentes originales](docs/README.md).
 - [Vocabulario del dominio](CONTEXT.md).
 
@@ -50,6 +50,6 @@ Esperar estado saludable y abrir [demo local](http://127.0.0.1:8082). React y AP
 
 I04, I05 e I06 están **implementadas y verificadas técnicamente, listas para QA manual**. La aceptación de cada una sigue pendiente del usuario. Ver avances [I04](docs/planificacion/avance-i-04.md), [I05](docs/planificacion/avance-i-05.md) e [I06](docs/planificacion/avance-i-06.md).
 
-Validación final:174pruebas backend,66unitarias frontend,110UI con red simulada y32casos integrados del paquete en Chromium/Firefox; PDFs completos de104filas. Carga local:50sesiones,5963solicitudes medidas,0errores y p95 dentro de objetivos. La muestra de lecturas contra Supabase remoto excedió objetivos: el resultado local no acredita rendimiento remoto. [Evidencias y reproducción](docs/planificacion/regresion-paquete-i-06.md).
+La revisión del 19/10 corrigió búsquedas de calendario, alternativas de conflictos, paginación de reservas y carreras de recarga. Nueva validación: **211 pruebas backend, 72 unitarias frontend, 130 de navegador con red simulada y 10 del paquete contra Supabase real**, incluidos privacidad, volumen e impresión completa. Se redujeron los intercambios SQL y se repitieron las mediciones; los resultados, el entorno y los límites de acreditación se registran en el [informe de cumplimiento](docs/planificacion/cierre-cumplimiento-2026-10-19.md). Las [evidencias anteriores de I-06](docs/planificacion/regresion-paquete-i-06.md) se conservan como registro histórico.
 
 Los datos manuales y QA2029 se preservaron. No se ejecutó ningún restablecimiento remoto; hacerlo requiere autorización sobre destino y alcance concretos.

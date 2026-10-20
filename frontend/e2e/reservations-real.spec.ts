@@ -1,3 +1,4 @@
+import { reservationInventory } from "./reservation-inventory";
 import type { Booking } from "../src/domain";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -151,14 +152,7 @@ test("Reservas real: agenda de una reserva existente", async ({ page }) => {
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
   // Read-only inventory for legacy dataset assertions; the application no longer downloads this collection.
-  const bookings = await page.evaluate(async () => {
-    const session = JSON.parse(localStorage.getItem("aulas-auth")!);
-    const response = await fetch("/api/reservas", {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    if (!response.ok) throw Error(`QA inventory ${response.status}`);
-    return response.json();
-  });
+  const bookings = await reservationInventory<Booking>(page);
   expect(bookings.length).toBeGreaterThan(0);
   const booking = bookings[0];
   await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
@@ -187,14 +181,7 @@ test("I-03.4 real: dataset, alternativas y privacidad con Supabase", async ({
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
   // Read-only inventory for legacy dataset assertions; the application no longer downloads this collection.
-  const bookings = await page.evaluate(async () => {
-    const session = JSON.parse(localStorage.getItem("aulas-auth")!);
-    const response = await fetch("/api/reservas", {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    if (!response.ok) throw Error(`QA inventory ${response.status}`);
-    return response.json();
-  });
+  const bookings = await reservationInventory<Booking>(page);
   const expected = [
     ["Matemática I", 2026, "second", 25, "14:00", "105"],
     ["Física I", 2026, "second", 28, "17:00", "108"],

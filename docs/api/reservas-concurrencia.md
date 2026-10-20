@@ -10,7 +10,9 @@ GET de operación se limita al actor autenticado. `found=false` también puede s
 
 Las modificaciones administrativas comprueban requisitos de clases futuras/en curso y relaciones históricas. Para calendario, la transición aprobada en I-03 rechaza cambios que exigirían nuevas clases; no guarda una ampliación incompleta. Los cambios sin ese efecto y sin invalidar detalles registrados siguen permitidos. La generación conjunta de series pertenece a I-04.
 
-Las lecturas I-03 son una colección mínima sin paginación más consulta directa por ID. El servidor omite contactos y registrador del JSON de Docente. I-05 conserva consultas completas y paginación; I-04 conserva edición y cancelación.
+La colección HTTP `GET /api/reservas` está paginada (`items`, `total`, `page`, `size`), con página base cero y tamaños 20/50/100; tanto cabeceras como lecturas agrupadas de hijos e historial quedan acotadas a los IDs de la página. El detalle por ID y la recuperación conservan su contenido completo. El servidor omite contactos, registrador e historial del JSON de Docente. Las consultas habituales de I-05 usan `/api/consultas/listado` y su impresión completa; el inventario completo queda reservado a comandos internos explícitos de demo.
+
+La preparación periódica/esporádica obtiene calendario, pertenencia del curso, aulas compatibles y ocupación con una sola sentencia SQL. Sus subconsultas comparten el snapshot MVCC de esa sentencia; el reloj institucional se consulta después para omitir/rechazar clases iniciadas. Sin confirmación no retiene aulas. Al invocarla dentro de una confirmación, `JdbcTemplate` utiliza la conexión de esa transacción READ COMMITTED ya bloqueada. No se abre una transacción adicional ni se cachean los permisos o la ocupación.
 
 ## Esporádicas (I-04.1)
 

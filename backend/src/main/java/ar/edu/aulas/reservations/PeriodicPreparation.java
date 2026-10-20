@@ -9,7 +9,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PeriodicPreparation {
@@ -22,14 +21,12 @@ public class PeriodicPreparation {
                                   List<Omission> omitted, List<Room> availableRooms, int compatibleCount, List<AlternativeRanking.Alternative> alternatives) {}
     public record Preparation(int year, long calendarVersion, List<PreparedPattern> patterns) {}
     private final JdbcTemplate db;
-    private final CalendarManagement calendars;
-    private final RoomsService rooms;
     private final Clock clock;
     @Autowired public PeriodicPreparation(JdbcTemplate db, CalendarManagement calendars, RoomsService rooms, ObjectProvider<Clock> clocks) {
         this(db, calendars, rooms, clocks.getIfAvailable(Clock::systemUTC));
     }
     public PeriodicPreparation(JdbcTemplate db, CalendarManagement calendars, RoomsService rooms, Clock clock) {
-        this.db=db; this.calendars=calendars; this.rooms=rooms;
+        this.db=db;
         this.clock=clock.withZone(ZoneId.of("America/Argentina/Cordoba"));
     }
     void validate(Request r) {
@@ -51,16 +48,14 @@ public class PeriodicPreparation {
         if(new HashSet<>(r.excluded()).size()!=r.excluded().size()) throw DomainError.invalid("No repitas exclusiones.");
         if(r.courseId()!=null && !r.courseId().matches("[1-9][0-9]{0,17}")) throw DomainError.invalid("Curso inválido.");
     }
-    @Transactional(readOnly=true, isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Preparation prepare(Request r) {return prepare(r,false);}
-    @Transactional(readOnly=true, isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Preparation prepare(Request r,boolean operational) {
         validate(r);
-        var yearIds=db.queryForList("select id_anio_lectivo from aulas.anio_lectivo where anio_calendario=?",Long.class,r.year());
-        if(yearIds.isEmpty()) throw new DomainError(404,"NOT_FOUND","El año no existe.");
-        var calendar=calendars.get(yearIds.getFirst());
+        var windows=r.patterns().stream().map(p->new ReservationOccupancy.Window(p.day(),null,LocalTime.parse(p.start()),LocalTime.parse(p.start()).plusMinutes(p.modules()*30L))).toList();
+        var snapshot=PreparationSnapshot.read(db,r.year(),r.courseId(),r.period(),r.type(),r.students(),r.board(),r.resources(),windows,operational);
+        var calendar=snapshot.calendar();
         if(!calendar.state().equals("Habilitado")) throw DomainError.conflict("El año debe estar habilitado para consultar esta propuesta.");
-        if(r.courseId()!=null && db.queryForObject("select count(*) from aulas.curso where id_curso=? and id_anio_lectivo=?",Long.class,Long.parseLong(r.courseId()),yearIds.getFirst())==0)
+        if(!snapshot.courseMatches())
             throw DomainError.invalid("El curso debe pertenecer al año seleccionado.");
         var ranges=(r.period().equals("annual")?List.of("first","second"):List.of(r.period())).stream()
             .map(key->calendar.terms().get(key).stream().map(LocalDate::parse).toList()).toList();
@@ -75,11 +70,8 @@ public class PeriodicPreparation {
                 throw DomainError.invalid("Las exclusiones deben pertenecer al período y a los días seleccionados.");
             excluded.add(date);
         }
-        var compatible=rooms.references().stream().filter(room->room.state().equals("Habilitada") && room.type().equals(r.type())
-            && room.capacity()>=r.students() && (r.board()==null || r.board().isEmpty() || r.board().equals(room.board()))
-            && room.resources().containsAll(r.resources())).sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id)).toList();
-        var windows=r.patterns().stream().map(p->new ReservationOccupancy.Window(p.day(),null,LocalTime.parse(p.start()),LocalTime.parse(p.start()).plusMinutes(p.modules()*30L))).toList();
-        var occupied=ReservationOccupancy.read(db,start,end,operational,compatible.stream().map(room->Long.parseLong(room.internalId())).toList(),windows);
+        var compatible=snapshot.rooms();
+        var occupied=snapshot.occupied();
         var now=LocalDateTime.now(clock);
         var result=new ArrayList<PreparedPattern>();
         for(var pattern:r.patterns()) {

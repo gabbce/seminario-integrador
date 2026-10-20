@@ -1,0 +1,12 @@
+{
+  "remoteReadImage": "sha256:cfec013d0549be712fb58648a15eb8a017f309abfa991945d0bbf71eb3f62218",
+  "isolatedLoadImage": "sha256:4d0457024c75dbe135407770b77f8e4190e7e800331dd8bd80178a678dde3d89",
+  "isolatedLoadTag": "aulas-requisitos:20261019-final",
+  "comparison": {
+    "method": "Compared uncompressed contents of all entries in /app/aulas.jar copied from each running container before measurement",
+    "jarEntriesEach": 425,
+    "allNonStaticEntriesIdentical": true,
+    "differentEntriesOnly": "BOOT-INF/classes/static/index.html and hashed JavaScript/CSS assets",
+    "limitation": "Distinct builds; identity established for backend classes/resources/dependencies, not for the entire image or frontend assets"
+  }
+}

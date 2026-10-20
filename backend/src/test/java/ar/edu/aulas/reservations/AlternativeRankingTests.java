@@ -6,6 +6,13 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class AlternativeRankingTests {
+ @Test void actualWindowsRespectReschedulingAndUnionAcrossOverlappingSlots() {
+  var busy=List.of(occupied(1,"2027-03-08","09:00",2,"sporadic"),occupied(1,"2027-03-09","11:00",3,"periodic"),occupied(1,"2027-03-09","09:00",2,"periodic"));
+  var slots=List.of(new AlternativeRanking.Slot("2027-03-08",LocalTime.of(9,30),LocalTime.of(10,30)),new AlternativeRanking.Slot("2027-03-09",LocalTime.of(11,0),LocalTime.of(12,0)),new AlternativeRanking.Slot("2027-03-09",LocalTime.of(11,30),LocalTime.of(12,30)));
+  var ranked=AlternativeRanking.rank(List.of(room(1,30)),busy,slots).getFirst();
+  assertThat(ranked.sporadicMinutes()).isEqualTo(30);assertThat(ranked.sporadicDates()).isOne();assertThat(ranked.periodicMinutes()).isEqualTo(90);
+  assertThat(ranked.conflicts()).noneMatch(c->c.date().equals("2027-03-09") && c.start().equals("09:00"));
+ }
  private PeriodicPreparation.Room room(long id,int capacity) {return new PeriodicPreparation.Room(Long.toString(id),"A"+id,0,"General",capacity);}
  private AlternativeRanking.Occupied occupied(long room,String date,String start,int modules,String modality) {
   return new AlternativeRanking.Occupied(room,LocalDate.parse(date),LocalTime.parse(start),modules,Long.toString(room),"Historia","001-A-2027",modality,"Laura Gómez",null,null);

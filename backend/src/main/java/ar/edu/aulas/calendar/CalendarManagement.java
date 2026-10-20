@@ -12,9 +12,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class CalendarManagement {
     public record Config(String id,int year,String state,long version,Map<String,List<String>> terms,List<String> holidays,Map<String,String> descriptions) {}
     public record Create(Integer year) {}
+    public record Page(List<Config> items,long total,int page,int size) {}
+    public record Term(int number,String start,String end) {}
+    public record Terms(int year,String state,List<Term> items) {}
     public record Edit(Long version,Integer year,String state,Map<String,List<String>> terms,List<String> holidays,Map<String,String> descriptions) {}
     private final JdbcTemplate db;
     private final Clock clock;
+    private final tools.jackson.databind.ObjectMapper json=new tools.jackson.databind.ObjectMapper();
+    private static final String SELECT_CONFIG="""
+        select y.id_anio_lectivo,y.anio_calendario,y.estado,y.version,
+          coalesce((select jsonb_object_agg(case c.numero when 1 then 'first' else 'second' end,
+            jsonb_build_array(coalesce(c.inicio::text,''),coalesce(c.fin::text,''))) from aulas.cuatrimestre c
+            where c.id_anio_lectivo=y.id_anio_lectivo),'{}'::jsonb)::text as terms,
+          coalesce((select jsonb_object_agg(h.fecha::text,h.descripcion) from aulas.feriado h
+            where h.id_anio_lectivo=y.id_anio_lectivo),'{}'::jsonb)::text as descriptions
+        from aulas.anio_lectivo y
+        """;
     @Autowired public CalendarManagement(JdbcTemplate db,org.springframework.beans.factory.ObjectProvider<Clock> clocks) { this(db,clocks.getIfAvailable(()->Clock.system(ZoneId.of("America/Argentina/Cordoba")))); }
     public CalendarManagement(JdbcTemplate db,Clock clock) { this.db=db;this.clock=clock.withZone(ZoneId.of("America/Argentina/Cordoba")); }
     private String state(String state) {
@@ -28,18 +41,51 @@ public class CalendarManagement {
         if(!Boolean.TRUE.equals(db.queryForObject("select activo and rol='ADMINISTRADOR' from aulas.usuario where id_usuario=?",Boolean.class,actor)))
             throw new DomainError(403,"FORBIDDEN","Solo un administrador activo puede gestionar el calendario.");
     }
+    // One statement includes periods and holidays in the same MVCC snapshot. Existing write transactions are still joined.
+    public List<Config> list() {return configs(" order by y.anio_calendario");}
     @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
-    public List<Config> list() {return db.queryForList("select id_anio_lectivo from aulas.anio_lectivo order by anio_calendario",Long.class).stream().map(this::get).toList();}
+    public Page search(Integer year,String filterState,int page,int size) {
+        if(year!=null) year(year);
+        if(page<0 || size<1 || size>100) throw DomainError.invalid("La página debe ser no negativa y el tamaño entre 1 y 100.");
+        var args=new ArrayList<Object>();var where=new StringBuilder(" where true");
+        if(year!=null) {where.append(" and anio_calendario=?");args.add(year);}
+        if(filterState!=null && !filterState.isBlank()) {where.append(" and estado=?");args.add(state(filterState));}
+        long total=db.queryForObject("select count(*) from aulas.anio_lectivo"+where,Long.class,args.toArray());
+        args.add(size);args.add((long)page*size);
+        var items=configs(where+" order by y.anio_calendario limit ? offset ?",args.toArray());
+        return new Page(items,total,page,size);
+    }
+    private LocalDate filterDate(String value) {
+        if(value==null || value.isBlank()) return null;
+        try {var parsed=LocalDate.parse(value);if(!parsed.toString().equals(value) || parsed.getYear()<1 || parsed.getYear()>9999) throw new IllegalArgumentException();return parsed;}
+        catch(RuntimeException e) {throw DomainError.invalid("Completá fechas de búsqueda válidas (AAAA-MM-DD).");}
+    }
     @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public Terms searchTerms(long id,String from,String to) {
+        LocalDate start=filterDate(from),end=filterDate(to);
+        if(start!=null && end!=null && start.isAfter(end)) throw DomainError.invalid("La fecha desde debe ser anterior o igual a hasta.");
+        Config calendar=get(id);
+        var args=new ArrayList<Object>();args.add(id);
+        var where=new StringBuilder(" where id_anio_lectivo=?");
+        if(start!=null) {where.append(" and fin>=?");args.add(start);}
+        if(end!=null) {where.append(" and inicio<=?");args.add(end);}
+        var items=db.query("select numero,inicio,fin from aulas.cuatrimestre"+where+" order by numero",(rs,n)->new Term(rs.getInt("numero"),Objects.toString(rs.getDate("inicio"),""),Objects.toString(rs.getDate("fin"),"")),args.toArray());
+        return new Terms(calendar.year(),calendar.state(),items);
+    }
     public Config get(long id) {
-        var rows=db.queryForList("select * from aulas.anio_lectivo where id_anio_lectivo=?",id);
+        var rows=configs(" where y.id_anio_lectivo=?",id);
         if(rows.isEmpty()) throw new DomainError(404,"NOT_FOUND","El año no existe.");
-        var row=rows.getFirst();
-        var terms=new LinkedHashMap<String,List<String>>();terms.put("first",List.of("",""));terms.put("second",List.of("",""));
-        db.queryForList("select numero,inicio,fin from aulas.cuatrimestre where id_anio_lectivo=? order by numero",id).forEach(term->terms.put(((Number)term.get("numero")).intValue()==1?"first":"second",List.of(Objects.toString(term.get("inicio"),""),Objects.toString(term.get("fin"),""))));
-        var descriptions=new LinkedHashMap<String,String>();
-        db.queryForList("select fecha,descripcion from aulas.feriado where id_anio_lectivo=? order by fecha",id).forEach(day->descriptions.put(day.get("fecha").toString(),day.get("descripcion").toString()));
-        return new Config(Long.toString(id),((Number)row.get("anio_calendario")).intValue(),label(row.get("estado").toString()),((Number)row.get("version")).longValue(),terms,new ArrayList<>(descriptions.keySet()),descriptions);
+        return rows.getFirst();
+    }
+    @SuppressWarnings("unchecked")
+    private List<Config> configs(String scope,Object... args) {
+        return db.query(SELECT_CONFIG+scope,(rs,n)->{
+            var terms=new LinkedHashMap<String,List<String>>();terms.put("first",List.of("",""));terms.put("second",List.of("",""));
+            terms.putAll(json.readValue(rs.getString("terms"),Map.class));
+            Map<String,String> descriptions=json.readValue(rs.getString("descriptions"),Map.class);
+            return new Config(rs.getString("id_anio_lectivo"),rs.getInt("anio_calendario"),label(rs.getString("estado")),rs.getLong("version"),
+                terms,descriptions.keySet().stream().sorted().toList(),descriptions);
+        },args);
     }
     private void year(Integer year) {if(year==null || year<1 || year>9999) throw DomainError.invalid("Completá un año entre 1 y 9999.");}
     private Config lock(long id,Long version) {

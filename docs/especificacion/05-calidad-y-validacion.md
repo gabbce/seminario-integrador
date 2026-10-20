@@ -2,7 +2,7 @@
 
 **Versión:** 1.0 final, aprobada. Alcance vigente definido en la [especificación general](00-especificacion.md).
 
-Estado: requisitos originales y cobertura consolidada para la versión 1.0. No se han ejecutado pruebas de aplicación; aún no hay implementación.
+Estado: requisitos originales y cobertura consolidada para la versión 1.0. Este documento define los compromisos aprobados; el estado de implementación y sus pruebas se registra en la [revisión de cumplimiento](../planificacion/revision-cumplimiento-2026-10-19.md) y sus correcciones. La existencia del catálogo no certifica que todos los requisitos estén acreditados.
 
 ## Requisitos no funcionales vigentes
 

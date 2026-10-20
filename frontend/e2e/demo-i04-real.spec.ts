@@ -1,3 +1,4 @@
+import { reservationInventory } from "./reservation-inventory";
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const lines = readFileSync("../backend/.env", "utf8").split(/\r?\n/);
@@ -38,15 +39,9 @@ test("I04 dataset integrado real y privacidad entre sesiones", async ({
   await page.getByLabel("Contraseña", { exact: true }).fill(password!);
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page.getByLabel("Fecha de agenda")).toBeVisible();
-  const bookings: Booking[] = await page.evaluate(async () => {
-    const session = JSON.parse(localStorage.getItem("aulas-auth")!);
-    const r = await fetch("/api/reservas", {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    if (!r.ok) throw Error(`QA lectura ${r.status}`);
-    return r.json();
-  });
-  for (const id of ["15", "16", "17", "18", "19", "20", "21", "22", "23"]) expect(bookings.some(b => b.id === id)).toBe(true);
+  const bookings = await reservationInventory<Booking>(page);
+  for (const id of ["15", "16", "17", "18", "19", "20", "21", "22", "23"])
+    expect(bookings.some((b) => b.id === id)).toBe(true);
   const scenario = (date: string, start = "07:00") => {
     const found = bookings.filter(
       (b) =>

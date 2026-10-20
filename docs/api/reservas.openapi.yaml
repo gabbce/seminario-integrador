@@ -69,15 +69,26 @@ paths:
         '403': { description: Cuenta inactiva }
   /api/reservas:
     get:
-      summary: Lectura mínima de reservas persistidas para agenda y listado
-      description: Colección sin paginar de I-03. Las consultas completas, filtros y paginación pertenecen a I-05. Nunca combina reservas simuladas.
+      summary: Página de reservas persistidas
+      description: Orden estable por ID descendente. Página base cero; fuera de rango devuelve items vacío y conserva el total. Cabeceras, hijos e historial se consultan únicamente para los IDs de la página. Docente no recibe emails, registrante, actores de cancelación ni historial privado. La consulta habitual usa /api/consultas/listado y la impresión completa usa /api/consultas/impresion-diaria.
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, enum: [20, 50, 100], default: 20 } }
       security: [{ bearerAuth: [] }]
       responses:
         '200':
           description: Reservas con sus ocurrencias, incluyendo estados históricos
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/Booking' } }
+              schema:
+                type: object
+                required: [items, total, page, size]
+                properties:
+                  items: { type: array, maxItems: 100, items: { $ref: '#/components/schemas/Booking' } }
+                  total: { type: integer, format: int64, minimum: 0 }
+                  page: { type: integer, minimum: 0 }
+                  size: { type: integer, enum: [20, 50, 100] }
+        '400': { description: Página o tamaño inválido }
         '401': { description: Sesión requerida }
   /api/reservas/{id}:
     get:

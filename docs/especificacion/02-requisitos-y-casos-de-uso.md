@@ -74,7 +74,7 @@ DA-74 a DA-77 fijan tecnología, ejecución local o web con Supabase remoto, aud
 
 DA-78 a DA-80 definen Java/React, Supabase PostgreSQL/Auth, Docker Compose para la app y gráficos con Chart.js/tabla coloreada. DA-81 aprueba el stack concreto del documento 12.
 
-DA-81 aprueba Java/Spring Boot y React/Vite con las bibliotecas acordadas. Modelo, pantallas y contratos consolidados se encuentran en documentos 13 a 15; aún no se ha iniciado código.
+DA-81 aprueba Java/Spring Boot y React/Vite con las bibliotecas acordadas. Modelo, pantallas y contratos consolidados se encuentran en documentos 13 a 15. El estado de implementación y sus pruebas se registra fuera del catálogo de requisitos, en los avances y revisiones de QA.
 
 DA-82/83/84 cierran turno/legajo opcionales, requisitos compartidos fijos tras iniciar la serie y reprogramación dentro de períodos asignados. DA-85 precisa el denominador de ocupación sin historial de estados del año. Los casos de uso vigentes están consolidados en el documento 18.
 

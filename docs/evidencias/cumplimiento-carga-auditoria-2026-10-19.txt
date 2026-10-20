@@ -1,0 +1,1 @@
+Protocol audited: 50 identities, 100ms stagger, 120s warmup, 600s measurement, >=5000ms response pauses; cycles, assignments, reservation IDs, versions, errors and p95 reproduced.

@@ -11,7 +11,19 @@ paths:
       description: Solo Admin activo. Snapshot sin escritura; valida propuesta y dependencias, genera únicamente futuras no representadas ni excluidas, con patrón/aula actuales. Devuelve clases, conflictos y alternativas informativas, canConfirm y stamp SHA256 de propuesta/versiones/resumen. No retiene espacios.
       requestBody: {$ref: '#/components/requestBodies/Edit'}
       responses:
-        '200': {description: 'calendar, added (booking/pattern/date/start/end/roomId/room/modules), conflicts, canConfirm, stamp; conflictos impiden confirmar todo el conjunto'}
+        '200':
+          description: 'calendar, added (booking/pattern/date/start/end/roomId/room/modules), conflicts, canConfirm, stamp; conflictos impiden confirmar todo el conjunto'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [calendar, added, conflicts, canConfirm, stamp]
+                properties:
+                  calendar: {$ref: '#/components/schemas/Edit'}
+                  added: {type: array, items: {type: object}}
+                  conflicts: {type: array, items: {$ref: '#/components/schemas/ImpactConflict'}}
+                  canConfirm: {type: boolean}
+                  stamp: {type: string, pattern: '^[a-f0-9]{64}$'}
         '400': {description: Datos inválidos}
         '403': {description: Admin activo requerido}
         '404': {description: Año inexistente}
@@ -56,6 +68,67 @@ components:
         application/json:
           schema: {$ref: '#/components/schemas/Edit'}
   schemas:
+    ImpactConflict:
+      type: object
+      description: Alternativas informativas del patrón completo (clases nuevas y futuras vigentes con sus horarios reales, incluidas reprogramaciones). Nunca habilitan selección o confirmación. Solo Admin activo accede a contactos.
+      required: [booking, date, room, reason, occupants, available, alternatives]
+      properties:
+        booking: {type: string}
+        date: {type: string, format: date}
+        room: {type: string}
+        reason: {type: string}
+        occupants: {type: array, items: {type: object}}
+        available:
+          type: array
+          description: Identificadores de aulas compatibles libres en todo el patrón, por capacidad e identificador; separadas de las alternativas ocupadas.
+          items: {type: string}
+        alternatives:
+          type: array
+          description: Todas las aulas compatibles ocupadas, ordenadas lexicográficamente. SPORADIC_ONLY precede WITH_PERIODIC. Primer grupo por fechas esporádicas y minutos esporádicos; segundo por minutos periódicos y fechas esporádicas. Desempate capacidad e identificador. Minutos por unión de intervalos de cada modalidad y fecha. UI muestra hasta tres y permite ver restantes.
+          items: {$ref: '#/components/schemas/Alternative'}
+    Alternative:
+      type: object
+      required: [room, group, sporadicDates, sporadicMinutes, periodicMinutes, conflicts]
+      properties:
+        room:
+          type: object
+          required: [internalId, id, version, type, capacity]
+          properties:
+            internalId: {type: string}
+            id: {type: string}
+            version: {type: integer}
+            type: {type: string}
+            capacity: {type: integer}
+        group: {enum: [SPORADIC_ONLY, WITH_PERIODIC]}
+        sporadicDates: {type: integer, minimum: 0}
+        sporadicMinutes: {type: integer, minimum: 0}
+        periodicMinutes: {type: integer, minimum: 0}
+        conflicts:
+          type: array
+          items:
+            type: object
+            required: [reservationId, subject, course, modality, date, start, end, overlapStart, overlapEnd, overlapMinutes, teacher, registrant]
+            properties:
+              reservationId: {type: string}
+              subject: {type: string}
+              course: {type: string}
+              modality: {enum: [sporadic, periodic]}
+              date: {type: string, format: date}
+              start: {type: string}
+              end: {type: string}
+              overlapStart: {type: string}
+              overlapEnd: {type: string}
+              overlapMinutes: {type: integer, minimum: 1}
+              teacher: {type: string}
+              teacherEmail: {type: [string, 'null']}
+              registrant:
+                type: object
+                required: [userId, name, email, inactive]
+                properties:
+                  userId: {type: string}
+                  name: {type: string, description: Nombre actual del usuario registrador}
+                  email: {type: string, description: Email actual del registrador}
+                  inactive: {type: boolean}
     Edit:
       type: object
       required: [version, year, state, terms, holidays, descriptions]

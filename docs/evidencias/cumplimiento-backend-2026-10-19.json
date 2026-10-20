@@ -1,0 +1,274 @@
+{
+  "observed": "2026-10-20T02:03:18Z",
+  "environment": "WSL, PostgreSQL17.6 Testcontainers descartable; identidad simulada",
+  "source": "reports completed 01:59–02:03 UTC; interrupted previous run excluded",
+  "totals": {
+    "tests": 211,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "ar.edu.aulas.AccountManagementTests",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.799,
+      "reportSha256": "61e0d0eca0383ba616603500303ef83e38426690dc8388efed5eeffd49db69d5"
+    },
+    {
+      "suite": "ar.edu.aulas.AlternativePreparationTests",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.529,
+      "reportSha256": "3766af3392feab66b24c451125c05883566c20abd9bd0df4524023b1cd9dd8ea"
+    },
+    {
+      "suite": "ar.edu.aulas.AulasApplicationTests",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.373,
+      "reportSha256": "d66ccee672e55320e4ee6d48f7c72593a6df4fddf319d76c487471ccd6c220f8"
+    },
+    {
+      "suite": "ar.edu.aulas.CalendarImpactTests",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 29.252,
+      "reportSha256": "51c6f8de12c9a7793ae524924ee428d9da9839f37909e110c510d7416d4f3927"
+    },
+    {
+      "suite": "ar.edu.aulas.CalendarManagementTests",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.726,
+      "reportSha256": "7daba6a3fb4a1a55d15e4f2a8d3f9bbb221ff16e5337abf2758a51f09c0f1276"
+    },
+    {
+      "suite": "ar.edu.aulas.CancellationTests",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.735,
+      "reportSha256": "7e27d49ac0dea17c94080b08574aca9066301c9371e56dfc4c8dc2080ff9ec2e"
+    },
+    {
+      "suite": "ar.edu.aulas.ConsultationMutationTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 9.096,
+      "reportSha256": "507fa5501f89970757eac266abe39d81cdcff2febc36ac5b987e53e67bce513d"
+    },
+    {
+      "suite": "ar.edu.aulas.ConsultationTests",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.743,
+      "reportSha256": "414c514d6375f3c45414bb70d2320bda4597514f2be3d30c86ee5fcccf9e050b"
+    },
+    {
+      "suite": "ar.edu.aulas.DemoCatalogTests",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.313,
+      "reportSha256": "5bde61376f117f30ec71f81e66192f4a7c6b08d8014d2fa654294b5afdf45c5c"
+    },
+    {
+      "suite": "ar.edu.aulas.DemoOperationTests",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 7.637,
+      "reportSha256": "ffb1ee99d494c3ce8de3126ce286bd76e5e497b0d7a33f53144805049fb8e887"
+    },
+    {
+      "suite": "ar.edu.aulas.DemoReservationTests",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 11.393,
+      "reportSha256": "b60559f8f947e63fdb812a2287bc7cd9f11d95a80313ab641fd0bec320e1f7be"
+    },
+    {
+      "suite": "ar.edu.aulas.DemoResetTests",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 43.369,
+      "reportSha256": "8c0d5a1a9014c674e238ce82107273c43ac64aabbb8971a3400e65e7a2a2ba13"
+    },
+    {
+      "suite": "ar.edu.aulas.DemoVolumeTests",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 27.737,
+      "reportSha256": "b83fe9dfb8d047e62fb912ec9862b2dacf53c79d9fe94e190575e69090881f03"
+    },
+    {
+      "suite": "ar.edu.aulas.HeaderMutationTests",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.906,
+      "reportSha256": "d7e75fef621a833bc8411e43a549f57342d16c06c036f5369da136062f878165"
+    },
+    {
+      "suite": "ar.edu.aulas.IndicatorTests",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.293,
+      "reportSha256": "2c76035dcbcadbf9582ecb72da548f66c71788a26369e12cd457ff7204f77ab8"
+    },
+    {
+      "suite": "ar.edu.aulas.PeriodicConfirmationTests",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.521,
+      "reportSha256": "8b3d01112367d00ffdb59b47c385386aea15a3646e1114ca423deeb629c76b42"
+    },
+    {
+      "suite": "ar.edu.aulas.PeriodicPreparationTests",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.713,
+      "reportSha256": "4d36e41769f068f84fe15cdfd63ea54046d6127f277cf5bdbfc4a94e9dcb5f73"
+    },
+    {
+      "suite": "ar.edu.aulas.ReadRoundTripsTests",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.431,
+      "reportSha256": "22a081006ef00a1c60b9839745aa777d9fd64e2a9b39a43a52d6c54de50424f2"
+    },
+    {
+      "suite": "ar.edu.aulas.ReferenceTests",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.946,
+      "reportSha256": "3b6cba5170bdfd6131dae5a3867df1d362a36dfa45e40713db0a653ddd1d6833"
+    },
+    {
+      "suite": "ar.edu.aulas.RescheduleTests",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.094,
+      "reportSha256": "7d41960486a520aae6e2e355fe453ca475ac2b5f0971b9c7462bfd26d109a450"
+    },
+    {
+      "suite": "ar.edu.aulas.ReservationPaginationTests",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.582,
+      "reportSha256": "7456fb043c5f80766703b7afc4be1d7acb8e0b63422085b1135210812ab4ebeb"
+    },
+    {
+      "suite": "ar.edu.aulas.RoomMutationTests",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.277,
+      "reportSha256": "0e7d4d8c88560d7e6573f25ea62163c6aef6437cab21894152e0eb25b7e084e7"
+    },
+    {
+      "suite": "ar.edu.aulas.RoomsTests",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.082,
+      "reportSha256": "9884166b572ce4897f0760eeb5d4ac9c99b7e7faad5d48dc0ed6db5aedb68744"
+    },
+    {
+      "suite": "ar.edu.aulas.SecurityTests",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.139,
+      "reportSha256": "8c581876d7d45e20434df3a64ad4a162db3ea4029e1224e7e33e1c9484f3c778"
+    },
+    {
+      "suite": "ar.edu.aulas.SpaRoutingTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.453,
+      "reportSha256": "539d47111ba771569b8ddca73875c7edb3771e17d7f3ce638dcd8d89ca95ff25"
+    },
+    {
+      "suite": "ar.edu.aulas.SporadicReservationTests",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.915,
+      "reportSha256": "d1890955cae344dfbd5031a4381e14d5b61f840efa510829e2c666d718af4ffa"
+    },
+    {
+      "suite": "ar.edu.aulas.accounts.SupabaseRejectionTests",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006,
+      "reportSha256": "3b82e91e5b1bdb9531f2aa3af7799e78ea6700a86ed947a18775aef4343b392e"
+    },
+    {
+      "suite": "ar.edu.aulas.reservations.AlternativeRankingTests",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.008,
+      "reportSha256": "5faaed9415267b52815c08ab4175b3ac49f5411f44ff758c95e8ee08c8d3eb49"
+    },
+    {
+      "suite": "ar.edu.aulas.reservations.ReservationOccupancyTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.804,
+      "reportSha256": "2a12ea142fa957edaac82765fd7839c8d2fb89372de483d2fb795f102c48909e"
+    }
+  ]
+}

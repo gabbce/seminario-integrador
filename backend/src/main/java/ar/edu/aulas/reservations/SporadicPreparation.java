@@ -8,7 +8,6 @@ import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SporadicPreparation {
@@ -17,11 +16,9 @@ public class SporadicPreparation {
     public record PreparedDate(String date,String start,String end,List<PeriodicPreparation.Room> availableRooms,int compatibleCount,List<AlternativeRanking.Alternative> alternatives) {}
     public record Preparation(int year,long calendarVersion,List<PreparedDate> dates) {}
     private final JdbcTemplate db;
-    private final CalendarManagement calendars;
-    private final RoomsService rooms;
     private final Clock clock;
     public SporadicPreparation(JdbcTemplate db,CalendarManagement calendars,RoomsService rooms,ObjectProvider<Clock> clocks) {
-        this.db=db;this.calendars=calendars;this.rooms=rooms;this.clock=clocks.getIfAvailable(Clock::systemUTC).withZone(ZoneId.of("America/Argentina/Cordoba"));
+        this.db=db;this.clock=clocks.getIfAvailable(Clock::systemUTC).withZone(ZoneId.of("America/Argentina/Cordoba"));
     }
     void validate(Request r) {
         if(r==null || r.year()==null || r.year()<1 || r.year()>9999 || r.students()==null || r.students()<1
@@ -53,14 +50,14 @@ public class SporadicPreparation {
         if(!rejected.isEmpty())throw DomainError.invalid(String.join(" ",rejected)+" Revisá todas las fechas y sus horarios.");
     }
 
-    @Transactional(readOnly=true,isolation=org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Preparation prepare(Request r,boolean operational) {
         validate(r);
-        var ids=db.queryForList("select id_anio_lectivo from aulas.anio_lectivo where anio_calendario=?",Long.class,r.year());
-        if(ids.isEmpty()) throw new DomainError(404,"NOT_FOUND","El año no existe.");
-        var calendar=calendars.get(ids.getFirst());
+        var ordered=r.dates().stream().sorted(Comparator.comparing(DateSlot::date)).toList();
+        var windows=ordered.stream().map(p->new ReservationOccupancy.Window(null,LocalDate.parse(p.date()),LocalTime.parse(p.start()),LocalTime.parse(p.start()).plusMinutes(p.modules()*30L))).toList();
+        var snapshot=PreparationSnapshot.read(db,r.year(),r.courseId(),null,r.type(),r.students(),r.board(),r.resources(),windows,operational);
+        var calendar=snapshot.calendar();
         if(!calendar.state().equals("Habilitado")) throw DomainError.conflict("El año debe estar habilitado.");
-        if(r.courseId()!=null && db.queryForObject("select count(*) from aulas.curso where id_curso=? and id_anio_lectivo=?",Long.class,Long.parseLong(r.courseId()),ids.getFirst())==0)
+        if(!snapshot.courseMatches())
             throw DomainError.invalid("El curso debe pertenecer al año seleccionado.");
         var now=LocalDateTime.now(clock);
         var rejected=new ArrayList<String>();
@@ -70,14 +67,8 @@ public class SporadicPreparation {
             if(calendar.holidays().contains(slot.date()))rejected.add("La fecha "+slot.date()+" es feriado.");
         }
         if(!rejected.isEmpty())throw DomainError.conflict(String.join(" ",rejected)+" Revisá todas las fechas.");
-        var compatible=rooms.references().stream().filter(room->room.state().equals("Habilitada") && room.type().equals(r.type())
-            && room.capacity()>=r.students() && (r.board()==null || r.board().isEmpty() || r.board().equals(room.board()))
-            && room.resources().containsAll(r.resources()))
-            .sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id))
-            .map(room->new PeriodicPreparation.Room(room.internalId(),room.id(),room.version(),room.type(),room.capacity())).toList();
-        var ordered=r.dates().stream().sorted(Comparator.comparing(DateSlot::date)).toList();
-        var windows=ordered.stream().map(p->new ReservationOccupancy.Window(null,LocalDate.parse(p.date()),LocalTime.parse(p.start()),LocalTime.parse(p.start()).plusMinutes(p.modules()*30L))).toList();
-        var occupied=ReservationOccupancy.read(db,LocalDate.parse(ordered.getFirst().date()),LocalDate.parse(ordered.getLast().date()),operational,compatible.stream().map(room->Long.parseLong(room.internalId())).toList(),windows);
+        var compatible=snapshot.rooms();
+        var occupied=snapshot.occupied();
         var result=new ArrayList<PreparedDate>();
         for(var slot:ordered) {
             var start=LocalTime.parse(slot.start());var end=start.plusMinutes(slot.modules()*30L);var dates=Set.of(slot.date());

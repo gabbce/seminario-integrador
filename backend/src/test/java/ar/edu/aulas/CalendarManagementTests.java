@@ -65,7 +65,12 @@ class CalendarManagementTests {
   assertThatThrownBy(()->calendars.edit(admin,id,edit(0,"Habilitado",terms(),List.of("2027-10-12","2027-10-12"),Map.of("2027-10-12","Duplicado")))).isInstanceOf(DomainError.class);
   assertThatThrownBy(()->calendars.edit(admin,id,edit(0,"Habilitado",terms(),List.of("2027-10-12"),Map.of("2027-10-12"," ")))).isInstanceOf(DomainError.class);
   calendars.edit(admin,id,edit(0,"En preparación",Map.of("first",List.of("2027-03-01",""),"second",List.of("","")),List.of(),Map.of()));
-  assertThat(calendars.get(id).version()).isEqualTo(1);
+  var partial=calendars.get(id);
+  assertThat(partial.version()).isEqualTo(1);
+  assertThat(partial.terms().get("first")).containsExactly("2027-03-01","");
+  assertThat(calendars.list().getFirst().terms()).isEqualTo(partial.terms());
+  var savedAgain=calendars.edit(admin,id,edit(partial.version(),partial.state(),partial.terms(),partial.holidays(),partial.descriptions()));
+  assertThat(savedAgain.terms()).isEqualTo(partial.terms());
  }
  @Test void pastProtectionUsesInstitutionalDateAndAllowsDescriptionCorrection() {
   long admin=account("ADMINISTRADOR");long id=Long.parseLong(calendars.create(admin,new CalendarManagement.Create(2027)).id());
@@ -108,6 +113,36 @@ class CalendarManagementTests {
  org.springframework.test.web.servlet.request.RequestPostProcessor session(long id) {
   String subject=db.queryForObject("select supabase_auth_id::text from aulas.usuario where id_usuario=?",String.class,id);
   return org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt->jwt.subject(subject));
+ }
+ @Test void administrativeSearchFiltersPagesTermsAndKeepsCompleteReferences() throws Exception {
+  long admin=account("ADMINISTRADOR"),bedel=account("BEDEL");
+  long id=Long.parseLong(calendars.create(admin,new CalendarManagement.Create(2027)).id());
+  calendars.edit(admin,id,edit(0,"Habilitado",terms(),List.of(),Map.of()));
+  calendars.create(admin,new CalendarManagement.Create(2028));calendars.create(admin,new CalendarManagement.Create(2029));
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/administracion/calendarios?year=2027&state=Habilitado&page=0&size=1").with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.total").value(1))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.items[0].year").value(2027));
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/administracion/calendarios?page=1&size=2").with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.total").value(3))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.items[0].year").value(2029));
+  for(String query:List.of("year=2030","page=99","year=2027&state=Cerrado")) mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/administracion/calendarios?"+query).with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk()).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.items").isEmpty());
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/referencias/calendarios").with(session(bedel)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.length()").value(3));
+  String termsUrl="/api/administracion/calendarios/"+id+"/cuatrimestres";
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(termsUrl+"?from=2027-07-01&to=2027-07-01").with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.items.length()").value(1))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.items[0].number").value(1))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.state").value("Habilitado"));
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(termsUrl+"?from=2027-07-02&to=2027-07-31").with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.items").isEmpty());
+  for(String query:List.of("from=2027-02-30","from=2027-08-01&to=2027-03-01","from=garbage")) mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(termsUrl+"?"+query).with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+  for(String query:List.of("year=0","state=Eliminado","page=-1","size=101")) mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/administracion/calendarios?"+query).with(session(admin)))
+   .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+  mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/administracion/calendarios").with(session(bedel))).andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isForbidden());
  }
  @Test void apiUsesPersistedRolesAndReturnsStableSnapshotContract() throws Exception {
   long admin=account("ADMINISTRADOR"),bedel=account("BEDEL"),docente=account("DOCENTE");

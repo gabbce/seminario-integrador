@@ -17,6 +17,24 @@ for (const width of [390, 1440])
     await page.route("**/api/administracion/calendarios**", async (route) => {
       const request = route.request();
       const path = new URL(request.url()).pathname;
+      if (request.method() === "GET") {
+        if (path.endsWith("/cuatrimestres"))
+          return route.fulfill({
+            json: {
+              year: calendars[0]?.year ?? 2027,
+              state: calendars[0]?.state ?? "En preparación",
+              items: [],
+            },
+          });
+        return route.fulfill({
+          json: {
+            items: calendars,
+            total: calendars.length,
+            page: 0,
+            size: 20,
+          },
+        });
+      }
       if (path.endsWith("/impacto")) {
         if (stale)
           return route.fulfill({

@@ -3,6 +3,8 @@ package ar.edu.aulas.calendar;
 import ar.edu.aulas.api.DomainError;
 import ar.edu.aulas.reservations.OperationRecovery;
 import ar.edu.aulas.reservations.ReservationGuards;
+import ar.edu.aulas.reservations.AlternativeRanking;
+import ar.edu.aulas.reservations.PeriodicPreparation;
 import ar.edu.aulas.rooms.RoomsService;
 import java.time.*;
 import java.util.*;
@@ -18,7 +20,7 @@ import tools.jackson.databind.ObjectMapper;
 public class CalendarImpactService {
     public record Request(UUID operationId,CalendarManagement.Edit proposal,String stamp) {}
     public record Added(String booking,String pattern,String date,String start,String end,String roomId,String room,int modules) {}
-    public record Conflict(String booking,String date,String room,String reason,List<Map<String,Object>> occupants,List<String> alternatives) {}
+    public record Conflict(String booking,String date,String room,String reason,List<Map<String,Object>> occupants,List<String> available,List<AlternativeRanking.Alternative> alternatives) {}
     public record Review(CalendarManagement.Edit calendar,List<Added> added,List<Conflict> conflicts,boolean canConfirm,String stamp) {}
     private final JdbcTemplate db;
     private final CalendarManagement calendars;
@@ -40,7 +42,10 @@ public class CalendarImpactService {
         new ReservationGuards(db,clock).calendarDependencies(id,current,edit);
         return current;
     }
-    private List<Map<String,Object>> reservations(long id){return db.queryForList("select r.*,p.continuidad_cancelada_en,p.id_reserva as periodic from aulas.reserva r join aulas.curso c using(id_curso) left join aulas.reserva_periodica p using(id_reserva) where c.id_anio_lectivo=? order by r.id_reserva",id);}
+    private List<Map<String,Object>> reservations(long id){return db.queryForList("select r.*,p.continuidad_cancelada_en,p.id_reserva as periodic,m.nombre as subject,lpad(m.id_materia::text,greatest(3,length(m.id_materia::text)),'0') || '-' || c.comision || '-' || a.anio_calendario as course,u.id_usuario::text as registrant_id,u.nombre || ' ' || u.apellido as registrant_name,u.email as registrant_email,u.activo as registrant_active from aulas.reserva r join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.anio_lectivo a using(id_anio_lectivo) join aulas.usuario u on u.id_usuario=r.registrado_por left join aulas.reserva_periodica p on p.id_reserva=r.id_reserva where c.id_anio_lectivo=? order by r.id_reserva",id);}
+    private AlternativeRanking.Occupied rankedOccupant(Map<String,Object> o){
+        return new AlternativeRanking.Occupied(Long.parseLong(o.get("roomId").toString()),LocalDate.parse(o.get("date").toString()),LocalTime.parse(o.get("start").toString()),((Number)o.get("modules")).intValue(),o.get("reservation").toString(),o.get("subject").toString(),o.get("course").toString(),o.get("modality").toString(),o.get("teacher").toString(),Objects.toString(o.get("teacherEmail"),null),new AlternativeRanking.Registrant(o.get("registrant_id").toString(),o.get("registrant_name").toString(),o.get("registrantEmail").toString(),!Boolean.TRUE.equals(o.get("registrant_active"))));
+    }
     private boolean compatible(RoomsService.Room room,Map<String,Object> r){
         List<String> resources;
         try{resources=Arrays.asList((String[])((java.sql.Array)r.get("recursos")).getArray());}catch(java.sql.SQLException e){throw new IllegalStateException(e);}
@@ -86,7 +91,7 @@ public class CalendarImpactService {
             }
         }
         added.sort(Comparator.comparing(Added::booking).thenComparing(Added::date).thenComparing(Added::pattern));
-        var occupancy=added.isEmpty()?List.<Map<String,Object>>of():db.queryForList("select d.id_reserva::text as reservation,d.id_patron::text as pattern,d.id_aula::text as \"roomId\",d.fecha::text as date,d.cantidad_modulos as modules,m.nombre as subject,r.nombre_docente || ' ' || r.apellido_docente as teacher,r.email_docente as \"teacherEmail\",u.email as \"registrantEmail\",d.hora_inicio::text as start,(d.hora_inicio+d.cantidad_modulos*interval '30 minutes')::time::text as end from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.usuario u on u.id_usuario=r.registrado_por where d.estado='CONFIRMADA' and d.fecha+d.hora_inicio+d.cantidad_modulos*interval '30 minutes'>? order by d.id_detalle",now);
+        var occupancy=added.isEmpty()?List.<Map<String,Object>>of():db.queryForList("select d.id_reserva::text as reservation,d.id_patron::text as pattern,d.id_aula::text as \"roomId\",d.fecha::text as date,d.cantidad_modulos as modules,m.nombre as subject,lpad(m.id_materia::text,greatest(3,length(m.id_materia::text)),'0') || '-' || c.comision || '-' || a.anio_calendario as course,case when p.id_reserva is null then 'sporadic' else 'periodic' end as modality,u.id_usuario::text as registrant_id,u.nombre || ' ' || u.apellido as registrant_name,u.activo as registrant_active,r.nombre_docente || ' ' || r.apellido_docente as teacher,r.email_docente as \"teacherEmail\",u.email as \"registrantEmail\",d.hora_inicio::text as start,(d.hora_inicio+d.cantidad_modulos*interval '30 minutes')::time::text as end from aulas.detalle_reserva d join aulas.reserva r using(id_reserva) join aulas.curso c using(id_curso) join aulas.materia m using(id_materia) join aulas.usuario u on u.id_usuario=r.registrado_por join aulas.anio_lectivo a using(id_anio_lectivo) left join aulas.reserva_periodica p on p.id_reserva=r.id_reserva where d.estado='CONFIRMADA' and d.fecha+d.hora_inicio+d.cantidad_modulos*interval '30 minutes'>? order by d.id_detalle",now);
         for(var a:added){
             bookingVersions.put(a.booking(),((Number)sources.get(a.booking()).get("version")).longValue());roomVersions.put(a.roomId(),byRoom.get(a.roomId()).version());
             var source=sources.get(a.booking());var room=byRoom.get(a.roomId());var occupied=occupants(occupancy,a.roomId(),a,false);
@@ -96,10 +101,18 @@ public class CalendarImpactService {
                 String reason=!compatible(room,source)?"El aula del patrón ya no cumple los requisitos.":duplicate?"La reserva ya tiene una clase reprogramada en esa fecha.":internal?"Las clases nuevas interfieren entre sí.":"El aula del patrón está ocupada.";
                 var patternDates=new ArrayList<>(added.stream().filter(b->b.booking().equals(a.booking()) && b.pattern().equals(a.pattern())).toList());
                 for(var o:occupancy)if(o.get("reservation").equals(a.booking()) && Objects.equals(o.get("pattern"),a.pattern()) && LocalDateTime.parse(o.get("date")+"T"+o.get("start")).isAfter(now))patternDates.add(new Added(a.booking(),a.pattern(),o.get("date").toString(),o.get("start").toString(),o.get("end").toString(),o.get("roomId").toString(),"",((Number)o.get("modules")).intValue()));
-                var alternatives=inventory.stream().filter(candidate->!candidate.internalId().equals(a.roomId()) && compatible(candidate,source) && patternDates.stream().allMatch(slot->occupants(occupancy,candidate.internalId(),slot,true).isEmpty()))
+                var available=inventory.stream().filter(candidate->!candidate.internalId().equals(a.roomId()) && compatible(candidate,source) && patternDates.stream().allMatch(slot->occupants(occupancy,candidate.internalId(),slot,true).isEmpty()))
                     .filter(candidate->patternDates.stream().noneMatch(slot->added.stream().anyMatch(b->!(b.booking().equals(a.booking()) && b.pattern().equals(a.pattern())) && overlaps(new Added(slot.booking(),slot.pattern(),slot.date(),slot.start(),slot.end(),candidate.internalId(),candidate.id(),slot.modules()),b))))
                     .sorted(Comparator.comparing(RoomsService.Room::capacity).thenComparing(RoomsService.Room::id)).map(RoomsService.Room::id).toList();
-                conflicts.add(new Conflict(a.booking(),a.date(),a.room(),reason,occupied,alternatives));
+                var ranked=new ArrayList<AlternativeRanking.Occupied>();
+                occupancy.stream().filter(o->!o.get("reservation").equals(a.booking()) || !Objects.equals(o.get("pattern"),a.pattern())).map(this::rankedOccupant).forEach(ranked::add);
+                for(var b:added)if(!(b.booking().equals(a.booking()) && b.pattern().equals(a.pattern()))){
+                    var r=sources.get(b.booking());
+                    ranked.add(new AlternativeRanking.Occupied(Long.parseLong(b.roomId()),LocalDate.parse(b.date()),LocalTime.parse(b.start()),b.modules(),b.booking(),r.get("subject").toString(),r.get("course").toString(),"periodic",r.get("nombre_docente")+" "+r.get("apellido_docente"),Objects.toString(r.get("email_docente"),null),new AlternativeRanking.Registrant(r.get("registrant_id").toString(),r.get("registrant_name").toString(),r.get("registrant_email").toString(),!Boolean.TRUE.equals(r.get("registrant_active")))));
+                }
+                var candidates=inventory.stream().filter(candidate->!candidate.internalId().equals(a.roomId()) && compatible(candidate,source)).map(candidate->new PeriodicPreparation.Room(candidate.internalId(),candidate.id(),candidate.version(),candidate.type(),candidate.capacity())).toList();
+                var alternatives=AlternativeRanking.rank(candidates,ranked,patternDates.stream().map(slot->new AlternativeRanking.Slot(slot.date(),LocalTime.parse(slot.start()),LocalTime.parse(slot.end()))).toList());
+                conflicts.add(new Conflict(a.booking(),a.date(),a.room(),reason,occupied,available,alternatives));
             }
         }
         String stamp=digest(canonical(Map.of("id",id,"calendar",edit,"bookings",bookingVersions,"rooms",roomVersions,"added",added,"conflicts",conflicts)));

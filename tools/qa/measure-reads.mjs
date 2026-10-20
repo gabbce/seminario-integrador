@@ -9,9 +9,13 @@ const auth=await fetch(front.VITE_SUPABASE_URL+'/auth/v1/token?grant_type=passwo
 if(!auth.ok)throw Error('Login HTTP '+auth.status);
 const {access_token}=await auth.json();
 try {
- const inventoryResponse=await fetch('http://127.0.0.1:8080/api/reservas',{headers:{Authorization:'Bearer '+access_token},signal:AbortSignal.timeout(60000)});
- if(!inventoryResponse.ok)throw Error('Inventario HTTP '+inventoryResponse.status);
- const inventory=await inventoryResponse.json();
+ const inventory=[];
+ for(let page=0;;page++) {
+  const response=await fetch('http://127.0.0.1:8080/api/reservas?page='+page+'&size=100',{headers:{Authorization:'Bearer '+access_token},signal:AbortSignal.timeout(60000)});
+  if(!response.ok)throw Error('Inventario HTTP '+response.status);
+  const batch=await response.json();inventory.push(...batch.items);
+  if(!batch.items.length||inventory.length>=batch.total)break;
+ }
  const dataset={reservations:inventory.length,details:inventory.reduce((n,b)=>n+b.occurrences.length,0)};
  const cases=[
   ['listado20','GET','/consultas/listado?mode=day&date=2027-08-23&page=0&size=20'],

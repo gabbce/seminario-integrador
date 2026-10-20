@@ -14,20 +14,28 @@ public final class AlternativeRanking {
                            int overlapMinutes,String teacher,String teacherEmail,Registrant registrant) {}
     public record Alternative(PeriodicPreparation.Room room,String group,int sporadicDates,
                               int sporadicMinutes,int periodicMinutes,List<Conflict> conflicts) {}
-    record Occupied(long room,LocalDate date,LocalTime start,int modules,String reservationId,
+    public record Occupied(long room,LocalDate date,LocalTime start,int modules,String reservationId,
                     String subject,String course,String modality,String teacher,String teacherEmail,Registrant registrant) {}
+    public record Slot(String date,LocalTime start,LocalTime end) {}
     static boolean overlaps(Occupied o,Set<String> dates,LocalTime start,LocalTime end) {
         return dates.contains(o.date().toString()) && o.start().isBefore(end) && start.isBefore(o.start().plusMinutes(o.modules()*30L));
     }
     static List<Alternative> rank(List<PeriodicPreparation.Room> rooms,List<Occupied> occupied,
                                   Set<String> dates,LocalTime start,LocalTime end) {
+        return rank(rooms,occupied,dates.stream().map(date->new Slot(date,start,end)).toList());
+    }
+    /** Each effective occurrence retains its actual window, including rescheduled classes. */
+    public static List<Alternative> rank(List<PeriodicPreparation.Room> rooms,List<Occupied> occupied,List<Slot> slots) {
         Map<Long,List<Conflict>> byRoom=new HashMap<>();
         for(var o:occupied) {
-            if(!overlaps(o,dates,start,end)) continue;
+          for(var slot:slots.stream().distinct().toList()) {
+            var start=slot.start();var end=slot.end();
+            if(!overlaps(o,Set.of(slot.date()),start,end)) continue;
             var finish=o.start().plusMinutes(o.modules()*30L);
             var from=o.start().isAfter(start)?o.start():start;var to=finish.isBefore(end)?finish:end;
             var conflict=new Conflict(o.reservationId(),o.subject(),o.course(),o.modality(),o.date().toString(),o.start().toString(),finish.toString(),from.toString(),to.toString(),(int)Duration.between(from,to).toMinutes(),o.teacher(),o.teacherEmail(),o.registrant());
             byRoom.computeIfAbsent(o.room(),ignored->new ArrayList<>()).add(conflict);
+          }
         }
         List<Alternative> result=new ArrayList<>();
         for(var room:rooms) {

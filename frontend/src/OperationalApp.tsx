@@ -57,24 +57,32 @@ export default function App({
   currentUser: Profile;
   onLogout: () => void;
 }) {
+  const [loaded, setLoaded] = useState({
+    calendars: false,
+    inventory: false,
+    references: false,
+  });
   const [calendars, setCalendars] = useState<CalendarConfig[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(true);
   const [calendarError, setCalendarError] = useState("");
   useEffect(() => {
     let active = true;
+    let revision = 0;
     const load = () => {
+      const attempt = ++revision;
       void api<CalendarConfig[]>("/referencias/calendarios")
         .then((rows) => {
-          if (active) {
+          if (active && attempt === revision) {
             setCalendars(rows);
             setCalendarError("");
+            setLoaded((old) => ({ ...old, calendars: true }));
           }
         })
         .catch((e) => {
-          if (active) setCalendarError(e.message);
+          if (active && attempt === revision) setCalendarError(e.message);
         })
         .finally(() => {
-          if (active) setCalendarLoading(false);
+          if (active && attempt === revision) setCalendarLoading(false);
         });
     };
     load();
@@ -110,19 +118,22 @@ export default function App({
   const [inventoryError, setInventoryError] = useState("");
   useEffect(() => {
     let active = true;
+    let revision = 0;
     const load = () => {
+      const attempt = ++revision;
       void api<Room[]>("/referencias/aulas")
         .then((rooms) => {
-          if (active) {
+          if (active && attempt === revision) {
             setInventory(rooms);
             setInventoryError("");
+            setLoaded((old) => ({ ...old, inventory: true }));
           }
         })
         .catch((e) => {
-          if (active) setInventoryError(e.message);
+          if (active && attempt === revision) setInventoryError(e.message);
         })
         .finally(() => {
-          if (active) setInventoryLoading(false);
+          if (active && attempt === revision) setInventoryLoading(false);
         });
     };
     load();
@@ -143,7 +154,9 @@ export default function App({
     .join(",");
   useEffect(() => {
     let active = true;
+    let revision = 0;
     const load = () => {
+      const attempt = ++revision;
       setReferencesLoading(true);
       void Promise.all([
         Promise.all(
@@ -155,17 +168,18 @@ export default function App({
         api<TeacherReference[]>("/referencias/docentes"),
       ])
         .then(([items, people]) => {
-          if (active) {
+          if (active && attempt === revision) {
             setCourses(items);
             setTeachers(people);
             setReferencesError("");
+            setLoaded((old) => ({ ...old, references: true }));
           }
         })
         .catch((e) => {
-          if (active) setReferencesError(e.message);
+          if (active && attempt === revision) setReferencesError(e.message);
         })
         .finally(() => {
-          if (active) setReferencesLoading(false);
+          if (active && attempt === revision) setReferencesLoading(false);
         });
     };
     load();
@@ -175,6 +189,7 @@ export default function App({
       window.removeEventListener("aulas-references-refresh", load);
     };
   }, [referenceYears]);
+  const dataReady = loaded.calendars && loaded.inventory && loaded.references;
   const [draft, setDraft] = useState<ReservationDraft>();
   const [menu, setMenu] = useState(false);
 
@@ -282,122 +297,114 @@ export default function App({
               {(inventoryLoading || calendarLoading || referencesLoading) && (
                 <p role="status">Cargando datos…</p>
               )}
-              {!inventoryError &&
-                !inventoryLoading &&
-                !calendarError &&
-                !calendarLoading &&
-                !referencesError &&
-                !referencesLoading && (
-                  <Routes>
-                    <Route
-                      path="/agenda"
-                      element={
-                        <Agenda
-                          bookings={[]}
-                          persisted
-                          courses={courses}
-                          date={agendaDate}
-                          setDate={setAgendaDate}
-                          operator={role !== "Docente"}
-                        />
-                      }
-                    />
-                    <Route
-                      path="/reservas/nueva"
-                      element={
-                        role === "Docente" ? (
-                          <Navigate to="/agenda" />
-                        ) : (
-                          <Wizard
-                            key="register"
-                            storageKey={`aulas-confirmation:${currentUser.id}`}
-                            initial={draft}
-                            onConsume={() => setDraft(undefined)}
-                            courses={courses}
-                            addCourse={(course) =>
-                              setCourses((old) =>
-                                old.some((c) => c.id === course.id)
-                                  ? old
-                                  : [...old, course],
-                              )
-                            }
-                            role={role}
-                            onConfirmed={() => {}}
-                          />
-                        )
-                      }
-                    />
-                    <Route
-                      path="/reservas/:id"
-                      element={
-                        <PersistedDetail
-                          key={location.pathname}
-                          role={role}
-                          actorId={currentUser.id}
+              {dataReady && (
+                <Routes>
+                  <Route
+                    path="/agenda"
+                    element={
+                      <Agenda
+                        bookings={[]}
+                        persisted
+                        courses={courses}
+                        date={agendaDate}
+                        setDate={setAgendaDate}
+                        operator={role !== "Docente"}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/reservas/nueva"
+                    element={
+                      role === "Docente" ? (
+                        <Navigate to="/agenda" />
+                      ) : (
+                        <Wizard
+                          key="register"
+                          storageKey={`aulas-confirmation:${currentUser.id}`}
+                          initial={draft}
+                          onConsume={() => setDraft(undefined)}
                           courses={courses}
                           addCourse={(course) =>
-                            setCourses((old) => [
-                              ...old.filter((c) => c.id !== course.id),
-                              course,
-                            ])
+                            setCourses((old) =>
+                              old.some((c) => c.id === course.id)
+                                ? old
+                                : [...old, course],
+                            )
                           }
-                        />
-                      }
-                    />
-                    <Route
-                      path="/reservas"
-                      element={<PersistedListing courses={courses} />}
-                    />
-                    <Route path="/aulas" element={<Rooms role={role} />} />
-                    <Route
-                      path="/disponibilidad"
-                      element={
-                        <Wizard
-                          key="query"
-                          queryOnly
                           role={role}
-                          courses={courses}
-                          addCourse={() => {}}
-                          onPrepare={setDraft}
+                          onConfirmed={() => {}}
                         />
-                      }
-                    />
-                    <Route
-                      path="/indicadores"
-                      element={
-                        role === "Docente" ? (
-                          <Navigate to="/agenda" replace />
-                        ) : (
-                          <PersistedIndicators />
-                        )
-                      }
-                    />
-                    <Route
-                      path="/administracion"
-                      element={
-                        role === "Administrador" ? (
-                          <Users />
-                        ) : (
-                          <Navigate to="/agenda" replace />
-                        )
-                      }
-                    />
-                    <Route
-                      path="/administracion/calendario"
-                      element={
-                        role === "Administrador" ? (
-                          <PersistedCalendar actorId={currentUser.id} />
-                        ) : (
-                          <Navigate to="/agenda" replace />
-                        )
-                      }
-                    />
-                    <Route
-                      path="*"
-                      element={<Navigate to="/agenda" replace />}
-                    />
-                  </Routes>
-                )}
+                      )
+                    }
+                  />
+                  <Route
+                    path="/reservas/:id"
+                    element={
+                      <PersistedDetail
+                        key={location.pathname}
+                        role={role}
+                        actorId={currentUser.id}
+                        courses={courses}
+                        addCourse={(course) =>
+                          setCourses((old) => [
+                            ...old.filter((c) => c.id !== course.id),
+                            course,
+                          ])
+                        }
+                      />
+                    }
+                  />
+                  <Route
+                    path="/reservas"
+                    element={<PersistedListing courses={courses} />}
+                  />
+                  <Route path="/aulas" element={<Rooms role={role} />} />
+                  <Route
+                    path="/disponibilidad"
+                    element={
+                      <Wizard
+                        key="query"
+                        queryOnly
+                        role={role}
+                        courses={courses}
+                        addCourse={() => {}}
+                        onPrepare={setDraft}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/indicadores"
+                    element={
+                      role === "Docente" ? (
+                        <Navigate to="/agenda" replace />
+                      ) : (
+                        <PersistedIndicators />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/administracion"
+                    element={
+                      role === "Administrador" ? (
+                        <Users />
+                      ) : (
+                        <Navigate to="/agenda" replace />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/administracion/calendario"
+                    element={
+                      role === "Administrador" ? (
+                        <PersistedCalendar actorId={currentUser.id} />
+                      ) : (
+                        <Navigate to="/agenda" replace />
+                      )
+                    }
+                  />
+                  <Route path="*" element={<Navigate to="/agenda" replace />} />
+                </Routes>
+              )}
             </main>
             <footer>Demostración académica · Datos ficticios</footer>
           </>

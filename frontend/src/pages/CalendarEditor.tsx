@@ -1,10 +1,74 @@
 import { FormError } from "../components/FormError";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type CalendarConfig } from "../calendar";
 import { type CalendarImpact } from "../calendar-management";
 import { dateLabel } from "../domain";
 import { Button } from "../components/ui/button";
 import { AdminNav } from "../components/AdminNav";
+import type { PreparationAlternative } from "../periodic-preparation";
+function ImpactAlternatives({
+  alternatives,
+}: {
+  alternatives: PreparationAlternative[];
+}) {
+  function option(a: PreparationAlternative) {
+    return (
+      <article key={a.room.internalId}>
+        <h4>Aula {a.room.id}</h4>
+        <p>
+          {a.room.capacity} personas · {a.room.type} ·{" "}
+          {a.group === "WITH_PERIODIC"
+            ? `${a.periodicMinutes} minutos con periódicas · ${a.sporadicDates} fechas con esporádicas`
+            : `${a.sporadicDates} fechas afectadas · ${a.sporadicMinutes} minutos con esporádicas`}
+        </p>
+        <details>
+          <summary>Ver conflictos de Aula {a.room.id}</summary>
+          {a.conflicts.map((c, i) => (
+            <div key={`${c.reservationId}-${c.date}-${i}`}>
+              <p>
+                Reserva {c.reservationId} · {c.subject} · {c.course} ·{" "}
+                {c.modality === "periodic" ? "Periódica" : "Esporádica"}
+              </p>
+              <p>
+                {dateLabel(c.date)} · {c.start}–{c.end} · {c.overlapMinutes}{" "}
+                minutos afectados ({c.overlapStart}–{c.overlapEnd})
+              </p>
+              <p>
+                Docente solicitante: {c.teacher} ·{" "}
+                {c.teacherEmail ?? "Sin email registrado"}
+              </p>
+              <p>
+                Registró:{" "}
+                {c.registrant
+                  ? `${c.registrant.name} · ${c.registrant.email}${c.registrant.inactive ? " · Usuario inactivo" : ""}`
+                  : "Sin datos registrados"}
+              </p>
+            </div>
+          ))}
+        </details>
+      </article>
+    );
+  }
+  return alternatives.length ? (
+    <section>
+      <h3>Requieren resolver conflictos</h3>
+      <p>
+        Opciones informativas para todas las clases futuras del patrón. Contactá
+        a las personas fuera de la app y volvé a consultar después de resolver
+        las interferencias.
+      </p>
+      {alternatives.slice(0, 3).map(option)}
+      {alternatives.length > 3 && (
+        <details>
+          <summary>
+            Ver restantes alternativas ({alternatives.length - 3})
+          </summary>
+          {alternatives.slice(3).map(option)}
+        </details>
+      )}
+    </section>
+  ) : null;
+}
 type Preview = { impact?: CalendarImpact; error?: string; stamp: string };
 export function CalendarEditor({
   calendar,
@@ -17,6 +81,7 @@ export function CalendarEditor({
   persisted = false,
   reload,
   initial,
+  onBusyChange,
 }: {
   calendar: CalendarConfig;
   calendars: CalendarConfig[];
@@ -31,8 +96,23 @@ export function CalendarEditor({
   ) => string | undefined | Promise<string | undefined>;
   persisted?: boolean;
   reload?: () => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+      onBusyChange?.(false);
+    };
+  }, [onBusyChange]);
+  function setOperationBusy(value: boolean) {
+    // A completed request from an unmounted editor cannot unlock a new editor.
+    if (!active.current) return;
+    setBusy(value);
+    onBusyChange?.(value);
+  }
   const [newYear, setNewYear] = useState(calendar.year + 1);
   const [deleting, setDeleting] = useState(false);
   const [draft, setDraft] = useState<CalendarConfig>(() =>
@@ -47,7 +127,7 @@ export function CalendarEditor({
   async function mutate(
     action: () => string | undefined | Promise<string | undefined>,
   ) {
-    setBusy(true);
+    setOperationBusy(true);
     setError("");
     try {
       const failure = await action();
@@ -61,7 +141,7 @@ export function CalendarEditor({
       setError(failure);
       return failure;
     } finally {
-      setBusy(false);
+      setOperationBusy(false);
     }
   }
   function patch(proposal: CalendarConfig) {
@@ -176,7 +256,7 @@ export function CalendarEditor({
             if (!failure) setMessage("Calendario actualizado.");
             return;
           }
-          setBusy(true);
+          setOperationBusy(true);
           let result: Preview | undefined;
           try {
             result = await preview?.(draft);
@@ -187,7 +267,7 @@ export function CalendarEditor({
                 : "No se pudo revisar el impacto. Reintentá la consulta.",
             );
           } finally {
-            setBusy(false);
+            setOperationBusy(false);
           }
           if (!result) return;
           if (result.error) {
@@ -446,8 +526,8 @@ export function CalendarEditor({
                   <h3>El conjunto tiene interferencias</h3>
                   <p>
                     Resolvé las reservas indicadas y volvé a revisar el impacto.
-                    Las alternativas son informativas para esta fecha; el cambio
-                    de aula periódico debe abarcar todo el patrón.
+                    Las alternativas son informativas para todo el patrón; el
+                    cambio de aula periódico debe abarcar todo el patrón.
                   </p>
                   {review.conflicts.map((conflict) => (
                     <div key={`${conflict.booking}-${conflict.date}`}>
@@ -470,10 +550,20 @@ export function CalendarEditor({
                         </p>
                       ))}
                       <p>
-                        {conflict.alternatives.length
-                          ? `Aulas compatibles libres en ese horario: ${conflict.alternatives.join(", ")}.`
-                          : "No hay otras aulas compatibles libres en ese horario."}
+                        {conflict.available.length
+                          ? `Aulas compatibles libres en todo el patrón: ${conflict.available.join(", ")}.`
+                          : "No hay otras aulas compatibles libres en todo el patrón."}
                       </p>
+                      <ImpactAlternatives
+                        alternatives={conflict.alternatives}
+                      />
+                      {!conflict.available.length &&
+                        !conflict.alternatives.length && (
+                          <p>
+                            No hay otras aulas compatibles con la capacidad,
+                            tipo, recursos y estado solicitados.
+                          </p>
+                        )}
                     </div>
                   ))}
                 </div>

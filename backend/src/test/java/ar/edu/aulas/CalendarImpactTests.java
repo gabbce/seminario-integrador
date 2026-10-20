@@ -119,7 +119,7 @@ class CalendarImpactTests {
  @Test void conflictBlocksEntireCalendarAndShowsContactsAndInformationalRooms() {
   confirmation.confirm(admin,request());sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-29")));
   rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
-  var e=extension();var review=impact.prepare(admin,year,e);long count=count("detalle_reserva");assertThat(review.canConfirm()).isFalse();assertThat(review.conflicts().getFirst().occupants()).isNotEmpty();assertThat(review.conflicts().getFirst().alternatives()).contains("202");
+  var e=extension();var review=impact.prepare(admin,year,e);long count=count("detalle_reserva");assertThat(review.canConfirm()).isFalse();assertThat(review.conflicts().getFirst().occupants()).isNotEmpty();assertThat(review.conflicts().getFirst().available()).contains("202");
   assertThatThrownBy(()->impact.confirm(admin,year,new CalendarImpactService.Request(UUID.randomUUID(),e,review.stamp()))).isInstanceOf(DomainError.class);
   assertThat(calendars.get(year).version()).isZero();assertThat(count("detalle_reserva")).isEqualTo(count);assertThat(count("operacion_calendario")).isZero();
  }
@@ -237,12 +237,33 @@ class CalendarImpactTests {
   var target=rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
   var blocker=reviewedSporadic(sporadic("2027-04-19"));
   sporadicConfirmation.confirm(admin,new SporadicConfirmation.Request(blocker.operationId(),blocker.proposal(),blocker.teacherId(),blocker.calendarVersion(),blocker.selections().stream().map(slot->new SporadicConfirmation.Selection(slot.date(),target.internalId(),target.version())).toList()));
-  assertThat(impact.prepare(admin,year,extension()).conflicts()).allMatch(conflict->!conflict.alternatives().contains("202"));
+  var review=impact.prepare(admin,year,extension());
+  assertThat(new tools.jackson.databind.ObjectMapper().writeValueAsString(review.conflicts())).contains("SPORADIC_ONLY").contains("2027-04-19").contains("teacherEmail").contains("registrant");
+  long before=count("detalle_reserva");
+  assertThatThrownBy(()->impact.confirm(admin,year,new CalendarImpactService.Request(UUID.randomUUID(),extension(),review.stamp()))).hasMessageContaining("interferencias");
+  assertThat(count("detalle_reserva")).isEqualTo(before);assertThat(calendars.get(year).version()).isZero();
  }
  @Test void unrelatedBookingVersionDoesNotInvalidateImpactStamp() {
   confirmation.confirm(admin,request());var other=sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-16")));var e=extension();var stamp=impact.prepare(admin,year,e).stamp();
   db.update("update aulas.reserva set version=version+1 where id_reserva=?",key(other));
   assertThat(impact.prepare(admin,year,e).stamp()).isEqualTo(stamp);
+ }
+ @Test void occupiedAlternativesExposeCurrentInactiveRegistrantOnlyToAdminAndUseRescheduledWindow() throws Exception {
+  var booking=confirmation.confirm(admin,request());
+  reschedules.confirm(bedel,key(booking),reviewed(booking,List.of(change(ids(booking).getFirst(),"2027-03-09"))));
+  sporadicConfirmation.confirm(admin,reviewedSporadic(sporadic("2027-03-29")));
+  var target=rooms.save(admin,null,new RoomsService.Room(null,"202",null,"General",40,"Habilitada","A",0,"Tiza",List.of("fans","air"),null,List.of()));
+  var p=new SporadicPreparation.Request(2027,Long.toString(course),25,"General","Tiza",List.of("fans"),List.of(new SporadicPreparation.DateSlot("2027-03-09","12:00",2)));
+  var ready=sporadicPreparation.prepare(p,true);
+  sporadicConfirmation.confirm(bedel,new SporadicConfirmation.Request(UUID.randomUUID(),p,"D-01",ready.calendarVersion(),List.of(new SporadicConfirmation.Selection("2027-03-09",target.internalId(),target.version()))));
+  db.update("update aulas.usuario set activo=false,nombre='Registrante actual',email='actual@example.test' where id_usuario=?",bedel);
+  var review=impact.prepare(admin,year,extension());var alternative=review.conflicts().getFirst().alternatives().getFirst();
+  assertThat(alternative.room().id()).isEqualTo("202");assertThat(alternative.sporadicMinutes()).isEqualTo(30);assertThat(alternative.sporadicDates()).isOne();
+  var conflict=alternative.conflicts().getFirst();assertThat(conflict.date()).isEqualTo("2027-03-09");assertThat(conflict.overlapStart()).isEqualTo("12:00");
+  assertThat(conflict.registrant().inactive()).isTrue();assertThat(conflict.registrant().name()).contains("Registrante actual");assertThat(conflict.registrant().email()).isEqualTo("actual@example.test");
+  var body=new tools.jackson.databind.ObjectMapper().writeValueAsString(extension());
+  mvc.perform(post("/api/administracion/calendarios/"+year+"/impacto").with(session(admin)).contentType("application/json").content(body)).andExpect(status().isOk()).andExpect(jsonPath("$.conflicts[0].alternatives[0].conflicts[0].registrant.email").value("actual@example.test"));
+  for(long forbidden:List.of(bedel,teacher))mvc.perform(post("/api/administracion/calendarios/"+year+"/impacto").with(session(forbidden)).contentType("application/json").content(body)).andExpect(status().isForbidden()).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("actual@example.test"))));
  }
 
  @Test void confirmationAuditUsesStatementTimeInsteadOfTransactionStart() {

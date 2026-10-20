@@ -1,6 +1,7 @@
 import { type CalendarConfig, candidateDates, demoNow } from "./calendar";
 import { type Booking, type Room, type Role, overlaps } from "./domain";
 import { compatible } from "./equipment";
+import type { PreparationAlternative } from "./periodic-preparation";
 export type CalendarImpact = {
   canConfirm?: boolean;
   conflicts?: {
@@ -17,7 +18,8 @@ export type CalendarImpact = {
       start: string;
       end: string;
     }[];
-    alternatives: string[];
+    available: string[];
+    alternatives: PreparationAlternative[];
   }[];
   calendar: CalendarConfig;
   bookings: Booking[];
